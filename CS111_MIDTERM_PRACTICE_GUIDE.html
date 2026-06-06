@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CS111 Midterm Practice Guide</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #202124;
+      background-color: #f5f5f2;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 54em;
+      padding: 56px 68px;
+      background: #ffffff;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
+      min-height: 100vh;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+      font-family: Charter, Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.58;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+        padding: 20px;
+        box-shadow: none;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+        box-shadow: none;
+        max-width: none;
+        padding: 0;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 0.85em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.18;
+      hyphens: none;
+    }
+    h1 {
+      margin-top: 2.2em;
+      padding-top: 0.8em;
+      border-top: 2px solid #d7d7cf;
+      font-size: 2.05em;
+    }
+    h1:first-of-type {
+      margin-top: 0.4em;
+      border-top: 0;
+      padding-top: 0;
+    }
+    h2 {
+      margin-top: 1.9em;
+      font-size: 1.35em;
+    }
+    h3 {
+      margin-top: 1.5em;
+      font-size: 1.1em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li {
+      margin: 0.22em 0;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: #f1f3f4;
+      padding: 0.08em 0.28em;
+      border-radius: 4px;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #d8dee4;
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.86em;
+    }
+    blockquote {
+      border-left: 4px solid #b8b8ae;
+      margin-left: 0;
+      padding-left: 1em;
+      color: #4a4d50;
+    }
+    nav#TOC {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8f8f5;
+      border: 1px solid #deded6;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 1.5em 0 2.5em;
+    }
+    nav#TOC ul {
+      margin: 0.35em 0;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CS111 Midterm Practice Guide</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#cs111-past-midterm-practice-guide"
+id="toc-cs111-past-midterm-practice-guide">CS111 Past Midterm Practice
+Guide</a>
+<ul>
+<li><a href="#what-the-midterms-emphasize"
+id="toc-what-the-midterms-emphasize">What the Midterms
+Emphasize</a></li>
+<li><a href="#high-level-exam-pattern"
+id="toc-high-level-exam-pattern">High-Level Exam Pattern</a></li>
+</ul></li>
+<li><a href="#year-by-year-summary"
+id="toc-year-by-year-summary">Year-by-Year Summary</a>
+<ul>
+<li><a href="#current-term-practice-midterm"
+id="toc-current-term-practice-midterm">Current-Term Practice
+Midterm</a></li>
+<li><a href="#midterm-review-problems"
+id="toc-midterm-review-problems">Midterm Review Problems</a></li>
+<li><a href="#spring-2022" id="toc-spring-2022">Spring 2022</a></li>
+<li><a href="#spring-2023" id="toc-spring-2023">Spring 2023</a></li>
+<li><a href="#spring-2024" id="toc-spring-2024">Spring 2024</a></li>
+</ul></li>
+<li><a href="#recurring-conceptual-traps"
+id="toc-recurring-conceptual-traps">Recurring Conceptual Traps</a>
+<ul>
+<li><a href="#critical-section-trap"
+id="toc-critical-section-trap">Critical Section Trap</a></li>
+<li><a href="#scheduler-trap" id="toc-scheduler-trap">Scheduler
+Trap</a></li>
+<li><a href="#thread-vs-process-trap"
+id="toc-thread-vs-process-trap">Thread vs Process Trap</a></li>
+<li><a href="#linker-trap" id="toc-linker-trap">Linker Trap</a></li>
+<li><a href="#condition-variable-trap"
+id="toc-condition-variable-trap">Condition Variable Trap</a></li>
+<li><a href="#partial-reservation-trap"
+id="toc-partial-reservation-trap">Partial Reservation Trap</a></li>
+</ul></li>
+<li><a href="#virtual-memory-and-page-table-crash-course"
+id="toc-virtual-memory-and-page-table-crash-course">Virtual Memory and
+Page Table Crash Course</a>
+<ul>
+<li><a href="#basic-page-translation"
+id="toc-basic-page-translation">Basic Page Translation</a></li>
+<li><a href="#physical-page-number"
+id="toc-physical-page-number">Physical Page Number</a></li>
+<li><a href="#page-map-entry-contents"
+id="toc-page-map-entry-contents">Page Map Entry Contents</a></li>
+<li><a href="#multilevel-page-tables"
+id="toc-multilevel-page-tables">Multilevel Page Tables</a></li>
+<li><a href="#x86-64-style-example-from-20222023"
+id="toc-x86-64-style-example-from-20222023">x86-64-Style Example from
+2022/2023</a></li>
+<li><a href="#increasing-page-size"
+id="toc-increasing-page-size">Increasing Page Size</a></li>
+<li><a href="#designing-a-page-table-from-scratch"
+id="toc-designing-a-page-table-from-scratch">Designing a Page Table from
+Scratch</a></li>
+</ul></li>
+<li><a href="#file-systems-and-crash-recovery-crash-course"
+id="toc-file-systems-and-crash-recovery-crash-course">File Systems and
+Crash Recovery Crash Course</a>
+<ul>
+<li><a href="#inodes" id="toc-inodes">Inodes</a></li>
+<li><a href="#directory-entries" id="toc-directory-entries">Directory
+Entries</a></li>
+<li><a href="#pathname-lookup" id="toc-pathname-lookup">Pathname
+Lookup</a></li>
+<li><a href="#rename" id="toc-rename">Rename</a></li>
+<li><a href="#inode-placement" id="toc-inode-placement">Inode
+Placement</a></li>
+<li><a href="#direct-indirect-and-doubly-indirect-blocks"
+id="toc-direct-indirect-and-doubly-indirect-blocks">Direct, Indirect,
+and Doubly Indirect Blocks</a></li>
+<li><a href="#crash-recovery" id="toc-crash-recovery">Crash
+Recovery</a></li>
+<li><a href="#loggingjournaling"
+id="toc-loggingjournaling">Logging/Journaling</a></li>
+<li><a href="#idempotence" id="toc-idempotence">Idempotence</a></li>
+<li><a href="#durability-vs-performance"
+id="toc-durability-vs-performance">Durability vs Performance</a></li>
+</ul></li>
+<li><a href="#unix-processes-pipes-and-file-descriptors-crash-course"
+id="toc-unix-processes-pipes-and-file-descriptors-crash-course">Unix
+Processes, Pipes, and File Descriptors Crash Course</a>
+<ul>
+<li><a href="#file-descriptors" id="toc-file-descriptors">File
+Descriptors</a></li>
+<li><a href="#pipe" id="toc-pipe"><code>pipe</code></a></li>
+<li><a href="#dup2" id="toc-dup2"><code>dup2</code></a></li>
+<li><a href="#why-close-matters" id="toc-why-close-matters">Why Close
+Matters</a></li>
+<li><a href="#two-command-pipeline-pattern"
+id="toc-two-command-pipeline-pattern">Two-Command Pipeline
+Pattern</a></li>
+<li><a href="#timing-a-child-process"
+id="toc-timing-a-child-process">Timing a Child Process</a></li>
+</ul></li>
+<li><a href="#monitor-style-coding-template"
+id="toc-monitor-style-coding-template">Monitor-Style Coding Template</a>
+<ul>
+<li><a href="#how-to-design-the-shared-state"
+id="toc-how-to-design-the-shared-state">How to Design the Shared
+State</a></li>
+<li><a href="#when-to-use-notify_one"
+id="toc-when-to-use-notify_one">When to Use
+<code>notify_one</code></a></li>
+<li><a href="#when-to-use-notify_all"
+id="toc-when-to-use-notify_all">When to Use
+<code>notify_all</code></a></li>
+<li><a href="#common-big-problem-state-patterns"
+id="toc-common-big-problem-state-patterns">Common Big-Problem State
+Patterns</a>
+<ul>
+<li><a href="#ordered-waiting" id="toc-ordered-waiting">Ordered
+Waiting</a></li>
+<li><a href="#count-per-category" id="toc-count-per-category">Count Per
+Category</a></li>
+<li><a href="#resource-availability"
+id="toc-resource-availability">Resource Availability</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#recommended-practice-order"
+id="toc-recommended-practice-order">Recommended Practice Order</a>
+<ul>
+<li><a href="#pass-1-read-solutions-for-pattern-recognition"
+id="toc-pass-1-read-solutions-for-pattern-recognition">Pass 1: Read
+Solutions for Pattern Recognition</a></li>
+<li><a href="#pass-2-drill-page-tables"
+id="toc-pass-2-drill-page-tables">Pass 2: Drill Page Tables</a></li>
+<li><a href="#pass-3-drill-scheduling"
+id="toc-pass-3-drill-scheduling">Pass 3: Drill Scheduling</a></li>
+<li><a href="#pass-4-drill-memory-and-linking"
+id="toc-pass-4-drill-memory-and-linking">Pass 4: Drill Memory and
+Linking</a></li>
+<li><a href="#pass-5-code-the-big-problems-without-looking"
+id="toc-pass-5-code-the-big-problems-without-looking">Pass 5: Code the
+Big Problems Without Looking</a></li>
+</ul></li>
+<li><a href="#exam-day-checklist-for-the-coding-problem"
+id="toc-exam-day-checklist-for-the-coding-problem">Exam-Day Checklist
+for the Coding Problem</a></li>
+<li><a href="#two-sided-notes-sheet-suggestions"
+id="toc-two-sided-notes-sheet-suggestions">Two-Sided Notes Sheet
+Suggestions</a></li>
+</ul>
+</nav>
+<h1 id="cs111-past-midterm-practice-guide">CS111 Past Midterm Practice
+Guide</h1>
+<p>This guide distills the three past midterm solution PDFs in this
+folder:</p>
+<ul>
+<li><code>Spr2022MidtermSolution.pdf</code></li>
+<li><code>Spr2023MidtermSolution.pdf</code></li>
+<li><code>Spr2024MidtermSolution.pdf</code></li>
+<li><code>CS111-Practice-Midterm-Solutions.pdf</code></li>
+<li><code>Midterm review problems.pdf</code></li>
+</ul>
+<p>Use this after reading the comprehensive notes. The midterms show
+what the course repeatedly asks you to do under time pressure.</p>
+<p>Important: the current-term practice midterm includes file systems,
+crash recovery/logging, inodes, pipes, <code>dup2</code>, and
+shell-style multiprocessing. Those topics are not covered by the 12
+lecture PDFs currently in the <code>Lectures</code> folder, so you
+should treat them as missing material to learn separately.</p>
+<p>The additional midterm review problems emphasize two code-heavy
+patterns: thread-per-task parallelism with a shared map protected by a
+mutex, and FIFO pair matching with condition variables.</p>
+<h2 id="what-the-midterms-emphasize">What the Midterms Emphasize</h2>
+<p>Across 2022, 2023, and 2024, the repeated themes are:</p>
+<ul>
+<li>Short true/false conceptual explanations.</li>
+<li>Process vs thread memory sharing.</li>
+<li>Scheduling policy and preemption.</li>
+<li>Locks, condition variables, and monitor-style synchronization.</li>
+<li>Dynamic storage management.</li>
+<li>Linkers and memory layout.</li>
+<li>Virtual memory/page table arithmetic.</li>
+<li>Trust models.</li>
+<li>File-system layout, inodes, directories, logging, and crash
+recovery.</li>
+<li>Unix multiprocessing with pipes and file descriptor management.</li>
+<li>Thread creation using <code>std::thread</code>,
+<code>std::ref</code>, vectors of threads, and <code>join</code>.</li>
+<li>FIFO pair-matching monitor design.</li>
+</ul>
+<p>The biggest point value every year is a monitor-style synchronization
+implementation in C++ using <code>std::mutex</code> and
+<code>std::condition_variable</code>.</p>
+<h2 id="high-level-exam-pattern">High-Level Exam Pattern</h2>
+<p>Each exam is about 90 minutes and has roughly this shape:</p>
+<ul>
+<li>Problem 1: true/false with brief explanations.</li>
+<li>Problem 2-4: short conceptual or calculation problems.</li>
+<li>Problem 5: large synchronization coding problem, worth about half
+the exam.</li>
+</ul>
+<p>That means your prep should heavily prioritize:</p>
+<ol type="1">
+<li>Recognizing conceptual traps quickly.</li>
+<li>Doing page-table/scheduling arithmetic cleanly.</li>
+<li>Writing a correct monitor under pressure.</li>
+<li>Explaining file-system crash-recovery tradeoffs.</li>
+<li>Tracing file descriptors across <code>fork</code>,
+<code>pipe</code>, <code>dup2</code>, and <code>close</code>.</li>
+<li>Spawning one thread per independent task and protecting shared
+outputs.</li>
+<li>Implementing match-making monitors with per-category queues.</li>
+</ol>
+<hr />
+<h1 id="year-by-year-summary">Year-by-Year Summary</h1>
+<h2 id="current-term-practice-midterm">Current-Term Practice
+Midterm</h2>
+<p>Main topics:</p>
+<ul>
+<li>File systems and inodes.</li>
+<li>Directory entries and rename.</li>
+<li>Logging and idempotence.</li>
+<li>Crash recovery tradeoffs.</li>
+<li>Multithreaded race outcomes.</li>
+<li>Unix process pipelines.</li>
+<li><code>pipe</code>, <code>fork</code>, <code>dup2</code>,
+<code>close</code>, <code>execvp</code>, and <code>waitpid</code>.</li>
+<li>Basic thread synchronization around a shared vector.</li>
+</ul>
+<p>Problem highlights:</p>
+<ul>
+<li>Scattering inodes can reduce seeks between inode access and payload
+access, but it makes inode lookup/allocation more complex.</li>
+<li>Log replay requires idempotent operations. If replaying an operation
+twice changes the result, crash recovery can corrupt state.</li>
+<li>Doubly indirect indexing supports larger files, but can make
+small-file payload access require more disk reads.</li>
+<li>Rename works by finding the existing inode, removing the old
+directory entry, locating or creating the new parent path, then adding a
+new directory entry pointing to the same inode.</li>
+<li>Crash recovery often trades durability/consistency against
+performance. More aggressive writes or more complete logging improves
+recovery but costs I/O.</li>
+<li>Unsynchronized multithreaded code can produce multiple outputs
+depending on interleaving.</li>
+<li>Pipes require careful closing of unused file descriptors. A reader
+sees EOF only when all write ends of the pipe are closed.</li>
+<li>A shell pipeline is built with <code>pipe</code>, two
+<code>fork</code>s, <code>dup2</code> to connect stdin/stdout,
+<code>close</code> to remove unused descriptors, <code>execvp</code> in
+children, and <code>waitpid</code> in the parent.</li>
+</ul>
+<p>Most important practical implication:</p>
+<ul>
+<li>Your current exam may care more about file systems and Unix
+process/file-descriptor mechanics than the three older midterms suggest.
+Do not study only locks and scheduling.</li>
+</ul>
+<h2 id="midterm-review-problems">Midterm Review Problems</h2>
+<p>Main topics:</p>
+<ul>
+<li>Parallelizing independent work with one thread per item.</li>
+<li>Passing arguments to threads using <code>std::ref</code>.</li>
+<li>Protecting a shared <code>map</code> with a mutex.</li>
+<li>Joining all spawned threads before using final shared results.</li>
+<li>FIFO pair matching by category.</li>
+<li>Condition variables stored inside waiting records.</li>
+<li>Queue per category using
+<code>unordered_map&lt;int, queue&lt;Student*&gt;&gt;</code>.</li>
+</ul>
+<p>Problem 1: News Aggregation</p>
+<p>The original program fetches articles sequentially. The review
+problem asks you to spawn one thread per article:</p>
+<ul>
+<li>Create a <code>vector&lt;thread&gt;</code>.</li>
+<li>For each article, push a new <code>thread</code>.</li>
+<li>Pass the article, <code>NewsManager</code>, shared database map, and
+database mutex by reference.</li>
+<li>In <code>fetchArticle</code>, do the slow fetch outside the
+lock.</li>
+<li>Lock only around the shared map update.</li>
+<li>Join every thread before calling
+<code>handleUserQueries</code>.</li>
+</ul>
+<p>The key race:</p>
+<ul>
+<li>Multiple threads update the same <code>database</code> map.</li>
+<li><code>database[article] = articleContents</code> must be protected
+by <code>databaseLock</code>.</li>
+</ul>
+<p>The key performance point:</p>
+<ul>
+<li>Do not hold the lock while downloading the article. Fetching is slow
+and independent; only the map insertion is shared.</li>
+</ul>
+<p>Problem 2: Stanford Dorm Selection</p>
+<p>The dorm problem is a FIFO pair-matching monitor:</p>
+<ul>
+<li>Each student chooses one dorm id.</li>
+<li>A student blocks until another student chooses the same dorm.</li>
+<li>Both students return the other student’s name.</li>
+<li>Pairing must be FIFO per dorm.</li>
+</ul>
+<p>Useful state:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Student <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string my_name<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>condition_variable cv<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string match_name<span class="op">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> matched <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>mutex m<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>unordered_map<span class="op">&lt;</span><span class="dt">int</span><span class="op">,</span> <span class="bu">std::</span>queue<span class="op">&lt;</span>Student<span class="op">*&gt;&gt;</span> waiting<span class="op">;</span></span></code></pre></div>
+<p>Pattern:</p>
+<ul>
+<li>If the queue for this dorm is nonempty, pop the oldest waiting
+student, fill in their match fields, notify them, and return their
+name.</li>
+<li>Otherwise, create a local <code>Student self</code>, push
+<code>&amp;self</code> into the dorm queue, and wait in a loop until
+<code>self.matched</code>.</li>
+</ul>
+<p>The local <code>Student self</code> is safe because the waiting call
+does not return until the match has happened and the queue entry has
+been popped.</p>
+<p>This is the same family as Party/Flight:</p>
+<ul>
+<li>Party: match complementary categories.</li>
+<li>Flight: wake lowest ordered waiter.</li>
+<li>Dorm: match FIFO within the same category.</li>
+</ul>
+<h2 id="spring-2022">Spring 2022</h2>
+<p>Main topics:</p>
+<ul>
+<li>Critical sections.</li>
+<li>Scheduling independence and synchronization bugs.</li>
+<li>BSD-style priority scheduling.</li>
+<li>Linker symbol tables vs unresolved references.</li>
+<li>Process vs thread design for shells.</li>
+<li>Multilevel page tables.</li>
+<li>Monitor-style synchronization problem: lane merging.</li>
+</ul>
+<p>Problem highlights:</p>
+<ul>
+<li>A critical section cannot have multiple threads inside it
+simultaneously, even on different cores.</li>
+<li>A scheduler change should not change correct program behavior; if an
+app starts crashing, it likely had a latent synchronization bug.</li>
+<li>The 4.4 BSD scheduler is preemptive.</li>
+<li>A file that uses a symbol has an unresolved reference; the file that
+defines the symbol has the symbol table definition.</li>
+<li>Running shell commands as threads in the shell process would be bad
+because of shared memory, file descriptor conflicts, security, and
+loading issues.</li>
+<li>Page-table arithmetic requires careful accounting of offset bits,
+index bits, page-map entry size, and number of levels.</li>
+<li>The big coding problem asks you to coordinate cars merging from
+multiple lanes without starvation.</li>
+</ul>
+<p>Big synchronization idea:</p>
+<ul>
+<li>Track how many cars are waiting in each lane.</li>
+<li>Track whether a car is currently merging.</li>
+<li>When the current car finishes, choose the next lane in round-robin
+order among lanes with waiters.</li>
+<li>Use one monitor lock.</li>
+<li>Use condition variables to block cars until selected.</li>
+</ul>
+<h2 id="spring-2023">Spring 2023</h2>
+<p>Main topics:</p>
+<ul>
+<li>Locks and thread ownership.</li>
+<li>Threads from one process running on different cores.</li>
+<li>Busy waiting and spin locks.</li>
+<li>Base-and-bound relocation.</li>
+<li>Trust by substitution.</li>
+<li>Dynamic storage management.</li>
+<li>Variable sharing across threads, processes, scopes, and stacks.</li>
+<li>Multilevel page tables.</li>
+<li>Monitor-style synchronization problem: airplane boarding.</li>
+</ul>
+<p>Problem highlights:</p>
+<ul>
+<li>A lock can be owned by at most one thread at a time.</li>
+<li>Threads within one process can run on different cores.</li>
+<li>Busy waiting is usually bad, but can be appropriate for very short
+waits or low-level lock implementation.</li>
+<li>Base-and-bound relocation requires the entire process address space
+to be contiguous in physical memory.</li>
+<li>Backing up before an OS update is trust by substitution because it
+limits consequences if the update fails.</li>
+<li>Slab allocation can strand memory in underused slabs.</li>
+<li>Reference counting struggles with cycles.</li>
+<li>Garbage collection can be expensive in time and space.</li>
+<li>A global variable is shared by threads in the same process.</li>
+<li>After <code>fork</code>, parent and child have separate copies of
+memory.</li>
+<li>Local variables in different functions or scopes are distinct
+variables.</li>
+</ul>
+<p>Big synchronization idea:</p>
+<ul>
+<li>Passengers call <code>wait_to_board(position)</code> and block.</li>
+<li>Gate agent calls <code>board_next()</code>.</li>
+<li>Board the lowest waiting boarding position.</li>
+<li>A <code>std::map&lt;size_t, condition_variable*&gt;</code> naturally
+keeps waiting passengers ordered by position.</li>
+<li><code>board_next</code> notifies only the lowest-position
+waiter.</li>
+</ul>
+<h2 id="spring-2024">Spring 2024</h2>
+<p>Main topics:</p>
+<ul>
+<li>STCF/STCF scheduling optimality.</li>
+<li>Dynamic linking.</li>
+<li>Linker section layout.</li>
+<li>Reference counting and dangling pointers.</li>
+<li>Virtual vs physical address sizes.</li>
+<li>Scheduling preemption.</li>
+<li>Trust by substitution through page-table protection.</li>
+<li>Multicore ready queues.</li>
+<li>Page-table architecture design.</li>
+<li>Monitor-style synchronization problem: inventory reservation.</li>
+</ul>
+<p>Problem highlights:</p>
+<ul>
+<li>STCF/STCF gives optimal average response time when the scheduler
+knows completion times.</li>
+<li>Dynamic linking can reduce memory usage because shared library code
+can be shared.</li>
+<li>Linkers group like sections together; they do not necessarily keep
+all sections from one object file adjacent.</li>
+<li>Reference counting prevents dangling pointers if counts accurately
+represent all live pointers, but it may fail to reclaim cycles.</li>
+<li>Virtual and physical addresses need not be the same size.</li>
+<li>First-come-first-served is non-preemptive.</li>
+<li>Round robin preempts at the end of a time slice.</li>
+<li>STCF preempts when a newly ready thread has a shorter completion
+time than the currently running one.</li>
+<li>Separate per-core ready queues reduce lock contention but can cause
+load imbalance.</li>
+</ul>
+<p>Big synchronization idea:</p>
+<ul>
+<li>Orders request multiple stock items.</li>
+<li><code>reserve</code> must wait until the entire order can be
+filled.</li>
+<li>It must not partially reserve inventory while waiting.</li>
+<li>Use one monitor lock protecting the inventory vector.</li>
+<li>Use a condition variable for new inventory.</li>
+<li>On <code>add</code>, update inventory and <code>notify_all</code>,
+because many different waiting orders may need to recheck their
+predicates.</li>
+<li>In <code>reserve</code>, loop until every requested item has enough
+inventory, then subtract all counts atomically while holding the
+lock.</li>
+</ul>
+<hr />
+<h1 id="recurring-conceptual-traps">Recurring Conceptual Traps</h1>
+<h2 id="critical-section-trap">Critical Section Trap</h2>
+<p>Wrong intuition:</p>
+<ul>
+<li>“Two threads can be in a critical section if they are on different
+cores.”</li>
+</ul>
+<p>Correct:</p>
+<ul>
+<li>A critical section is defined by mutual exclusion. If two threads
+can execute it simultaneously, it is not properly protected.</li>
+</ul>
+<h2 id="scheduler-trap">Scheduler Trap</h2>
+<p>Wrong intuition:</p>
+<ul>
+<li>“Changing the scheduler should not affect whether a program
+crashes.”</li>
+</ul>
+<p>Correct:</p>
+<ul>
+<li>Correctly synchronized programs should behave the same except for
+timing. Incorrectly synchronized programs may expose hidden races under
+a new schedule.</li>
+</ul>
+<h2 id="thread-vs-process-trap">Thread vs Process Trap</h2>
+<p>Threads in the same process:</p>
+<ul>
+<li>Share globals.</li>
+<li>Share heap.</li>
+<li>Share open files.</li>
+<li>May run on different cores.</li>
+</ul>
+<p>Processes after <code>fork</code>:</p>
+<ul>
+<li>Have separate address spaces.</li>
+<li>Initially appear copied from the parent.</li>
+<li>Later changes to globals in the child do not change the parent’s
+globals.</li>
+</ul>
+<h2 id="linker-trap">Linker Trap</h2>
+<p>Definition vs reference:</p>
+<ul>
+<li>The object file that defines a function has the symbol
+definition.</li>
+<li>The object file that calls the function has an unresolved
+reference.</li>
+</ul>
+<p>Section layout:</p>
+<ul>
+<li>Linkers typically group like sections together, such as all code
+sections, all data sections, etc.</li>
+<li>They do not necessarily place all material from a single object file
+together.</li>
+</ul>
+<h2 id="condition-variable-trap">Condition Variable Trap</h2>
+<p>Wrong:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>ready<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Correct:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>ready<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Reason:</p>
+<ul>
+<li>Wakeups do not guarantee the predicate is true.</li>
+<li>Another thread may consume the resource first.</li>
+<li>Spurious wakeups are allowed.</li>
+</ul>
+<h2 id="partial-reservation-trap">Partial Reservation Trap</h2>
+<p>For problems like inventory reservation:</p>
+<ul>
+<li>Do not grab some resources, then wait for the rest, unless the
+problem explicitly allows it.</li>
+<li>If the specification says the operation must not reserve anything
+until it can complete, first check that all resources are available,
+then reserve them in one atomic monitor operation.</li>
+</ul>
+<hr />
+<h1 id="virtual-memory-and-page-table-crash-course">Virtual Memory and
+Page Table Crash Course</h1>
+<p>The past midterms include page-table questions. If your current
+lecture PDF set does not include the detailed virtual memory lecture,
+you should still learn this material because it appears repeatedly.</p>
+<h2 id="basic-page-translation">Basic Page Translation</h2>
+<p>A virtual address is split into:</p>
+<ul>
+<li>Virtual page number bits.</li>
+<li>Page offset bits.</li>
+</ul>
+<p>The page offset selects a byte within a page.</p>
+<p>If page size is <code>2^k</code> bytes, then:</p>
+<ul>
+<li>Offset size is <code>k</code> bits.</li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>4 KB pages = <code>2^12</code> bytes, so offset = 12 bits.</li>
+<li>16 KB pages = <code>2^14</code> bytes, so offset = 14 bits.</li>
+</ul>
+<h2 id="physical-page-number">Physical Page Number</h2>
+<p>A physical address is also split into:</p>
+<ul>
+<li>Physical page number.</li>
+<li>Page offset.</li>
+</ul>
+<p>If physical addresses are <code>P</code> bits and page offset is
+<code>k</code> bits:</p>
+<ul>
+<li>Physical page number size = <code>P - k</code> bits.</li>
+</ul>
+<p>Example from 2024:</p>
+<ul>
+<li>42-bit physical addresses.</li>
+<li>16 KB pages = 14 offset bits.</li>
+<li>Physical page number = <code>42 - 14 = 28</code> bits.</li>
+</ul>
+<h2 id="page-map-entry-contents">Page Map Entry Contents</h2>
+<p>A page map entry must contain enough information to translate and
+protect a page.</p>
+<p>At minimum, common fields include:</p>
+<ul>
+<li>Physical page number.</li>
+<li>Present bit.</li>
+<li>Read-only or permission bits.</li>
+</ul>
+<p>Other real systems may include:</p>
+<ul>
+<li>Dirty bit.</li>
+<li>Referenced/accessed bit.</li>
+<li>Kernel-only bit.</li>
+<li>Execute-disable bit.</li>
+</ul>
+<h2 id="multilevel-page-tables">Multilevel Page Tables</h2>
+<p>Multilevel page tables break the virtual page number into chunks.
+Each chunk indexes one page-map level.</p>
+<p>Useful facts:</p>
+<ul>
+<li>If a page map is one page large and each entry is <code>E</code>
+bytes, then number of entries per page map is
+<code>page_size / E</code>.</li>
+<li>If there are <code>2^n</code> entries, each level consumes
+<code>n</code> bits of virtual page number.</li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>Page size = 4 KB = <code>2^12</code>.</li>
+<li>Entry size = 8 bytes = <code>2^3</code>.</li>
+<li>Entries per page map = <code>2^12 / 2^3 = 2^9</code>.</li>
+<li>Each level indexes 9 bits.</li>
+</ul>
+<h2 id="x86-64-style-example-from-20222023">x86-64-Style Example from
+2022/2023</h2>
+<p>Given:</p>
+<ul>
+<li>48-bit virtual addresses.</li>
+<li>4 KB pages.</li>
+<li>4 levels of page maps.</li>
+<li>Each page map has 512 entries.</li>
+</ul>
+<p>Then:</p>
+<ul>
+<li>Offset = 12 bits.</li>
+<li>Each level = 9 bits.</li>
+<li>Four levels = <code>4 * 9 = 36</code> virtual page number bits.</li>
+<li>Total translated virtual address bits =
+<code>36 + 12 = 48</code>.</li>
+</ul>
+<p>If physical addresses are 52 bits:</p>
+<ul>
+<li>Physical page number = <code>52 - 12 = 40</code> bits.</li>
+</ul>
+<h2 id="increasing-page-size">Increasing Page Size</h2>
+<p>If page size increases, two things happen:</p>
+<ul>
+<li>Offset bits increase.</li>
+<li>Each page map can hold more entries, if entry size stays the
+same.</li>
+</ul>
+<p>Example from 2022:</p>
+<ul>
+<li>Original page size: 4 KB = 12 offset bits.</li>
+<li>Page size increased by factor of 4 = 16 KB = 14 offset bits.</li>
+<li>Page map entries still 8 bytes.</li>
+<li>Page map now holds <code>2^14 / 2^3 = 2^11</code> entries.</li>
+<li>Each page-map level covers 11 virtual address bits.</li>
+</ul>
+<p>With 3 levels:</p>
+<ul>
+<li>Page-map index bits = <code>3 * 11 = 33</code>.</li>
+<li>Offset bits = 14.</li>
+<li>Total virtual address bits translated =
+<code>33 + 14 = 47</code>.</li>
+</ul>
+<p>So 3 levels would not cover a 48-bit virtual address space.</p>
+<h2 id="designing-a-page-table-from-scratch">Designing a Page Table from
+Scratch</h2>
+<p>Example from 2024:</p>
+<ul>
+<li>Page size: 16 KB = <code>2^14</code>.</li>
+<li>Physical addresses: 42 bits.</li>
+<li>Virtual addresses: only lower 50 bits used.</li>
+<li>Page map entry size: 4 bytes.</li>
+</ul>
+<p>Calculations:</p>
+<ul>
+<li>Offset bits = 14.</li>
+<li>Virtual page number bits = <code>50 - 14 = 36</code>.</li>
+<li>Physical page number bits = <code>42 - 14 = 28</code>.</li>
+<li>Entries per page map = <code>2^14 / 2^2 = 2^12</code>.</li>
+<li>Each page-map level maps 12 bits.</li>
+<li>Levels needed = <code>36 / 12 = 3</code>.</li>
+</ul>
+<p>Page map entry must contain:</p>
+<ul>
+<li>28-bit physical page number.</li>
+<li>Present bit.</li>
+<li>Read-only bit.</li>
+<li>Possibly other permission/status bits.</li>
+</ul>
+<hr />
+<h1 id="file-systems-and-crash-recovery-crash-course">File Systems and
+Crash Recovery Crash Course</h1>
+<p>This section is based on the current-term practice midterm. If you do
+not have the matching lectures, learn these concepts before taking the
+practice exam seriously.</p>
+<h2 id="inodes">Inodes</h2>
+<p>An inode is a file-system data structure that stores metadata about a
+file and pointers/indexes to the file’s payload blocks.</p>
+<p>An inode commonly stores:</p>
+<ul>
+<li>File size.</li>
+<li>File type.</li>
+<li>Permissions.</li>
+<li>Owner/group.</li>
+<li>Timestamps.</li>
+<li>Link count.</li>
+<li>Block pointers or indexes to payload blocks.</li>
+</ul>
+<p>An inode usually does not store the file name. File names live in
+directories.</p>
+<h2 id="directory-entries">Directory Entries</h2>
+<p>A directory is a mapping from names to inode numbers.</p>
+<p>Directory entry:</p>
+<ul>
+<li>Name.</li>
+<li>Inode number.</li>
+</ul>
+<p>This is why renaming a file usually changes directory entries, not
+the file payload itself.</p>
+<h2 id="pathname-lookup">Pathname Lookup</h2>
+<p>Pathname lookup means resolving a path like:</p>
+<pre class="text"><code>/usr/class/cs111/index.html</code></pre>
+<p>Conceptually:</p>
+<ol type="1">
+<li>Start at the root directory inode.</li>
+<li>Look up <code>usr</code> in the root directory payload.</li>
+<li>Use that inode to look up <code>class</code>.</li>
+<li>Use that inode to look up <code>cs111</code>.</li>
+<li>Continue until the final name is resolved.</li>
+</ol>
+<p>This repeated lookup is what the practice solution means by “drilling
+toward” a pathname.</p>
+<h2 id="rename">Rename</h2>
+<p>Rename generally works by manipulating directory entries.</p>
+<p>High-level steps:</p>
+<ol type="1">
+<li>Find the inode number of the file being moved.</li>
+<li>Remove the old directory entry from the old parent directory.</li>
+<li>Resolve the destination parent directory.</li>
+<li>Create the destination directory entry with the new name and the
+existing inode number.</li>
+</ol>
+<p>The file’s payload blocks do not need to move just because its name
+changes.</p>
+<h2 id="inode-placement">Inode Placement</h2>
+<p>Scattering inodes means placing inodes near their payload data
+instead of keeping all inodes in one central region.</p>
+<p>Benefit:</p>
+<ul>
+<li>Fewer disk seeks between reading the inode and reading the file
+payload.</li>
+</ul>
+<p>Drawback:</p>
+<ul>
+<li>More complexity in finding and managing inodes.</li>
+</ul>
+<p>This is a locality tradeoff.</p>
+<h2 id="direct-indirect-and-doubly-indirect-blocks">Direct, Indirect,
+and Doubly Indirect Blocks</h2>
+<p>A file system needs a way to map a file offset to a disk block.</p>
+<p>Direct block pointer:</p>
+<ul>
+<li>Inode points directly to a payload block.</li>
+<li>Good for small files.</li>
+</ul>
+<p>Indirect block pointer:</p>
+<ul>
+<li>Inode points to an index block.</li>
+<li>The index block points to many payload blocks.</li>
+<li>Supports larger files.</li>
+</ul>
+<p>Doubly indirect block pointer:</p>
+<ul>
+<li>Inode points to an index block.</li>
+<li>That index block points to other index blocks.</li>
+<li>Those index blocks point to payload blocks.</li>
+<li>Supports even larger files.</li>
+</ul>
+<p>Tradeoff:</p>
+<ul>
+<li>More levels support larger files.</li>
+<li>More levels can require more disk accesses, especially for small
+files if the design forces indirection.</li>
+</ul>
+<h2 id="crash-recovery">Crash Recovery</h2>
+<p>File systems must handle crashes that happen midway through
+updates.</p>
+<p>Example danger:</p>
+<ul>
+<li>Directory entry is created but inode is not initialized.</li>
+<li>Inode points to a block that was not written.</li>
+<li>Free block bitmap says a block is free even though a file uses
+it.</li>
+</ul>
+<p>The problem is consistency: related disk updates must appear all done
+or all not done.</p>
+<h2 id="loggingjournaling">Logging/Journaling</h2>
+<p>A log records intended file-system changes before applying them to
+their final locations.</p>
+<p>Recovery idea:</p>
+<ol type="1">
+<li>After a crash, inspect the log.</li>
+<li>Determine which operations were committed.</li>
+<li>Replay committed operations if needed.</li>
+</ol>
+<p>The log helps the system recover to a consistent state.</p>
+<h2 id="idempotence">Idempotence</h2>
+<p>An operation is idempotent if doing it multiple times has the same
+effect as doing it once.</p>
+<p>Examples:</p>
+<ul>
+<li>“Set block 100’s bitmap bit to allocated” can be idempotent.</li>
+<li>“Append this directory entry to the end of this directory” is not
+naturally idempotent, because replaying it twice may append duplicate
+entries.</li>
+</ul>
+<p>Why it matters:</p>
+<ul>
+<li>During crash recovery, the system may not know whether an operation
+had already reached disk.</li>
+<li>If replaying an operation twice changes the result, recovery can
+corrupt the file system.</li>
+</ul>
+<h2 id="durability-vs-performance">Durability vs Performance</h2>
+<p>More durable design:</p>
+<ul>
+<li>Write data more immediately.</li>
+<li>Log more information.</li>
+<li>Flush more often.</li>
+<li>Lose less after crash.</li>
+</ul>
+<p>Cost:</p>
+<ul>
+<li>More disk I/O.</li>
+<li>Lower performance.</li>
+</ul>
+<p>More performance-oriented design:</p>
+<ul>
+<li>Buffer writes.</li>
+<li>Delay flushing.</li>
+<li>Log less data.</li>
+</ul>
+<p>Cost:</p>
+<ul>
+<li>More recent data may be lost.</li>
+<li>Recovery may be less complete.</li>
+</ul>
+<p>Classic example:</p>
+<ul>
+<li>A block cache may delay writes for performance, but a crash can lose
+recent changes.</li>
+</ul>
+<hr />
+<h1 id="unix-processes-pipes-and-file-descriptors-crash-course">Unix
+Processes, Pipes, and File Descriptors Crash Course</h1>
+<p>The practice midterm includes shell-style multiprocessing. This is
+separate from the monitor-style synchronization problems in the older
+exams.</p>
+<h2 id="file-descriptors">File Descriptors</h2>
+<p>A file descriptor is a small integer handle inside a process.</p>
+<p>Standard descriptors:</p>
+<ul>
+<li><code>0</code>: standard input.</li>
+<li><code>1</code>: standard output.</li>
+<li><code>2</code>: standard error.</li>
+</ul>
+<p>After <code>fork</code>, the child inherits copies of the parent’s
+file descriptors. These descriptors refer to the same underlying open
+file descriptions or pipe endpoints.</p>
+<h2 id="pipe"><code>pipe</code></h2>
+<p><code>pipe(fds)</code> creates a unidirectional communication
+channel.</p>
+<p>After:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> fds<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>pipe<span class="op">(</span>fds<span class="op">);</span></span></code></pre></div>
+<ul>
+<li><code>fds[0]</code> is the read end.</li>
+<li><code>fds[1]</code> is the write end.</li>
+</ul>
+<p>Data written to <code>fds[1]</code> can be read from
+<code>fds[0]</code>.</p>
+<h2 id="dup2"><code>dup2</code></h2>
+<p><code>dup2(oldfd, newfd)</code> makes <code>newfd</code> refer to the
+same open file/pipe endpoint as <code>oldfd</code>.</p>
+<p>Common use:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">],</span> STDOUT_FILENO<span class="op">);</span></span></code></pre></div>
+<p>This redirects standard output into the pipe’s write end.</p>
+<p>Another common use:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">],</span> STDIN_FILENO<span class="op">);</span></span></code></pre></div>
+<p>This redirects standard input from the pipe’s read end.</p>
+<h2 id="why-close-matters">Why Close Matters</h2>
+<p>Closing unused pipe ends is essential.</p>
+<p>A process reading from a pipe sees end-of-file only when all write
+ends of that pipe are closed.</p>
+<p>If the parent or another child accidentally keeps a write end
+open:</p>
+<ul>
+<li>The reader may block forever.</li>
+<li>It believes more data might still arrive.</li>
+</ul>
+<p>This is exactly the issue in the practice midterm’s multiprocessing
+question.</p>
+<h2 id="two-command-pipeline-pattern">Two-Command Pipeline Pattern</h2>
+<p>For a pipeline like:</p>
+<pre class="text"><code>cmd1 | cmd2</code></pre>
+<p>The shell-like structure is:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> fds<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pipe<span class="op">(</span>fds<span class="op">);</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="dt">pid_t</span> p1 <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>p1 <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// child 1: stdout -&gt; pipe write end</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">],</span> STDOUT_FILENO<span class="op">);</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>cmd1<span class="op">[</span><span class="dv">0</span><span class="op">],</span> cmd1<span class="op">);</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="dt">pid_t</span> p2 <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>p2 <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// child 2: stdin &lt;- pipe read end</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">],</span> STDIN_FILENO<span class="op">);</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>cmd2<span class="op">[</span><span class="dv">0</span><span class="op">],</span> cmd2<span class="op">);</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">// parent</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>p1<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>p2<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>The exact practice solution also handles incoming and outgoing
+descriptors, but the idea is the same.</p>
+<h2 id="timing-a-child-process">Timing a Child Process</h2>
+<p>The practice <code>thyme</code> problem follows this pattern:</p>
+<ol type="1">
+<li>Record start time.</li>
+<li><code>fork</code>.</li>
+<li>Child calls <code>execvp</code>.</li>
+<li>Parent waits for child.</li>
+<li>Record finish time.</li>
+<li>Print elapsed time.</li>
+</ol>
+<p>Important:</p>
+<ul>
+<li>The child should <code>exec</code> the target program.</li>
+<li>The parent should measure until the child completes.</li>
+</ul>
+<hr />
+<h1 id="monitor-style-coding-template">Monitor-Style Coding
+Template</h1>
+<p>Most large coding problems can be started from this template:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Thing <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    Thing<span class="op">(...);</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method1<span class="op">(...);</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method2<span class="op">(...);</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex mutex<span class="op">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>condition_variable cv<span class="op">;</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Shared state protected by mutex.</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Method pattern:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Thing<span class="op">::</span>method<span class="op">(...)</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(!</span>predicate_over_shared_state<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Update shared state while holding lock.</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>notify_one<span class="op">();</span>   <span class="co">// or notify_all, depending on who may now proceed</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="how-to-design-the-shared-state">How to Design the Shared
+State</h2>
+<p>For each coding problem, identify:</p>
+<ul>
+<li>What condition must a thread wait for?</li>
+<li>What shared state determines that condition?</li>
+<li>Which method changes that state?</li>
+<li>Who needs to be woken after the state changes?</li>
+<li>Is fairness required?</li>
+<li>Is FIFO required?</li>
+<li>Is partial progress allowed?</li>
+</ul>
+<h2 id="when-to-use-notify_one">When to Use <code>notify_one</code></h2>
+<p>Use <code>notify_one</code> when:</p>
+<ul>
+<li>Exactly one waiting thread can proceed.</li>
+<li>You know which condition variable corresponds to that
+thread/group.</li>
+<li>The problem restricts you to one wakeup.</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li>Boarding exactly one passenger.</li>
+<li>Waking one car from a chosen lane.</li>
+</ul>
+<h2 id="when-to-use-notify_all">When to Use <code>notify_all</code></h2>
+<p>Use <code>notify_all</code> when:</p>
+<ul>
+<li>Many waiters may have different predicates.</li>
+<li>You cannot easily know which waiter can proceed.</li>
+<li>The state change may enable any of several waiting threads.</li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>Inventory arrives for one item, but many orders may need to recheck
+whether all requested items are now available.</li>
+</ul>
+<p><code>notify_all</code> is less efficient but often simpler and
+correct.</p>
+<h2 id="common-big-problem-state-patterns">Common Big-Problem State
+Patterns</h2>
+<h3 id="ordered-waiting">Ordered Waiting</h3>
+<p>Use an ordered structure:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>map<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">,</span> <span class="bu">std::</span>condition_variable<span class="op">*&gt;</span> waiters<span class="op">;</span></span></code></pre></div>
+<p>Useful when the smallest/largest key should proceed next.</p>
+<h3 id="count-per-category">Count Per Category</h3>
+<p>Use a vector:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> waiting_per_lane<span class="op">;</span></span></code></pre></div>
+<p>Useful when fairness rotates among groups.</p>
+<h3 id="resource-availability">Resource Availability</h3>
+<p>Use a vector of counts:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> available<span class="op">;</span></span></code></pre></div>
+<p>Useful when operations need one or more resources.</p>
+<hr />
+<h1 id="recommended-practice-order">Recommended Practice Order</h1>
+<h2 id="pass-1-read-solutions-for-pattern-recognition">Pass 1: Read
+Solutions for Pattern Recognition</h2>
+<p>Do this quickly:</p>
+<ol type="1">
+<li>Read 2024 Problems 1-4.</li>
+<li>Read 2023 Problems 1-4.</li>
+<li>Read 2022 Problems 1-4.</li>
+</ol>
+<p>Goal:</p>
+<ul>
+<li>Identify repeated traps.</li>
+<li>Make sure vocabulary feels familiar.</li>
+</ul>
+<h2 id="pass-2-drill-page-tables">Pass 2: Drill Page Tables</h2>
+<p>Redo:</p>
+<ul>
+<li>2022 Problem 4.</li>
+<li>2023 Problem 4.</li>
+<li>2024 Problem 4.</li>
+</ul>
+<p>For each one, write:</p>
+<ul>
+<li>Page size.</li>
+<li>Offset bits.</li>
+<li>Virtual page number bits.</li>
+<li>Physical page number bits.</li>
+<li>Entries per page map.</li>
+<li>Bits per page-map level.</li>
+<li>Number of levels.</li>
+</ul>
+<h2 id="pass-3-drill-scheduling">Pass 3: Drill Scheduling</h2>
+<p>Redo:</p>
+<ul>
+<li>2022 Problem 3.</li>
+<li>2024 Problem 2.</li>
+<li>2024 Problem 3(b)-(c).</li>
+</ul>
+<p>Be able to explain:</p>
+<ul>
+<li>FIFO/non-preemptive.</li>
+<li>Round robin/time-slice preemption.</li>
+<li>STCF/STCF preemption.</li>
+<li>Priority queues.</li>
+<li>Per-core ready queues.</li>
+<li>Starvation risk.</li>
+</ul>
+<h2 id="pass-4-drill-memory-and-linking">Pass 4: Drill Memory and
+Linking</h2>
+<p>Redo:</p>
+<ul>
+<li>2022 Problem 1(d).</li>
+<li>2023 Problem 2.</li>
+<li>2023 Problem 3.</li>
+<li>2024 Problem 1(b)-(e).</li>
+</ul>
+<p>Be able to explain:</p>
+<ul>
+<li>Object file symbol definitions vs references.</li>
+<li>Dynamic linking memory savings.</li>
+<li>Globals shared by threads.</li>
+<li>Memory copied across <code>fork</code>.</li>
+<li>Stack locals and scope.</li>
+<li>Slab allocation disadvantages.</li>
+<li>Reference counting cycles.</li>
+<li>Garbage collection overhead.</li>
+</ul>
+<h2 id="pass-5-code-the-big-problems-without-looking">Pass 5: Code the
+Big Problems Without Looking</h2>
+<p>Do the big 40-point problems last:</p>
+<ol type="1">
+<li>2024 Inventory.</li>
+<li>2023 Flight boarding.</li>
+<li>2022 Merge lanes.</li>
+</ol>
+<p>For each:</p>
+<ol type="1">
+<li>Read the spec.</li>
+<li>Do not look at the solution.</li>
+<li>Write shared state first.</li>
+<li>Write waiting predicates.</li>
+<li>Write methods.</li>
+<li>Compare to solution.</li>
+</ol>
+<p>Expected time target:</p>
+<ul>
+<li>First attempt: 45-60 minutes each.</li>
+<li>After practice: 25-35 minutes each.</li>
+</ul>
+<hr />
+<h1 id="exam-day-checklist-for-the-coding-problem">Exam-Day Checklist
+for the Coding Problem</h1>
+<p>Before writing code:</p>
+<ul>
+<li>Underline what each method must block for.</li>
+<li>Underline whether fairness/FIFO/order is required.</li>
+<li>Underline whether <code>notify_all</code> is allowed.</li>
+<li>Identify the shared state.</li>
+<li>Identify the invariant protected by the mutex.</li>
+</ul>
+<p>While writing code:</p>
+<ul>
+<li>Use one monitor lock unless there is a clear reason not to.</li>
+<li>Every shared-state access happens while holding the lock.</li>
+<li>Every wait is inside a <code>while</code> loop unless the
+problem-specific design makes a single-use condition variable safe and
+obvious.</li>
+<li>Change state before notifying.</li>
+<li>Avoid busy waiting.</li>
+<li>Avoid sleeping while holding partial resources unless allowed.</li>
+</ul>
+<p>After writing code:</p>
+<ul>
+<li>Check the no-waiter case.</li>
+<li>Check the first-arrival case.</li>
+<li>Check multiple waiters.</li>
+<li>Check whether the selected thread is actually notified.</li>
+<li>Check whether state is updated before the next thread can
+enter.</li>
+<li>Check starvation if the spec forbids it.</li>
+</ul>
+<hr />
+<h1 id="two-sided-notes-sheet-suggestions">Two-Sided Notes Sheet
+Suggestions</h1>
+<p>Since the exam historically allows two double-sided pages, your notes
+sheet should include:</p>
+<ul>
+<li>Process vs thread table.</li>
+<li><code>fork</code> / <code>exec</code> / <code>wait</code>
+summary.</li>
+<li>Thread states diagram.</li>
+<li>Condition variable wait-loop template.</li>
+<li>Deadlock four conditions.</li>
+<li>Scheduling comparison table.</li>
+<li>Page-table arithmetic formulas.</li>
+<li>Memory layout diagram.</li>
+<li>Linker pipeline.</li>
+<li>Dynamic allocation pros/cons.</li>
+<li>Trust definitions: assumption, inference, substitution.</li>
+<li>Monitor coding checklist.</li>
+</ul>
+<p>Do not waste much notes-sheet space on long prose. Use templates and
+formulas.</p>
+</body>
+</html>

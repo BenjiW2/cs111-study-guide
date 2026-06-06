@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>C++ / C Systems Programming Cheatsheet for CS111</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #202124;
+      background-color: #f5f5f2;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 54em;
+      padding: 56px 68px;
+      background: #ffffff;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.12);
+      min-height: 100vh;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+      font-family: Charter, Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.58;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+        padding: 20px;
+        box-shadow: none;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+        box-shadow: none;
+        max-width: none;
+        padding: 0;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 0.85em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.18;
+      hyphens: none;
+    }
+    h1 {
+      margin-top: 2.2em;
+      padding-top: 0.8em;
+      border-top: 2px solid #d7d7cf;
+      font-size: 2.05em;
+    }
+    h1:first-of-type {
+      margin-top: 0.4em;
+      border-top: 0;
+      padding-top: 0;
+    }
+    h2 {
+      margin-top: 1.9em;
+      font-size: 1.35em;
+    }
+    h3 {
+      margin-top: 1.5em;
+      font-size: 1.1em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li {
+      margin: 0.22em 0;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: #f1f3f4;
+      padding: 0.08em 0.28em;
+      border-radius: 4px;
+    }
+    pre {
+      background: #f6f8fa;
+      border: 1px solid #d8dee4;
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.86em;
+    }
+    blockquote {
+      border-left: 4px solid #b8b8ae;
+      margin-left: 0;
+      padding-left: 1em;
+      color: #4a4d50;
+    }
+    nav#TOC {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8f8f5;
+      border: 1px solid #deded6;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin: 1.5em 0 2.5em;
+    }
+    nav#TOC ul {
+      margin: 0.35em 0;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">C++ / C Systems Programming Cheatsheet for CS111</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#c-c-systems-programming-cheatsheet-for-cs111"
+id="toc-c-c-systems-programming-cheatsheet-for-cs111">C++ / C Systems
+Programming Cheatsheet for CS111</a>
+<ul>
+<li><a href="#mental-model" id="toc-mental-model">Mental Model</a></li>
+</ul></li>
+<li><a href="#course-dialect-what-you-are-actually-writing"
+id="toc-course-dialect-what-you-are-actually-writing">Course Dialect:
+What You Are Actually Writing</a></li>
+<li><a href="#basic-types" id="toc-basic-types">Basic Types</a></li>
+<li><a href="#pointers" id="toc-pointers">Pointers</a>
+<ul>
+<li><a href="#pointer-basics" id="toc-pointer-basics">Pointer
+Basics</a></li>
+<li><a href="#pointer-vs-pointee" id="toc-pointer-vs-pointee">Pointer vs
+Pointee</a></li>
+<li><a href="#null-pointers" id="toc-null-pointers">Null
+Pointers</a></li>
+</ul></li>
+<li><a href="#arrays-and-strings" id="toc-arrays-and-strings">Arrays and
+Strings</a>
+<ul>
+<li><a href="#arrays" id="toc-arrays">Arrays</a></li>
+<li><a href="#array-parameter-trap" id="toc-array-parameter-trap">Array
+Parameter Trap</a></li>
+<li><a href="#c-strings" id="toc-c-strings">C Strings</a></li>
+</ul></li>
+<li><a href="#structs" id="toc-structs">Structs</a></li>
+<li><a href="#c-classes" id="toc-c-classes">C++ Classes</a>
+<ul>
+<li><a href="#constructors-and-initializer-lists"
+id="toc-constructors-and-initializer-lists">Constructors and Initializer
+Lists</a></li>
+<li><a href="#destructors" id="toc-destructors">Destructors</a></li>
+<li><a href="#static-members" id="toc-static-members">Static
+Members</a></li>
+</ul></li>
+<li><a href="#c-standard-library-types-you-need"
+id="toc-c-standard-library-types-you-need">C++ Standard Library Types
+You Need</a>
+<ul>
+<li><a href="#stdstring"
+id="toc-stdstring"><code>std::string</code></a></li>
+<li><a href="#stdvector"
+id="toc-stdvector"><code>std::vector</code></a></li>
+<li><a href="#stdmap" id="toc-stdmap"><code>std::map</code></a></li>
+<li><a href="#stdunordered_map"
+id="toc-stdunordered_map"><code>std::unordered_map</code></a></li>
+<li><a href="#stddeque"
+id="toc-stddeque"><code>std::deque</code></a></li>
+</ul></li>
+<li><a href="#lambdas" id="toc-lambdas">Lambdas</a></li>
+<li><a href="#stack-vs-heap" id="toc-stack-vs-heap">Stack vs Heap</a>
+<ul>
+<li><a href="#stack-allocation" id="toc-stack-allocation">Stack
+Allocation</a></li>
+<li><a href="#heap-allocation" id="toc-heap-allocation">Heap
+Allocation</a></li>
+</ul></li>
+<li><a href="#sizeof" id="toc-sizeof"><code>sizeof</code></a></li>
+<li><a href="#function-pointers-and-argv"
+id="toc-function-pointers-and-argv">Function Pointers and
+<code>argv</code></a>
+<ul>
+<li><a href="#main" id="toc-main"><code>main</code></a></li>
+<li><a href="#execvp" id="toc-execvp"><code>execvp</code></a></li>
+</ul></li>
+<li><a href="#error-handling" id="toc-error-handling">Error
+Handling</a></li>
+<li><a href="#file-descriptors" id="toc-file-descriptors">File
+Descriptors</a></li>
+<li><a href="#fork" id="toc-fork"><code>fork</code></a></li>
+<li><a href="#pipe-dup2-and-close"
+id="toc-pipe-dup2-and-close"><code>pipe</code>, <code>dup2</code>, and
+<code>close</code></a>
+<ul>
+<li><a href="#pipe-basics" id="toc-pipe-basics">Pipe Basics</a></li>
+<li><a href="#redirect-stdout-to-pipe"
+id="toc-redirect-stdout-to-pipe">Redirect stdout to Pipe</a></li>
+<li><a href="#redirect-stdin-from-pipe"
+id="toc-redirect-stdin-from-pipe">Redirect stdin from Pipe</a></li>
+<li><a href="#pipeline-pattern" id="toc-pipeline-pattern">Pipeline
+Pattern</a></li>
+</ul></li>
+<li><a href="#waitpid" id="toc-waitpid"><code>waitpid</code></a></li>
+<li><a href="#timing-a-program" id="toc-timing-a-program">Timing a
+Program</a></li>
+<li><a href="#c-apis-vs-c-apis-in-this-class"
+id="toc-c-apis-vs-c-apis-in-this-class">C APIs vs C++ APIs in This
+Class</a></li>
+<li><a href="#c-monitor-syntax-you-should-remember"
+id="toc-c-monitor-syntax-you-should-remember">C++ Monitor Syntax You
+Should Remember</a>
+<ul>
+<li><a href="#stdcondition_variable_any"
+id="toc-stdcondition_variable_any"><code>std::condition_variable_any</code></a></li>
+</ul></li>
+<li><a href="#common-exam-traces" id="toc-common-exam-traces">Common
+Exam Traces</a>
+<ul>
+<li><a href="#global-with-threads" id="toc-global-with-threads">Global
+with Threads</a></li>
+<li><a href="#global-with-fork" id="toc-global-with-fork">Global with
+<code>fork</code></a></li>
+<li><a href="#local-shadowing" id="toc-local-shadowing">Local
+Shadowing</a></li>
+</ul></li>
+<li><a href="#quick-checklist-before-writing-c-code"
+id="toc-quick-checklist-before-writing-c-code">Quick Checklist Before
+Writing C Code</a></li>
+</ul>
+</nav>
+<h1 id="c-c-systems-programming-cheatsheet-for-cs111">C++ / C Systems
+Programming Cheatsheet for CS111</h1>
+<p>This is a compact refresher for the programming dialect used in
+CS111.</p>
+<p>The course is not using plain C only. It uses C++ source files and
+C++ library types, but many of the operating-system APIs are old C/Unix
+APIs. In practice, you need:</p>
+<ul>
+<li>C++ classes, constructors, destructors, <code>std::vector</code>,
+<code>std::map</code>, <code>std::deque</code>,
+<code>std::thread</code>, <code>std::mutex</code>,
+<code>std::unique_lock</code>, and condition variables.</li>
+<li>C-style pointers, arrays, strings, <code>char **argv</code>, and
+memory/lifetime reasoning.</li>
+<li>Unix C APIs such as <code>fork</code>, <code>execvp</code>,
+<code>pipe</code>, <code>dup2</code>, <code>close</code>, and
+<code>waitpid</code>.</li>
+</ul>
+<p>It is not a full C++ tutorial; it focuses on the stuff you are likely
+to need under exam pressure.</p>
+<h2 id="mental-model">Mental Model</h2>
+<p>C is close to the machine:</p>
+<ul>
+<li>Variables have concrete storage.</li>
+<li>Pointers are addresses.</li>
+<li>Arrays often decay into pointers.</li>
+<li>Strings are <code>char</code> arrays ending with
+<code>'\0'</code>.</li>
+<li>Memory lifetime matters.</li>
+<li>System calls usually report errors with return values.</li>
+</ul>
+<p>C++ adds:</p>
+<ul>
+<li>Classes and methods.</li>
+<li>Constructors/destructors.</li>
+<li>Standard library containers.</li>
+<li>RAII objects that clean up automatically.</li>
+<li>Threads, mutexes, and condition variables.</li>
+</ul>
+<p>When stuck, ask:</p>
+<ul>
+<li>Where does this object live?</li>
+<li>Who owns it?</li>
+<li>How long is it valid?</li>
+<li>Is this value the thing itself, or an address of the thing?</li>
+</ul>
+<hr />
+<h1 id="course-dialect-what-you-are-actually-writing">Course Dialect:
+What You Are Actually Writing</h1>
+<p>CS111 code often looks like this:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;sys/wait.h&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;thread&gt;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mutex&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;condition_variable&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vector&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;map&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Flight <span class="op">{</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    Flight<span class="op">(</span><span class="dt">size_t</span> max_passengers<span class="op">);</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait_to_board<span class="op">(</span><span class="dt">size_t</span> position<span class="op">);</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> board_next<span class="op">();</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex mutex<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>map<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">,</span> <span class="bu">std::</span>condition_variable <span class="op">*&gt;</span> waiters<span class="op">;</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>That is C++ code, but it may call C/Unix functions:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">pid_t</span> pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> argv <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>pid<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>So the right mental model is:</p>
+<ul>
+<li>Use C++ for structure and data types.</li>
+<li>Use C/Unix APIs for OS operations.</li>
+</ul>
+<hr />
+<h1 id="basic-types">Basic Types</h1>
+<p>Common scalar types:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> c <span class="op">=</span> <span class="ch">&#39;A&#39;</span><span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">42</span><span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="dt">long</span> y <span class="op">=</span> <span class="dv">1000000</span><span class="bu">L</span><span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">size_t</span> n <span class="op">=</span> <span class="dv">10</span><span class="op">;</span>      <span class="co">// unsigned size/count type</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> ok <span class="op">=</span> <span class="kw">true</span><span class="op">;</span>     <span class="co">// C++ built-in; in C use #include &lt;stdbool.h&gt;</span></span></code></pre></div>
+<p>Integer traps:</p>
+<ul>
+<li><code>size_t</code> is unsigned.</li>
+<li>Comparing signed and unsigned values can surprise you.</li>
+<li>Use <code>size_t</code> for sizes and indexes when matching library
+APIs.</li>
+</ul>
+<hr />
+<h1 id="pointers">Pointers</h1>
+<h2 id="pointer-basics">Pointer Basics</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p <span class="op">=</span> <span class="op">&amp;</span>x<span class="op">;</span>    <span class="co">// p stores address of x</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">*</span>p <span class="op">=</span> <span class="dv">7</span><span class="op">;</span>         <span class="co">// writes to x through p</span></span></code></pre></div>
+<p>Read declarations right-to-left:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p<span class="op">;</span>         <span class="co">// p is a pointer to int</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">**</span>argv<span class="op">;</span>    <span class="co">// argv is a pointer to pointer to char</span></span></code></pre></div>
+<p>Core operators:</p>
+<ul>
+<li><code>&amp;x</code>: address of <code>x</code>.</li>
+<li><code>*p</code>: object pointed to by <code>p</code>.</li>
+</ul>
+<h2 id="pointer-vs-pointee">Pointer vs Pointee</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">10</span><span class="op">;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p <span class="op">=</span> <span class="op">&amp;</span>x<span class="op">;</span></span></code></pre></div>
+<ul>
+<li><code>p</code> is a variable that stores an address.</li>
+<li><code>*p</code> is the <code>int</code> at that address.</li>
+<li><code>&amp;p</code> is the address of the pointer variable
+itself.</li>
+</ul>
+<h2 id="null-pointers">Null Pointers</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p <span class="op">=</span> NULL<span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>p <span class="op">!=</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> <span class="op">*</span>p<span class="op">);</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Never dereference <code>NULL</code>.</p>
+<hr />
+<h1 id="arrays-and-strings">Arrays and Strings</h1>
+<h2 id="arrays">Arrays</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> a<span class="op">[</span><span class="dv">3</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span><span class="dv">10</span><span class="op">,</span> <span class="dv">20</span><span class="op">,</span> <span class="dv">30</span><span class="op">};</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> a<span class="op">[</span><span class="dv">1</span><span class="op">]);</span>   <span class="co">// 20</span></span></code></pre></div>
+<p>In many expressions, <code>a</code> decays to a pointer to its first
+element.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p <span class="op">=</span> a<span class="op">;</span>      <span class="co">// same as &amp;a[0]</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="op">*(</span>p <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">==</span> a<span class="op">[</span><span class="dv">1</span><span class="op">]</span></span></code></pre></div>
+<h2 id="array-parameter-trap">Array Parameter Trap</h2>
+<p>These are effectively the same as function parameters:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">(</span><span class="dt">int</span> a<span class="op">[]);</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">(</span><span class="dt">int</span> <span class="op">*</span>a<span class="op">);</span></span></code></pre></div>
+<p>The function does not know the array length unless you pass it
+separately.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> print_all<span class="op">(</span><span class="dt">int</span> <span class="op">*</span>a<span class="op">,</span> <span class="dt">size_t</span> len<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> len<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>        printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> a<span class="op">[</span>i<span class="op">]);</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="c-strings">C Strings</h2>
+<p>A C string is a <code>char</code> array ending with
+<code>'\0'</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> s<span class="op">[]</span> <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span>  <span class="co">// {&#39;h&#39;,&#39;e&#39;,&#39;l&#39;,&#39;l&#39;,&#39;o&#39;,&#39;\0&#39;}</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>t <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span>  <span class="co">// pointer to string literal</span></span></code></pre></div>
+<p>Common functions:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>strlen<span class="op">(</span>s<span class="op">);</span>          <span class="co">// length not counting &#39;\0&#39;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>strcmp<span class="op">(</span>a<span class="op">,</span> b<span class="op">);</span>       <span class="co">// 0 if equal</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>strcpy<span class="op">(</span>dst<span class="op">,</span> src<span class="op">);</span>   <span class="co">// copies including &#39;\0&#39;; unsafe if dst too small</span></span></code></pre></div>
+<p>String literal trap:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>s <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>s<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;H&#39;</span><span class="op">;</span>     <span class="co">// bad: string literals should not be modified</span></span></code></pre></div>
+<p>Use:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> s<span class="op">[]</span> <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>s<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;H&#39;</span><span class="op">;</span>     <span class="co">// ok</span></span></code></pre></div>
+<hr />
+<h1 id="structs">Structs</h1>
+<div class="sourceCode" id="cb16"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> Point <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x<span class="op">;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> y<span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> Point<span class="op">;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>Point p <span class="op">=</span> <span class="op">{</span><span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">};</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>p<span class="op">.</span>x <span class="op">=</span> <span class="dv">10</span><span class="op">;</span></span></code></pre></div>
+<p>Pointer to struct:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>Point <span class="op">*</span>ptr <span class="op">=</span> <span class="op">&amp;</span>p<span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>ptr<span class="op">-&gt;</span>x <span class="op">=</span> <span class="dv">20</span><span class="op">;</span>        <span class="co">// same as (*ptr).x = 20</span></span></code></pre></div>
+<p>CS111-style example:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typedef</span> <span class="kw">struct</span> ThreadInfo <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> v<span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    mutex m<span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> ThreadInfo<span class="op">;</span></span></code></pre></div>
+<p>That example mixes C-style <code>struct</code> syntax with C++
+types.</p>
+<hr />
+<h1 id="c-classes">C++ Classes</h1>
+<p>Basic class:</p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Counter <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    Counter<span class="op">();</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> increment<span class="op">();</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> value<span class="op">();</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="va">count_</span><span class="op">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>Counter<span class="op">::</span>Counter<span class="op">()</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> <span class="va">count_</span><span class="op">(</span><span class="dv">0</span><span class="op">)</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Counter<span class="op">::</span>increment<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    <span class="va">count_</span><span class="op">++;</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> Counter<span class="op">::</span>value<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">count_</span><span class="op">;</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Key syntax:</p>
+<ul>
+<li><code>public</code>: methods other code can call.</li>
+<li><code>private</code>: internal state/helper methods.</li>
+<li><code>Counter::increment</code>: method definition outside the
+class.</li>
+<li><code>count_</code>: common naming style for member variables.</li>
+</ul>
+<h2 id="constructors-and-initializer-lists">Constructors and Initializer
+Lists</h2>
+<p>Constructor:</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Printer <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    Printer<span class="op">(</span><span class="bu">std::</span>string name<span class="op">);</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>string <span class="va">my_name_</span><span class="op">;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="va">dummy_</span><span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>Printer<span class="op">::</span>Printer<span class="op">(</span><span class="bu">std::</span>string name<span class="op">)</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">:</span> <span class="va">my_name_</span><span class="op">(</span>name<span class="op">),</span> <span class="va">dummy_</span><span class="op">(</span><span class="dv">42</span><span class="op">)</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The initializer list initializes member variables before the
+constructor body runs.</p>
+<p>This matters for:</p>
+<ul>
+<li><code>std::mutex</code>.</li>
+<li><code>std::condition_variable</code>.</li>
+<li><code>std::vector</code>.</li>
+<li><code>std::string</code>.</li>
+<li>Members without default constructors.</li>
+</ul>
+<h2 id="destructors">Destructors</h2>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Printer <span class="op">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">~</span>Printer<span class="op">();</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>Printer<span class="op">::~</span>Printer<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// cleanup</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Destructors run:</p>
+<ul>
+<li>For stack objects, when the object goes out of scope.</li>
+<li>For heap objects, when <code>delete</code> is called.</li>
+</ul>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    Printer p1<span class="op">(</span><span class="st">&quot;stack&quot;</span><span class="op">);</span>           <span class="co">// destructor at end of scope</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    Printer <span class="op">*</span>p2 <span class="op">=</span> <span class="kw">new</span> Printer<span class="op">(</span><span class="st">&quot;heap&quot;</span><span class="op">);</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">delete</span> p2<span class="op">;</span>                     <span class="co">// destructor here</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="static-members">Static Members</h2>
+<p>Instance variable:</p>
+<ul>
+<li>One copy per object.</li>
+</ul>
+<p>Static variable:</p>
+<ul>
+<li>One copy shared by the class.</li>
+</ul>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Demo <span class="op">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    Demo<span class="op">();</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">~</span>Demo<span class="op">();</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">int</span> num_live<span class="op">();</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">static</span> <span class="dt">int</span> live_objects<span class="op">;</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> Demo<span class="op">::</span>live_objects <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>Demo<span class="op">::</span>Demo<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    live_objects<span class="op">++;</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>Demo<span class="op">::~</span>Demo<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    live_objects<span class="op">--;</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> Demo<span class="op">::</span>num_live<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> live_objects<span class="op">;</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Static methods:</p>
+<ul>
+<li>Called as <code>Demo::num_live()</code>.</li>
+<li>Do not have a <code>this</code> pointer.</li>
+<li>Cannot access instance variables unless given an object.</li>
+</ul>
+<hr />
+<h1 id="c-standard-library-types-you-need">C++ Standard Library Types
+You Need</h1>
+<h2 id="stdstring"><code>std::string</code></h2>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string s <span class="op">=</span> <span class="st">&quot;hello&quot;</span><span class="op">;</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>s <span class="op">+=</span> <span class="st">&quot; world&quot;</span><span class="op">;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> s <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span></span></code></pre></div>
+<p>Use <code>std::string</code> for C++ string manipulation. Use
+<code>char *</code> / <code>char **</code> when calling C APIs like
+<code>execvp</code>.</p>
+<h2 id="stdvector"><code>std::vector</code></h2>
+<p>Expandable array:</p>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> nums<span class="op">;</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>nums<span class="op">.</span>push_back<span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>nums<span class="op">.</span>push_back<span class="op">(</span><span class="dv">20</span><span class="op">);</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> nums<span class="op">.</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>cout <span class="op">&lt;&lt;</span> nums<span class="op">[</span>i<span class="op">]</span> <span class="op">&lt;&lt;</span> <span class="bu">std::</span>endl<span class="op">;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Useful methods:</p>
+<ul>
+<li><code>push_back(x)</code>: append.</li>
+<li><code>size()</code>: number of elements.</li>
+<li><code>empty()</code>: true if no elements.</li>
+<li><code>operator[]</code>: indexed access.</li>
+</ul>
+<h2 id="stdmap"><code>std::map</code></h2>
+<p>Ordered key-value map:</p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>map<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">,</span> <span class="bu">std::</span>condition_variable <span class="op">*&gt;</span> waiters<span class="op">;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>waiters<span class="op">[</span>position<span class="op">]</span> <span class="op">=</span> <span class="op">&amp;</span>cv<span class="op">;</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>waiters<span class="op">.</span>find<span class="op">(</span>position<span class="op">)</span> <span class="op">!=</span> waiters<span class="op">.</span>end<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// key exists</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Important:</p>
+<ul>
+<li>Keys are ordered.</li>
+<li><code>begin()</code> gives the smallest key.</li>
+<li><code>map[key]</code> auto-inserts if the key is missing.</li>
+</ul>
+<p>This is useful for problems like “wake the lowest boarding
+position.”</p>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> it <span class="op">=</span> waiters<span class="op">.</span>begin<span class="op">();</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>it<span class="op">-&gt;</span>second<span class="op">-&gt;</span>notify_one<span class="op">();</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>waiters<span class="op">.</span>erase<span class="op">(</span>it<span class="op">);</span></span></code></pre></div>
+<h2 id="stdunordered_map"><code>std::unordered_map</code></h2>
+<p>Hash map:</p>
+<ul>
+<li>Fast key lookup.</li>
+<li>No ordering.</li>
+</ul>
+<p>Use <code>std::map</code> when order matters. Use
+<code>std::unordered_map</code> when order does not matter.</p>
+<h2 id="stddeque"><code>std::deque</code></h2>
+<p>Double-ended queue:</p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>deque<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> q<span class="op">;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>q<span class="op">.</span>push_back<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>q<span class="op">.</span>push_front<span class="op">(</span><span class="dv">2</span><span class="op">);</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> q<span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>q<span class="op">.</span>pop_front<span class="op">();</span></span></code></pre></div>
+<p>Important:</p>
+<ul>
+<li><code>pop_front()</code> removes but does not return the value.</li>
+<li>Call <code>front()</code> first if you need the value.</li>
+</ul>
+<hr />
+<h1 id="lambdas">Lambdas</h1>
+<p>A lambda is an inline function object.</p>
+<p>General shape:</p>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="op">[</span>captures<span class="op">](</span>arguments<span class="op">)</span> <span class="op">-&gt;</span> <span class="dt">return_type</span> <span class="op">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    body</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Example:</p>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> target <span class="op">=</span> <span class="dv">50</span><span class="op">;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>sort<span class="op">(&amp;</span>values<span class="op">[</span><span class="dv">0</span><span class="op">],</span> <span class="op">&amp;</span>values<span class="op">[</span>num_values<span class="op">],</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">[</span>target<span class="op">](</span><span class="dt">int</span> a<span class="op">,</span> <span class="dt">int</span> b<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> abs<span class="op">(</span>a <span class="op">-</span> target<span class="op">)</span> <span class="op">&lt;</span> abs<span class="op">(</span>b <span class="op">-</span> target<span class="op">);</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">});</span></span></code></pre></div>
+<p>Capture examples:</p>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="op">[</span>x<span class="op">]</span>     <span class="co">// capture x by value, makes a copy</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="op">[&amp;</span>x<span class="op">]</span>    <span class="co">// capture x by reference</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="op">[&amp;]</span>     <span class="co">// capture needed variables by reference</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a><span class="op">[=]</span>     <span class="co">// capture needed variables by value</span></span></code></pre></div>
+<p>For exam reasoning, the main issue is whether the lambda sees a copy
+or the original variable.</p>
+<hr />
+<hr />
+<h1 id="stack-vs-heap">Stack vs Heap</h1>
+<h2 id="stack-allocation">Stack Allocation</h2>
+<div class="sourceCode" id="cb32"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x <span class="op">=</span> <span class="dv">5</span><span class="op">;</span>      <span class="co">// stack local</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Stack locals disappear when the function returns.</p>
+<p>Bad:</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>bad<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">&amp;</span>x<span class="op">;</span>      <span class="co">// returns pointer to dead stack variable</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="heap-allocation">Heap Allocation</h2>
+<div class="sourceCode" id="cb34"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>p <span class="op">=</span> malloc<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="dt">int</span><span class="op">));</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="op">*</span>p <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>free<span class="op">(</span>p<span class="op">);</span></span></code></pre></div>
+<p>For arrays:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>a <span class="op">=</span> malloc<span class="op">(</span>n <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">int</span><span class="op">));</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> n<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    a<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>free<span class="op">(</span>a<span class="op">);</span></span></code></pre></div>
+<p>Always check allocation in production code:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>a <span class="op">==</span> NULL<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;malloc&quot;</span><span class="op">);</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Common memory bugs:</p>
+<ul>
+<li>Leak: forgetting <code>free</code>.</li>
+<li>Use after free: using <code>p</code> after
+<code>free(p)</code>.</li>
+<li>Double free: calling <code>free(p)</code> twice.</li>
+<li>Buffer overflow: writing past allocation.</li>
+<li>Returning address of stack local.</li>
+</ul>
+<hr />
+<h1 id="sizeof"><code>sizeof</code></h1>
+<div class="sourceCode" id="cb37"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">sizeof</span><span class="op">(</span><span class="dt">int</span><span class="op">)</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">sizeof</span><span class="op">(</span><span class="dt">char</span> <span class="op">*)</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="kw">sizeof</span> arr</span></code></pre></div>
+<p>Trap:</p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">(</span><span class="dt">int</span> <span class="op">*</span>a<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">sizeof</span><span class="op">(</span>a<span class="op">);</span>      <span class="co">// size of pointer, not array</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Use this allocation pattern:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="op">*</span>a <span class="op">=</span> malloc<span class="op">(</span>n <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(*</span>a<span class="op">));</span></span></code></pre></div>
+<p>This stays correct if the type of <code>a</code> changes.</p>
+<hr />
+<h1 id="function-pointers-and-argv">Function Pointers and
+<code>argv</code></h1>
+<h2 id="main"><code>main</code></h2>
+<div class="sourceCode" id="cb40"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">(</span><span class="dt">int</span> argc<span class="op">,</span> <span class="dt">char</span> <span class="op">*</span>argv<span class="op">[])</span> <span class="op">{</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// argv[0] is program name</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// argv[1] is first argument, if argc &gt; 1</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>char *argv[]</code> means array of C strings. As a parameter,
+it behaves like:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">**</span>argv</span></code></pre></div>
+<h2 id="execvp"><code>execvp</code></h2>
+<div class="sourceCode" id="cb42"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>execvp<span class="op">(</span>argv<span class="op">[</span><span class="dv">0</span><span class="op">],</span> argv<span class="op">);</span></span></code></pre></div>
+<p><code>execvp</code> expects:</p>
+<ul>
+<li>Program name/path.</li>
+<li>Argument vector terminated by <code>NULL</code>.</li>
+</ul>
+<p>Example:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>args<span class="op">[]</span> <span class="op">=</span> <span class="op">{</span><span class="st">&quot;ls&quot;</span><span class="op">,</span> <span class="st">&quot;-l&quot;</span><span class="op">,</span> NULL<span class="op">};</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>execvp<span class="op">(</span>args<span class="op">[</span><span class="dv">0</span><span class="op">],</span> args<span class="op">);</span></span></code></pre></div>
+<p>If <code>execvp</code> succeeds, it does not return.</p>
+<hr />
+<h1 id="error-handling">Error Handling</h1>
+<p>Many Unix calls return:</p>
+<ul>
+<li><code>-1</code> on error.</li>
+<li><code>0</code> or positive values on success.</li>
+</ul>
+<p>Pattern:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pipe<span class="op">(</span>fds<span class="op">)</span> <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;pipe&quot;</span><span class="op">);</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>perror("pipe")</code> prints a message based on
+<code>errno</code>.</p>
+<p>For exam code, exact error handling may not be required, but knowing
+the return convention helps.</p>
+<hr />
+<h1 id="file-descriptors">File Descriptors</h1>
+<p>File descriptors are small integers local to a process.</p>
+<p>Standard descriptors:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>STDIN_FILENO   <span class="co">// 0</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>STDOUT_FILENO  <span class="co">// 1</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>STDERR_FILENO  <span class="co">// 2</span></span></code></pre></div>
+<p>Include:</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;unistd.h&gt;</span></span></code></pre></div>
+<p>Useful calls:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>read<span class="op">(</span>fd<span class="op">,</span> buf<span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>write<span class="op">(</span>fd<span class="op">,</span> buf<span class="op">,</span> count<span class="op">);</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fd<span class="op">);</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>dup2<span class="op">(</span>oldfd<span class="op">,</span> newfd<span class="op">);</span></span></code></pre></div>
+<hr />
+<h1 id="fork"><code>fork</code></h1>
+<div class="sourceCode" id="cb48"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>pid_t pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// child</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// parent; pid is child&#39;s pid</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>After <code>fork</code>:</p>
+<ul>
+<li>Parent and child both continue after the <code>fork</code>.</li>
+<li>They have separate address spaces.</li>
+<li>File descriptors are inherited.</li>
+<li>Changes to normal memory in child do not change parent memory.</li>
+</ul>
+<p>Common pattern:</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>pid_t pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> argv <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;execvp&quot;</span><span class="op">);</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>pid<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<hr />
+<h1 id="pipe-dup2-and-close"><code>pipe</code>, <code>dup2</code>, and
+<code>close</code></h1>
+<h2 id="pipe-basics">Pipe Basics</h2>
+<div class="sourceCode" id="cb50"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> fds<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>pipe<span class="op">(</span>fds<span class="op">);</span></span></code></pre></div>
+<ul>
+<li><code>fds[0]</code>: read end.</li>
+<li><code>fds[1]</code>: write end.</li>
+</ul>
+<h2 id="redirect-stdout-to-pipe">Redirect stdout to Pipe</h2>
+<div class="sourceCode" id="cb51"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">],</span> STDOUT_FILENO<span class="op">);</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span></code></pre></div>
+<p>Now writes to stdout go into the pipe.</p>
+<h2 id="redirect-stdin-from-pipe">Redirect stdin from Pipe</h2>
+<div class="sourceCode" id="cb52"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">],</span> STDIN_FILENO<span class="op">);</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span></code></pre></div>
+<p>Now reads from stdin come from the pipe.</p>
+<h2 id="pipeline-pattern">Pipeline Pattern</h2>
+<p>For:</p>
+<pre class="text"><code>cmd1 | cmd2</code></pre>
+<p>Use:</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> fds<span class="op">[</span><span class="dv">2</span><span class="op">];</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>pipe<span class="op">(</span>fds<span class="op">);</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>pid_t p1 <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>p1 <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span>                    <span class="co">// child 1 does not read</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>    dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">],</span> STDOUT_FILENO<span class="op">);</span>      <span class="co">// stdout -&gt; pipe write</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>cmd1<span class="op">[</span><span class="dv">0</span><span class="op">],</span> cmd1<span class="op">);</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;execvp&quot;</span><span class="op">);</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>pid_t p2 <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>p2 <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span>                    <span class="co">// child 2 does not write</span></span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>    dup2<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">],</span> STDIN_FILENO<span class="op">);</span>       <span class="co">// stdin &lt;- pipe read</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>    close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>cmd2<span class="op">[</span><span class="dv">0</span><span class="op">],</span> cmd2<span class="op">);</span></span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;execvp&quot;</span><span class="op">);</span></span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>close<span class="op">(</span>fds<span class="op">[</span><span class="dv">1</span><span class="op">]);</span></span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>p1<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>p2<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>Critical rule:</p>
+<ul>
+<li>Close every pipe end a process does not need.</li>
+</ul>
+<p>EOF rule:</p>
+<ul>
+<li>A pipe reader sees EOF only when all write ends are closed.</li>
+</ul>
+<p>If some process accidentally keeps the write end open, the reader may
+block forever.</p>
+<hr />
+<h1 id="waitpid"><code>waitpid</code></h1>
+<div class="sourceCode" id="cb55"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> status<span class="op">;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>pid<span class="op">,</span> <span class="op">&amp;</span>status<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<p>Use:</p>
+<ul>
+<li>Parent waits for a specific child.</li>
+<li>Prevents zombie processes.</li>
+<li>Lets parent observe completion.</li>
+</ul>
+<p>For simple exam code:</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>pid<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span></code></pre></div>
+<hr />
+<h1 id="timing-a-program">Timing a Program</h1>
+<p>Pattern from practice midterm:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> timespec start<span class="op">;</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>clock_gettime<span class="op">(</span>CLOCK_REALTIME<span class="op">,</span> <span class="op">&amp;</span>start<span class="op">);</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>pid_t pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(</span>argv<span class="op">[</span><span class="dv">1</span><span class="op">],</span> argv <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>    perror<span class="op">(</span><span class="st">&quot;execvp&quot;</span><span class="op">);</span></span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    exit<span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>waitpid<span class="op">(</span>pid<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> timespec finish<span class="op">;</span></span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>clock_gettime<span class="op">(</span>CLOCK_REALTIME<span class="op">,</span> <span class="op">&amp;</span>finish<span class="op">);</span></span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>print_elapsed_time<span class="op">(&amp;</span>start<span class="op">,</span> <span class="op">&amp;</span>finish<span class="op">);</span></span></code></pre></div>
+<p>Meaning:</p>
+<ul>
+<li>Parent records start time.</li>
+<li>Child runs target command.</li>
+<li>Parent waits.</li>
+<li>Parent records finish time.</li>
+</ul>
+<hr />
+<h1 id="c-apis-vs-c-apis-in-this-class">C APIs vs C++ APIs in This
+Class</h1>
+<p>CS111 examples may mix styles:</p>
+<p>C-style:</p>
+<ul>
+<li><code>fork</code></li>
+<li><code>execvp</code></li>
+<li><code>pipe</code></li>
+<li><code>dup2</code></li>
+<li><code>close</code></li>
+<li><code>waitpid</code></li>
+<li><code>char *argv[]</code></li>
+<li><code>struct timespec</code></li>
+</ul>
+<p>C++-style:</p>
+<ul>
+<li><code>std::thread</code></li>
+<li><code>std::mutex</code></li>
+<li><code>std::condition_variable</code></li>
+<li><code>std::vector</code></li>
+<li><code>std::map</code></li>
+<li><code>std::unique_lock</code></li>
+</ul>
+<p>Do not let the mixed syntax throw you. The OS calls are C APIs; the
+synchronization problems are usually C++ monitor-style code.</p>
+<p>The course handout specifically lists these useful C++ types:</p>
+<ul>
+<li><code>std::string</code></li>
+<li><code>std::vector</code></li>
+<li><code>std::map</code></li>
+<li><code>std::unordered_map</code></li>
+<li><code>std::queue</code></li>
+<li><code>std::deque</code></li>
+<li><code>std::thread</code></li>
+<li><code>std::mutex</code></li>
+<li><code>std::unique_lock</code></li>
+<li><code>std::condition_variable_any</code></li>
+<li><code>std::function</code></li>
+</ul>
+<p>Past midterms and examples may also use
+<code>std::condition_variable</code>. The concept is the same for your
+purposes: wait on a condition while releasing the lock, then reacquire
+the lock when woken.</p>
+<hr />
+<h1 id="c-monitor-syntax-you-should-remember">C++ Monitor Syntax You
+Should Remember</h1>
+<div class="sourceCode" id="cb58"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mutex&gt;</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;condition_variable&gt;</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Thing <span class="op">{</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait_until_ready<span class="op">();</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> make_ready<span class="op">();</span></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex mutex<span class="op">;</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>condition_variable cv<span class="op">;</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> ready <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Thing<span class="op">::</span>wait_until_ready<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(!</span>ready<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>        cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Thing<span class="op">::</span>make_ready<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>    ready <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>notify_one<span class="op">();</span></span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Important:</p>
+<ul>
+<li><code>std::unique_lock&lt;std::mutex&gt;</code> is needed for
+condition variable waits.</li>
+<li><code>cv.wait(lock)</code> releases the lock while sleeping and
+reacquires it before returning.</li>
+<li>Use <code>while</code>, not <code>if</code>.</li>
+</ul>
+<h2
+id="stdcondition_variable_any"><code>std::condition_variable_any</code></h2>
+<p>Some CS111 handouts mention <code>std::condition_variable_any</code>.
+It is similar in spirit to <code>std::condition_variable</code>, but it
+can work with more lock-like types.</p>
+<p>Typical pattern is still:</p>
+<div class="sourceCode" id="cb59"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>predicate<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>For the course’s custom lock assignment, the API may be
+simplified:</p>
+<div class="sourceCode" id="cb60"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Mutex <span class="op">{</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> lock<span class="op">();</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> unlock<span class="op">();</span></span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> mine<span class="op">();</span></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Condition <span class="op">{</span></span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait<span class="op">(</span>Mutex <span class="op">&amp;</span>m<span class="op">);</span></span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_one<span class="op">();</span></span>
+<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_all<span class="op">();</span></span>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The semantics are the same:</p>
+<ul>
+<li><code>wait(m)</code> unlocks <code>m</code>.</li>
+<li>The thread blocks.</li>
+<li>After wakeup, it locks <code>m</code> again before returning.</li>
+</ul>
+<hr />
+<h1 id="common-exam-traces">Common Exam Traces</h1>
+<h2 id="global-with-threads">Global with Threads</h2>
+<div class="sourceCode" id="cb61"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">100</span><span class="op">;</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>    x<span class="op">++;</span></span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Threads in the same process share <code>x</code>.</p>
+<h2 id="global-with-fork">Global with <code>fork</code></h2>
+<div class="sourceCode" id="cb62"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">100</span><span class="op">;</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>pid_t pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>    x <span class="op">+=</span> <span class="dv">100</span><span class="op">;</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>    waitpid<span class="op">(</span>pid<span class="op">,</span> NULL<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> x<span class="op">);</span></span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Parent still prints <code>100</code>, because parent and child have
+separate address spaces after <code>fork</code>.</p>
+<h2 id="local-shadowing">Local Shadowing</h2>
+<div class="sourceCode" id="cb63"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> x <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> f<span class="op">(</span><span class="dt">void</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> x <span class="op">=</span> <span class="dv">2</span><span class="op">;</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>    printf<span class="op">(</span><span class="st">&quot;</span><span class="sc">%d\n</span><span class="st">&quot;</span><span class="op">,</span> x<span class="op">);</span>    <span class="co">// 2</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Inner/local <code>x</code> shadows outer/global <code>x</code>.</p>
+<hr />
+<h1 id="quick-checklist-before-writing-c-code">Quick Checklist Before
+Writing C Code</h1>
+<ul>
+<li>Did every <code>fork</code> branch handle parent vs child?</li>
+<li>Does every child that should run another program call
+<code>execvp</code>?</li>
+<li>If <code>execvp</code> returns, do you call <code>exit</code>?</li>
+<li>Did the parent <code>waitpid</code> for children?</li>
+<li>For pipes, did each process close unused ends?</li>
+<li>Did you use <code>dup2</code> before closing the descriptor you
+need?</li>
+<li>Did you avoid returning pointers to stack locals?</li>
+<li>Did you pass array lengths separately?</li>
+<li>Did you remember C strings need <code>NULL</code> or
+<code>'\0'</code> termination depending on context?</li>
+</ul>
+</body>
+</html>

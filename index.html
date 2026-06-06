@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CS111 Final Study Guide</title>
+  <style>
+    :root {
+      --bg: #f7f6f1;
+      --paper: #fffdf7;
+      --ink: #24211d;
+      --muted: #625d55;
+      --line: #ded8ca;
+      --soft: #eee8da;
+      --accent: #0f6b63;
+      --accent-2: #9b4c1f;
+      --accent-3: #4b5f9e;
+      --ok: #1f7a46;
+      --warn: #a05a00;
+      --bad: #9a2f2f;
+      --code: #f0efe9;
+      --shadow: 0 10px 28px rgba(36, 33, 29, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(90deg, rgba(15, 107, 99, 0.08), transparent 32rem), var(--bg);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky; top: 0; height: 100vh; overflow: auto;
+      padding: 24px 18px; border-right: 1px solid var(--line);
+      background: rgba(255, 253, 247, 0.9); backdrop-filter: blur(8px);
+    }
+    aside h1 { margin: 0 0 6px; font-size: 1.1rem; line-height: 1.2; }
+    aside p { margin: 0 0 18px; color: var(--muted); font-size: 0.88rem; }
+    nav a {
+      display: block; padding: 6px 8px; border-radius: 6px;
+      color: var(--ink); text-decoration: none; font-size: 0.9rem;
+    }
+    nav a:hover { background: var(--soft); color: var(--accent); }
+    main { max-width: 1120px; padding: 48px 42px 96px; }
+    header.hero {
+      padding: 42px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--paper); box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 8px; color: var(--accent); font-weight: 800; text-transform: uppercase; font-size: 0.78rem; }
+    h1, h2, h3, h4 { line-height: 1.15; letter-spacing: 0; }
+    header h1 { margin: 0; max-width: 820px; font-size: 2.75rem; }
+    header .subtitle { max-width: 820px; color: var(--muted); font-size: 1.12rem; }
+    section { margin-top: 48px; padding-top: 10px; }
+    h2 { margin: 0 0 16px; font-size: 2rem; }
+    h3 { margin: 28px 0 10px; font-size: 1.25rem; }
+    p { margin: 0 0 14px; }
+    ul, ol { padding-left: 24px; }
+    li { margin: 5px 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 16px 0; }
+    .tri-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 16px 0; }
+    .card, .note, .trap, .worked, .map, details.question {
+      border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+    }
+    .card, .note, .trap, .worked, .map { padding: 16px; }
+    .note { border-left: 4px solid var(--accent); }
+    .trap { border-left: 4px solid var(--bad); }
+    .worked { border-left: 4px solid var(--accent-3); }
+    .flash { border-left: 4px solid var(--warn); }
+    .tag {
+      display: inline-block; margin: 0 6px 6px 0; padding: 3px 7px;
+      border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+      background: #fbfaf5; font-size: 0.78rem;
+    }
+    code, pre {
+      border-radius: 4px; background: var(--code);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.93em;
+    }
+    code { padding: 0.12rem 0.28rem; }
+    pre { padding: 14px; overflow-x: auto; line-height: 1.45; border: 1px solid var(--line); }
+    table { width: 100%; margin: 16px 0; border-collapse: collapse; border: 1px solid var(--line); background: var(--paper); }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+    th { background: var(--soft); font-size: 0.88rem; }
+    tr:last-child td { border-bottom: 0; }
+    details.question { margin: 12px 0; overflow: hidden; }
+    details.question summary { cursor: pointer; padding: 13px 15px; font-weight: 800; color: var(--accent); }
+    details.question .answer { padding: 0 15px 15px; border-top: 1px solid var(--line); background: #fffefa; }
+    .answer-label { display: inline-block; margin-top: 10px; color: var(--ok); font-weight: 800; }
+    .concept-map { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 18px 0; align-items: stretch; }
+    .node { min-height: 76px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fffefa; font-weight: 800; }
+    .node small { display: block; margin-top: 4px; color: var(--muted); font-weight: 500; }
+    .arrow { display: flex; align-items: center; justify-content: center; color: var(--accent-2); font-weight: 900; }
+    .checklist label { display: block; margin: 8px 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
+    .mini { color: var(--muted); font-size: 0.9rem; }
+    @media (max-width: 940px) {
+      .layout { display: block; }
+      aside { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      main { padding: 28px 18px 72px; }
+      header.hero { padding: 24px; }
+      header h1 { font-size: 2rem; }
+      .grid, .tri-grid, .concept-map { grid-template-columns: 1fr; }
+      .arrow { min-height: 20px; }
+    }
+    @media print {
+      body { background: white; }
+      .layout { display: block; }
+      aside { display: none; }
+      main { max-width: none; padding: 0; }
+      .hero, .card, .note, .trap, .worked, .map, details.question { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h1>CS111 Final Guide</h1>
+      <p>High-yield revision site built from lectures, sections, practice finals, and past finals.</p>
+      <nav>
+        <a href="#start">Start Here</a>
+        <a href="#map">Course Map</a>
+        <a href="#concurrency">Concurrency</a>
+        <a href="#sync">Synchronization</a>
+        <a href="#scheduling">Scheduling</a>
+        <a href="#memory">Memory</a>
+        <a href="#paging">Paging</a>
+        <a href="#storage">Storage</a>
+        <a href="#fs">File Systems</a>
+        <a href="#crash">Crash Recovery</a>
+        <a href="#flash">Flash</a>
+        <a href="#trust">Trust</a>
+        <a href="#vms">Virtual Machines</a>
+        <a href="#patterns">Final Patterns</a>
+        <a href="#drill">Drill</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <p class="eyebrow">CS111 final preparation</p>
+        <h1>Operating systems, compressed into the problems the final actually asks.</h1>
+        <p class="subtitle">Use this as the revision site. Use <code>CS111_COMPREHENSIVE_NOTES.html</code> when you need the full lecture-detail version.</p>
+        <p>
+          <span class="tag">threads</span><span class="tag">monitors</span><span class="tag">paging</span><span class="tag">filesystems</span><span class="tag">crash recovery</span><span class="tag">flash</span><span class="tag">trust</span><span class="tag">VMs</span>
+        </p>
+      </header>
+
+      <section id="start">
+        <h2>Start Here</h2>
+        <div class="grid">
+          <div class="note">
+            <h3>How to use this</h3>
+            <ol>
+              <li>Read one section.</li>
+              <li>Do the listed final/past-final questions.</li>
+              <li>Write down the exact sentence or invariant you missed.</li>
+              <li>Re-open the collapsible drills until they feel boring.</li>
+            </ol>
+          </div>
+          <div class="trap">
+            <h3>Do not study only by rereading</h3>
+            <p>The final rewards tracing, predicates, invariants, and concrete disk/page/block accounting. If you cannot predict a solution before reading it, the topic is not done.</p>
+          </div>
+        </div>
+        <table>
+          <tr><th>Order</th><th>Practice set</th><th>Why</th></tr>
+          <tr><td>1</td><td><code>CS111 Practice Final.pdf</code></td><td>Teaching-team final style; start here.</td></tr>
+          <tr><td>2</td><td><code>Spr2024Final.pdf</code></td><td>Most recent full past final: locks, FS tradeoffs, page tables, allocator, thrashing, V6 code.</td></tr>
+          <tr><td>3</td><td><code>Spr2023Final.pdf</code></td><td>Thread states, CV copy, deadlock/starvation, clock, TLB fields, flash degradation.</td></tr>
+          <tr><td>4</td><td><code>Spr2022Final.pdf</code></td><td>Dispatcher, BSD scheduler, fsck, TLB/page size, Unix V6 path/code questions.</td></tr>
+          <tr><td>5</td><td><code>Final-Exam-Ethics-Practice.pdf</code></td><td>Trust/ethics short answers require a different writing style.</td></tr>
+        </table>
+      </section>
+
+      <section id="map">
+        <h2>Course Map</h2>
+        <div class="concept-map">
+          <div class="node">CPU<br><small>threads</small></div>
+          <div class="arrow">→</div>
+          <div class="node">Sync<br><small>locks/CVs</small></div>
+          <div class="arrow">→</div>
+          <div class="node">Memory<br><small>VM/paging</small></div>
+          <div class="arrow">→</div>
+          <div class="node">Storage<br><small>files/logs</small></div>
+        </div>
+        <div class="tri-grid">
+          <div class="card"><h3>Virtualization</h3><p>One thing looks like another: threads virtualize CPU, address spaces virtualize memory, files virtualize disks, VMs virtualize hardware.</p></div>
+          <div class="card"><h3>Atomicity</h3><p>Locks make critical sections indivisible. Logs make multi-block file-system updates recoverable.</p></div>
+          <div class="card"><h3>Locality</h3><p>Schedulers, TLBs, page replacement, file caches, disk scheduling, and FTL garbage collection all exploit locality.</p></div>
+        </div>
+      </section>
+
+      <section id="concurrency">
+        <h2>Concurrency</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Process vs thread</h3>
+            <p>A process owns an address space and resources. A thread is a stream of execution inside a process.</p>
+            <ul>
+              <li>Threads in one process share heap, globals, file descriptors, and page maps.</li>
+              <li>Each thread has its own registers, program counter, stack, and scheduling state.</li>
+              <li>Processes created by <code>fork</code> get separate memory after the fork.</li>
+            </ul>
+          </div>
+          <div class="worked">
+            <h3>Fork tracing</h3>
+            <pre><code>pid_t pid = fork();
+if (pid == 0) {
+    // child: fork returned 0
+} else {
+    // parent: pid is child's process id
+}</code></pre>
+            <p>After <code>fork</code>, both processes continue from the next instruction. Same code path, different return value, separate address spaces.</p>
+          </div>
+        </div>
+        <div class="trap">
+          <h3>Final trap</h3>
+          <p>A dispatcher is OS code that runs when needed. It is not a special high-priority thread. Preemption also does not release locks; only the owning thread can safely release them.</p>
+        </div>
+        <p class="mini">Do: Practice Final Problem 1; Spr2022 Problem 3; Spr2023 Problem 2; Spr2024 Problem 1(a).</p>
+      </section>
+
+      <section id="sync">
+        <h2>Synchronization</h2>
+        <div class="note">
+          <h3>Monitor recipe</h3>
+          <ol>
+            <li>Make all shared state private.</li>
+            <li>Protect it with one mutex unless the problem clearly needs finer-grained locks.</li>
+            <li>Write the wait condition as a Boolean predicate over shared state.</li>
+            <li>Use <code>while</code>, not <code>if</code>, around condition-variable waits.</li>
+            <li>Update shared state while holding the lock.</li>
+            <li>Notify after the state change that might make another predicate true.</li>
+          </ol>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3>Condition variable meaning</h3>
+            <p>A condition variable is not the condition. It is a sleeping/wakeup queue. The condition is your predicate, such as <code>current_load + weight &lt;= capacity</code>.</p>
+            <pre><code>std::unique_lock&lt;std::mutex&gt; lock(mutex_);
+while (!can_proceed()) {
+    cv_.wait(lock);
+}</code></pre>
+          </div>
+          <div class="trap">
+            <h3>Common wrong answers</h3>
+            <ul>
+              <li>Using <code>if</code> instead of <code>while</code>.</li>
+              <li>Sleeping while still logically holding a resource.</li>
+              <li>Not counting both waiting and active threads.</li>
+              <li>Updating state after notify instead of before.</li>
+              <li>Partially reserving resources before all are available.</li>
+            </ul>
+          </div>
+        </div>
+        <table>
+          <tr><th>Problem shape</th><th>State usually needed</th><th>Notify choice</th></tr>
+          <tr><td>Bridge/traffic direction</td><td>Waiting counts, crossing counts/loads, direction/fairness counters</td><td><code>notify_all</code> when many cars may re-check</td></tr>
+          <tr><td>Ordered boarding</td><td>Sorted map from order key to waiter</td><td><code>notify_one</code> selected waiter</td></tr>
+          <tr><td>Inventory/multi-resource</td><td>Inventory vector, per-order predicate</td><td><code>notify_all</code> because different orders need different items</td></tr>
+          <tr><td>Account transfer</td><td>Per-account balances and locks</td><td>Lock both accounts in a global order</td></tr>
+        </table>
+        <p class="mini">Do: Practice Final Problem 2; Spr2024 Problems 3, 6, 7; Spr2023 Problems 3, 5.</p>
+      </section>
+
+      <section id="scheduling">
+        <h2>Scheduling</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Thread states</h3>
+            <ul>
+              <li>New threads start ready.</li>
+              <li>Ready → running when dispatcher selects them.</li>
+              <li>Running → ready when time slice expires or preempted.</li>
+              <li>Running → blocked when waiting for I/O, lock, or CV.</li>
+              <li>Blocked → ready when the awaited event occurs.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>4.4 BSD intuition</h3>
+            <p>Recent CPU usage lowers priority. Mostly blocked/interactive threads get higher priority than compute-bound threads. A single brief block does not instantly erase a long history of CPU use.</p>
+          </div>
+        </div>
+        <div class="trap">
+          <h3>Response time trap</h3>
+          <p>Smaller time slices do not automatically improve average response time. If a task would have finished soon, interrupting it can make everyone wait longer.</p>
+        </div>
+        <p class="mini">Do: Spr2022 Problem 4; Spr2023 Problem 2; Spr2024 Problem 1(b), 11(f).</p>
+      </section>
+
+      <section id="memory">
+        <h2>Memory</h2>
+        <div class="tri-grid">
+          <div class="card"><h3>Linker</h3><p>Combines object files, resolves symbols, relocates references, lays out text/data/bss, and may align sections to page boundaries for protection.</p></div>
+          <div class="card"><h3>Stack vs heap</h3><p>Stack allocation is LIFO and has one contiguous free region. Heap allocation supports arbitrary lifetimes and creates fragmentation/leaks/dangling pointers.</p></div>
+          <div class="card"><h3>Base/bound and segmentation</h3><p>Base/bound gives one protected contiguous region. Segmentation gives multiple variable-sized protected regions but still has external fragmentation.</p></div>
+        </div>
+        <div class="trap">
+          <h3>Allocation trap</h3>
+          <p>If a question asks whether a 400-byte allocation can fit after freeing two 200-byte blocks, check whether those blocks are adjacent in memory. Total free space is not enough; contiguity matters.</p>
+        </div>
+        <p class="mini">Do: Spr2024 Problems 4, 10; Spr2023 Problem 1(d); Spr2024 Problem 1(c), 1(f).</p>
+      </section>
+
+      <section id="paging">
+        <h2>Paging</h2>
+        <div class="note">
+          <h3>Address translation checklist</h3>
+          <ol>
+            <li>Find page size, so offset bits = <code>log2(page_size)</code>.</li>
+            <li>Split virtual address into virtual page number and offset.</li>
+            <li>Use page-table entries to find physical page frame.</li>
+            <li>Physical address = physical page frame bits + unchanged offset.</li>
+            <li>For multilevel tables, split VPN bits into index chunks.</li>
+          </ol>
+        </div>
+        <div class="grid">
+          <div class="card">
+            <h3>TLB</h3>
+            <p>A TLB caches successful virtual-to-physical translations. Entries need the virtual page tag, physical page frame, permissions, and usually address-space identity/ASID if not flushed on every process switch.</p>
+          </div>
+          <div class="card">
+            <h3>Demand paging</h3>
+            <p>Pages are loaded only when touched. A missing page causes a page fault. Replacement policies decide which resident page to evict.</p>
+          </div>
+        </div>
+        <table>
+          <tr><th>Policy</th><th>Idea</th><th>Exam point</th></tr>
+          <tr><td>MIN</td><td>Evict page used farthest in future</td><td>Optimal but impossible online</td></tr>
+          <tr><td>LRU</td><td>Evict least recently used</td><td>Good locality approximation, expensive exact implementation</td></tr>
+          <tr><td>Clock</td><td>Approximate LRU with reference bits</td><td>Changes can make it more/less like LRU</td></tr>
+          <tr><td>FIFO</td><td>Evict oldest resident page</td><td>Can behave badly; not locality-aware</td></tr>
+        </table>
+        <div class="trap">
+          <h3>Thrashing</h3>
+          <p>If the paging disk is near 100% utilized and CPU is mostly idle, the system is thrashing. More CPU cores or scheduler changes usually do not fix it. Reduce the working set, add memory, or speed up paging I/O.</p>
+        </div>
+        <p class="mini">Do: Spr2022 Problems 2(b), 7, 8; Spr2023 Problems 6, 7, 11; Spr2024 Problems 1(e), 3(c), 9, 11.</p>
+      </section>
+
+      <section id="storage">
+        <h2>Storage</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Disk mental model</h3>
+            <p>Random I/O is slow because seek and rotation dominate. Sequential access is faster because adjacent blocks reduce mechanical movement.</p>
+          </div>
+          <div class="card">
+            <h3>Block size tradeoff</h3>
+            <p>Larger blocks improve sequential throughput and increase max file size in indexed systems, but increase internal fragmentation and can waste cache space.</p>
+          </div>
+        </div>
+        <table>
+          <tr><th>Mechanism</th><th>What to remember</th></tr>
+          <tr><td>Programmed I/O</td><td>CPU directly moves data; simple but wastes CPU.</td></tr>
+          <tr><td>Interrupts</td><td>Device notifies CPU when it needs attention or completes work.</td></tr>
+          <tr><td>DMA</td><td>Device transfers data to/from memory without CPU copying each byte.</td></tr>
+          <tr><td>Disk scheduling</td><td>Orders requests to reduce positioning time; CSCAN gives more uniform wait behavior.</td></tr>
+        </table>
+        <p class="mini">Do: Spr2024 Problem 5; Spr2023 Problem 9; Spr2022 Problem 2(a).</p>
+      </section>
+
+      <section id="fs">
+        <h2>File Systems</h2>
+        <div class="tri-grid">
+          <div class="card"><h3>Inode</h3><p>Metadata plus block pointers. It does not store the file's pathname.</p></div>
+          <div class="card"><h3>Directory</h3><p>A file mapping names to inode numbers. Pathname lookup repeatedly reads directory files.</p></div>
+          <div class="card"><h3>Links</h3><p>Hard link = another directory entry to same inode. Symbolic link = special file containing a path string.</p></div>
+        </div>
+        <div class="worked">
+          <h3>Unix V6 large-file shape</h3>
+          <p>A small file stores block numbers directly in the inode. A large file sets <code>ILARG</code>; inode addresses point to indirect blocks, with the last address able to point to a doubly indirect block.</p>
+          <pre><code>if (inode.i_mode &amp; ILARG) {
+    // i_addr[0..6] are indirect block pointers
+    // i_addr[7] can be a doubly-indirect block pointer
+}</code></pre>
+        </div>
+        <div class="trap">
+          <h3>Name-location trap</h3>
+          <p>Putting file names in inodes would make directory lookup slower: the OS would need to read many inodes instead of scanning many compact names in directory blocks.</p>
+        </div>
+        <p class="mini">Do: Spr2022 Problems 9, 10, 11; Spr2023 Problems 8, 12; Spr2024 Problems 2(a), 12.</p>
+      </section>
+
+      <section id="crash">
+        <h2>Crash Recovery</h2>
+        <table>
+          <tr><th>Approach</th><th>Performance</th><th>Consistency</th><th>Durability</th></tr>
+          <tr><td>fsck</td><td>Normal runtime, slow recovery</td><td>Repairs after crash</td><td>Does not prevent lost recent writes</td></tr>
+          <tr><td>Delayed writes</td><td>Fast, coalesces writes</td><td>Worse after crash</td><td>Worse; dirty cache data can be lost</td></tr>
+          <tr><td>Ordered writes</td><td>Slower than free delay writes</td><td>Avoids dangerous inconsistencies</td><td>Can still lose recent data and leak resources</td></tr>
+          <tr><td>Write-ahead logging</td><td>Log write overhead</td><td>Fast recovery, metadata consistency</td><td>Metadata durable after committed log; file data may still be delayed</td></tr>
+        </table>
+        <div class="note">
+          <h3>WAL invariant</h3>
+          <p>The log entry must reach disk before the home-location metadata update it describes. Log replay must be idempotent because recovery can crash and restart.</p>
+        </div>
+        <p class="mini">Do: Practice Final logging part; Spr2022 Problems 1(f), 6; Spr2023 Problems 3(d), 10; Spr2024 Problems 1(d), 8.</p>
+      </section>
+
+      <section id="flash">
+        <h2>Flash</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Why flash is weird</h3>
+            <ul>
+              <li>Reads are page-sized and fast.</li>
+              <li>Writes can clear bits from <code>1</code> to <code>0</code>.</li>
+              <li>Setting bits back to <code>1</code> requires erasing a large erase unit.</li>
+              <li>Erase units wear out.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>FTL</h3>
+            <p>The Flash Translation Layer maps logical disk blocks to physical flash pages. Writes go to new pages, old pages become garbage, and garbage collection later erases whole units.</p>
+          </div>
+        </div>
+        <div class="worked flash">
+          <h3>Write amplification</h3>
+          <p>If an erase unit has utilization <code>U</code>, simplified write amplification is <code>1 / (1 - U)</code>. At <code>U = .9</code>, the device may do about 10 units of physical writing per unit of logical new data.</p>
+        </div>
+        <div class="trap">
+          <h3>TRIM</h3>
+          <p>The FTL does not know a deleted file's blocks are dead unless the OS tells it. TRIM reduces useless copying of deleted data during garbage collection.</p>
+        </div>
+        <p class="mini">Do: Spr2023 Problem 9(e); Spr2024 Problem 11(e).</p>
+      </section>
+
+      <section id="trust">
+        <h2>Trust</h2>
+        <div class="tri-grid">
+          <div class="card"><h3>Assumption</h3><p>Weak trust: no strong evidence. "I just assume this source is okay."</p></div>
+          <div class="card"><h3>Inference</h3><p>Trust from evidence: tests, inspection, history, observed behavior, reputation with reasons.</p></div>
+          <div class="card"><h3>Substitution</h3><p>Trust because something else trusted backs it: signatures, vendors, institutions, recovery mechanisms.</p></div>
+        </div>
+        <div class="note">
+          <h3>Ethics answer template</h3>
+          <p>Name the trustor, trustee, what was trusted, the evidence or missing evidence, the failure mode, and a concrete mitigation.</p>
+        </div>
+        <div class="trap">
+          <h3>Technology traps</h3>
+          <ul>
+            <li>Engagement is not truth.</li>
+            <li>Authoritative AI tone is not accuracy.</li>
+            <li>Many copies of one false claim are not independent evidence.</li>
+            <li>Synthetic media makes both belief and dismissal easier to manipulate.</li>
+          </ul>
+        </div>
+        <p class="mini">Do: Final Ethics Practice; Spr2024 Problem 2(b)-(c); Spr2023 Problem 10.</p>
+      </section>
+
+      <section id="vms">
+        <h2>Virtual Machines</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>VM vs process</h3>
+            <p>A process sees a user-level abstraction. A VM sees something that looks like hardware: privileged instructions, physical memory, MMU behavior, devices, traps, and interrupts.</p>
+          </div>
+          <div class="card">
+            <h3>Hypervisor</h3>
+            <p>The hypervisor controls real hardware and provides virtual hardware to guest operating systems.</p>
+          </div>
+        </div>
+        <div class="worked">
+          <h3>Trap-and-simulate</h3>
+          <ol>
+            <li>Guest OS executes privileged instruction, such as <code>CLI</code>.</li>
+            <li>CPU traps to the hypervisor.</li>
+            <li>Hypervisor updates virtual CPU state as if the instruction executed.</li>
+            <li>Guest resumes after the instruction.</li>
+          </ol>
+        </div>
+        <table>
+          <tr><th>Address</th><th>Meaning</th></tr>
+          <tr><td>Guest virtual</td><td>Application address inside the VM.</td></tr>
+          <tr><td>Guest physical</td><td>What the guest OS thinks is physical memory.</td></tr>
+          <tr><td>Machine</td><td>Real host physical memory.</td></tr>
+        </table>
+        <p class="mini">Do page-table problems first: Spr2023 Problem 11 and Spr2024 Problem 9. Then explain how an extra guest-physical-to-machine translation fits on top.</p>
+      </section>
+
+      <section id="patterns">
+        <h2>Final Patterns</h2>
+        <div class="grid">
+          <div class="card"><h3>T/F conceptual</h3><p>Rewrite the statement with one precise counterexample. Example: preemption does not release locks because only the owner knows the protected invariant is safe.</p></div>
+          <div class="card"><h3>Synchronization design</h3><p>Most points are in state variables and wait predicates. Code syntax matters, but the invariant matters more.</p></div>
+          <div class="card"><h3>Address translation</h3><p>Draw the bit split. Offsets are unchanged between virtual and physical addresses.</p></div>
+          <div class="card"><h3>Filesystem coding</h3><p>List every structure read/written: inode, directory block, indirect block, doubly indirect block, free map, data block.</p></div>
+          <div class="card"><h3>Crash questions</h3><p>Say exactly which disk writes happened before the crash. Vague "it might be inconsistent" answers are usually too weak.</p></div>
+          <div class="card"><h3>Tradeoff questions</h3><p>Separate performance, consistency, and durability. One change can improve one while worsening another.</p></div>
+        </div>
+      </section>
+
+      <section id="drill">
+        <h2>Drill</h2>
+        <details class="question"><summary>Why does a condition-variable wait use <code>while</code> instead of <code>if</code>?</summary><div class="answer"><span class="answer-label">Answer</span><p>Waking only means the predicate may now be true. Another thread may run first and falsify it, or the wakeup may be broad/spurious. Re-check under the lock.</p></div></details>
+        <details class="question"><summary>What are the four deadlock conditions?</summary><div class="answer"><span class="answer-label">Answer</span><p>Limited access/mutual exclusion, no preemption, multiple independent requests while holding resources, and circular wait.</p></div></details>
+        <details class="question"><summary>Why do multilevel page tables save memory?</summary><div class="answer"><span class="answer-label">Answer</span><p>They allocate lower-level page-table pages only for used regions of the virtual address space, instead of requiring one giant contiguous table for every possible virtual page.</p></div></details>
+        <details class="question"><summary>Does increasing page size help TLB misses?</summary><div class="answer"><span class="answer-label">Answer</span><p>Often yes, because each TLB entry covers more bytes. But it can increase internal fragmentation and may pull in more useless data.</p></div></details>
+        <details class="question"><summary>Why can a hard link outlive deletion of the original pathname?</summary><div class="answer"><span class="answer-label">Answer</span><p>The file is the inode, not the name. A hard link is another directory entry pointing to the same inode, and the inode persists while its reference count is nonzero.</p></div></details>
+        <details class="question"><summary>Why must WAL replay operations be idempotent?</summary><div class="answer"><span class="answer-label">Answer</span><p>Recovery itself can crash. If replay restarts, applying the same log entry again must leave the disk in the same correct state.</p></div></details>
+        <details class="question"><summary>Why is flash garbage collection expensive at high utilization?</summary><div class="answer"><span class="answer-label">Answer</span><p>Most pages in a victim erase unit are still live, so the FTL must copy many live pages to free only a small amount of space. Write amplification grows as <code>1/(1-U)</code>.</p></div></details>
+        <details class="question"><summary>What is trap-and-simulate?</summary><div class="answer"><span class="answer-label">Answer</span><p>The guest runs directly until it tries a privileged operation. That operation traps to the hypervisor, which simulates its effect on virtual machine state and resumes the guest.</p></div></details>
+        <details class="question"><summary>How should an ethics/trust answer be structured?</summary><div class="answer"><span class="answer-label">Answer</span><p>Identify trustor, trustee, trusted claim/action, evidence type, failure mode such as over-trust or untrustworthiness, and a concrete verification or design improvement.</p></div></details>
+        <div class="checklist">
+          <h3>Final readiness checklist</h3>
+          <label><input type="checkbox"> I can trace every process after multiple forks.</label>
+          <label><input type="checkbox"> I can write a monitor with correct state and predicates.</label>
+          <label><input type="checkbox"> I can split a virtual address into page-table indexes and offset.</label>
+          <label><input type="checkbox"> I can explain TLB fields and page replacement tradeoffs.</label>
+          <label><input type="checkbox"> I can walk Unix V6 inodes, directories, indirect blocks, and links.</label>
+          <label><input type="checkbox"> I can compare fsck, ordered writes, delayed writes, and WAL.</label>
+          <label><input type="checkbox"> I can explain FTLs, garbage collection, write amplification, wear-leveling, and TRIM.</label>
+          <label><input type="checkbox"> I can answer trust/ethics questions concretely.</label>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
