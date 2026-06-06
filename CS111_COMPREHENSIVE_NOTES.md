@@ -2,6 +2,13 @@
 
 These notes are a standalone study document for the lectures currently in the `Lectures` folder. They are organized chronologically, but the explanations are expanded beyond the slide headings so you can study without constantly jumping back to the PDFs.
 
+## Site Navigation
+
+- `CS111_FINAL_STUDY_GUIDE.html`: quick final-review version with traps, drills, and problem patterns.
+- `CS111_EXAM_C_CHEATSHEET.html`: C/C++ syntax and exam-code reference.
+- `CS111_MIDTERM_PRACTICE_GUIDE.html`: midterm practice guide, still useful for concurrency and memory foundations.
+- `C_FOR_CS111_CHEATSHEET.html`: compact C refresher.
+
 Lecture 11 is byte-for-byte identical to Lecture 10 in this folder, so it is treated as a duplicate.
 
 Lecture 14 is byte-for-byte identical to Lecture 13 in this folder, so it is treated as a duplicate.

@@ -43,7 +43,7 @@
       color: var(--ink); text-decoration: none; font-size: 0.9rem;
     }
     nav a:hover { background: var(--soft); color: var(--accent); }
-    main { max-width: 1120px; padding: 48px 42px 96px; }
+    main { max-width: 1180px; padding: 48px 42px 96px; }
     header.hero {
       padding: 42px; border: 1px solid var(--line); border-radius: 8px;
       background: var(--paper); box-shadow: var(--shadow);
@@ -89,9 +89,14 @@
     details.question .answer { padding: 0 15px 15px; border-top: 1px solid var(--line); background: #fffefa; }
     .answer-label { display: inline-block; margin-top: 10px; color: var(--ok); font-weight: 800; }
     .concept-map { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 18px 0; align-items: stretch; }
-    .node { min-height: 76px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fffefa; font-weight: 800; }
-    .node small { display: block; margin-top: 4px; color: var(--muted); font-weight: 500; }
+    .node { min-height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 5px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fffefa; }
+    .node strong { display: block; font-size: 1.05rem; line-height: 1.1; }
+    .node small { display: block; color: var(--muted); font-weight: 600; line-height: 1.2; }
     .arrow { display: flex; align-items: center; justify-content: center; color: var(--accent-2); font-weight: 900; }
+    .dense-list { columns: 2; column-gap: 32px; }
+    .summary-box { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fffefa; }
+    .summary-box h3:first-child, .card h3:first-child, .note h3:first-child, .trap h3:first-child, .worked h3:first-child { margin-top: 0; }
+    .formula { margin: 14px 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #fbfaf5; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-x: auto; }
     .checklist label { display: block; margin: 8px 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fffefa; }
     .mini { color: var(--muted); font-size: 0.9rem; }
     @media (max-width: 940px) {
@@ -102,6 +107,7 @@
       header h1 { font-size: 2rem; }
       .grid, .tri-grid, .concept-map { grid-template-columns: 1fr; }
       .arrow { min-height: 20px; }
+      .dense-list { columns: 1; }
     }
     @media print {
       body { background: white; }
@@ -176,13 +182,13 @@
       <section id="map">
         <h2>Course Map</h2>
         <div class="concept-map">
-          <div class="node">CPU<br><small>threads</small></div>
+          <div class="node"><strong>CPU</strong><small>threads, fork, dispatch</small></div>
           <div class="arrow">→</div>
-          <div class="node">Sync<br><small>locks/CVs</small></div>
+          <div class="node"><strong>Sync</strong><small>locks, CVs, monitors</small></div>
           <div class="arrow">→</div>
-          <div class="node">Memory<br><small>VM/paging</small></div>
+          <div class="node"><strong>Memory</strong><small>VM, paging, TLBs</small></div>
           <div class="arrow">→</div>
-          <div class="node">Storage<br><small>files/logs</small></div>
+          <div class="node"><strong>Storage</strong><small>files, logs, flash</small></div>
         </div>
         <div class="tri-grid">
           <div class="card"><h3>Virtualization</h3><p>One thing looks like another: threads virtualize CPU, address spaces virtualize memory, files virtualize disks, VMs virtualize hardware.</p></div>
