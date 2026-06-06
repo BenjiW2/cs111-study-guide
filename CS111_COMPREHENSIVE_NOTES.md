@@ -47,7 +47,8 @@ Lecture 25 `(1)` is a duplicate copy of Lecture 25.
 21. Lecture 26: Flash Memory
 22. Lecture 27: Virtual Machines
 23. Lecture 28: Course Review
-24. Final Review Map
+24. Annotated Final Code Patterns
+25. Final Review Map
 
 ---
 
@@ -4769,6 +4770,1295 @@ Do the final materials in this order:
 5. `Final-Exam-Ethics-Practice.pdf`, then `Final-Exam-Ethics-Practice-Solutions.pdf`.
 
 For each final, mark mistakes by topic, not by problem number. The topics that repeat across years are the ones to drill.
+
+---
+
+# Annotated Final Code Patterns
+
+This chapter is a code-first reference for exam problems. It is intentionally repetitive: the final often gives small code fragments and asks what can happen, what is guaranteed, or what state is shared. These examples show the patterns you should recognize quickly.
+
+## Pattern 1: Minimal `fork`
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+int main(void) {
+    int x = 10;
+
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child process:
+        // - fork returned 0 here.
+        // - Child has its own copy of x.
+        x++;
+        printf("child: x = %d\n", x);
+    } else {
+        // Parent process:
+        // - fork returned the child's process id here.
+        // - Parent still has its own copy of x.
+        x += 100;
+        printf("parent: x = %d, child pid = %d\n", x, pid);
+    }
+
+    return 0;
+}
+```
+
+What to know:
+
+- Both parent and child continue after the `fork()` call.
+- The child sees `pid == 0`.
+- The parent sees `pid == child's process id`.
+- Memory is separate after `fork`. The child's `x++` does not change the parent's `x`.
+- Output order is not guaranteed unless the parent waits or you synchronize another way.
+
+Final-style question:
+
+```c
+int x = 0;
+pid_t pid = fork();
+x++;
+printf("%d\n", x);
+```
+
+Both processes print `1`, not one process printing `1` and the other printing `2`, because each process has a separate copy of `x`.
+
+## Pattern 2: Multiple `fork`s
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+
+int main(void) {
+    printf("A\n");
+
+    fork();
+    printf("B\n");
+
+    fork();
+    printf("C\n");
+
+    return 0;
+}
+```
+
+How many lines?
+
+- Before any fork: 1 process.
+- After first `fork`: 2 processes.
+- Each of those prints `B`, so `B` prints 2 times.
+- Then both processes call the second `fork`, creating 4 total processes.
+- Each of the 4 processes prints `C`, so `C` prints 4 times.
+
+Guaranteed:
+
+- `A` prints once.
+- `B` prints twice.
+- `C` prints four times.
+- In each individual process, its own `B` happens before its own `C`.
+
+Not guaranteed:
+
+- The global ordering across processes.
+- Whether all `B`s appear before all `C`s.
+
+Exam tracing trick:
+
+Draw a process tree. Every `fork` duplicates the currently running process and both branches continue.
+
+## Pattern 3: `fork` With `waitpid`
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child does work first.
+        printf("child starts\n");
+        printf("child ends\n");
+        return 0;
+    }
+
+    // Parent waits specifically for this child.
+    waitpid(pid, NULL, 0);
+
+    // This line is guaranteed after the child exits.
+    printf("parent after child\n");
+    return 0;
+}
+```
+
+What `waitpid(pid, NULL, 0)` means:
+
+- Wait for the child whose process id is `pid`.
+- The parent blocks until that child exits.
+- `NULL` means the parent does not care about the child's exit status.
+- `0` means normal blocking wait.
+
+Guaranteed output ordering:
+
+```text
+child starts
+child ends
+parent after child
+```
+
+`waitpid` prevents zombie processes because the parent collects the child's exit status.
+
+## Pattern 4: Waiting for Multiple Children
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    pid_t pids[2];
+
+    for (int i = 0; i < 2; i++) {
+        pids[i] = fork();
+
+        if (pids[i] == 0) {
+            printf("child %d running\n", i);
+            return 0;
+        }
+    }
+
+    // Only the original parent reaches here.
+    waitpid(pids[0], NULL, 0);
+    waitpid(pids[1], NULL, 0);
+
+    printf("both children done\n");
+    return 0;
+}
+```
+
+Important:
+
+- Each child returns immediately so children do not keep looping and create more children.
+- The parent stores both child process ids.
+- The parent waits for both before printing final output.
+
+Output ordering:
+
+- The two child lines can appear in either order.
+- `both children done` must appear last.
+
+Common bug:
+
+```c
+for (int i = 0; i < 2; i++) {
+    fork();
+}
+```
+
+This creates 4 processes total, not just 2 children, because the child from the first iteration also runs the second iteration.
+
+## Pattern 5: `execvp`
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(void) {
+    char *args[] = {"ls", "-l", NULL};
+
+    execvp(args[0], args);
+
+    // This code runs only if execvp fails.
+    perror("execvp");
+    exit(1);
+}
+```
+
+What `execvp` does:
+
+- Replaces the current process image with a new program.
+- Keeps the same process id.
+- Does not create a new process.
+- On success, it never returns to the old code.
+- On failure, it returns `-1`, so the `perror`/`exit` path runs.
+
+Why `args` ends with `NULL`:
+
+- `execvp` receives an array of C strings.
+- It needs a sentinel to know where the argument list ends.
+- `args[0]` is conventionally the program name.
+
+## Pattern 6: `fork` + `execvp` + `waitpid`
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    char *args[] = {"echo", "hello", "from", "child", NULL};
+
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child becomes the echo program.
+        execvp(args[0], args);
+
+        // Runs only if execvp fails.
+        perror("execvp");
+        exit(1);
+    }
+
+    // Parent waits for the echo process to finish.
+    waitpid(pid, NULL, 0);
+    printf("parent done\n");
+    return 0;
+}
+```
+
+Why this pattern matters:
+
+- Shells do this constantly.
+- `fork` creates a child.
+- Child calls `execvp` to run the requested command.
+- Parent waits.
+
+Guaranteed:
+
+- `parent done` prints after `echo` exits.
+
+Not guaranteed without `waitpid`:
+
+- Parent might print before child output.
+
+## Pattern 7: File Descriptors `0`, `1`, and `2`
+
+```c
+#include <unistd.h>
+
+int main(void) {
+    char msg[] = "hello stdout\n";
+    char err[] = "hello stderr\n";
+
+    write(1, msg, sizeof(msg) - 1); // fd 1: stdout
+    write(2, err, sizeof(err) - 1); // fd 2: stderr
+
+    return 0;
+}
+```
+
+Standard file descriptors:
+
+```text
+0  stdin   input
+1  stdout  normal output
+2  stderr  error output
+```
+
+Named constants:
+
+```c
+#include <unistd.h>
+
+STDIN_FILENO   // 0
+STDOUT_FILENO  // 1
+STDERR_FILENO  // 2
+```
+
+Exam idea:
+
+- A file descriptor is just an integer index into the process's open-file table.
+- `printf` eventually writes to stdout.
+- `perror` writes to stderr.
+- After `fork`, the child inherits copies of the parent's open file descriptors.
+
+## Pattern 8: `open`, `read`, `write`, `close`
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int fd = open("input.txt", O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    char buf[128];
+    ssize_t n = read(fd, buf, sizeof(buf));
+
+    if (n < 0) {
+        perror("read");
+        close(fd);
+        exit(1);
+    }
+
+    // Write exactly the bytes read.
+    write(STDOUT_FILENO, buf, n);
+
+    close(fd);
+    return 0;
+}
+```
+
+Important types:
+
+- `int fd`: file descriptor.
+- `ssize_t n`: signed byte count; can be `-1` on error.
+- `read` returns number of bytes read, `0` on EOF, or `-1` on error.
+
+Important exam detail:
+
+- `read` and `write` are byte-level system calls.
+- They do not know about C strings.
+- If the buffer does not contain `'\0'`, do not use `%s` unless you manually add a terminator.
+
+## Pattern 9: Redirecting stdout With `dup2`
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int fd = open("out.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    // Make stdout (fd 1) refer to the same open file as fd.
+    dup2(fd, STDOUT_FILENO);
+
+    // fd is no longer needed; stdout now points at the file.
+    close(fd);
+
+    printf("this goes into out.txt\n");
+    return 0;
+}
+```
+
+What `dup2(fd, STDOUT_FILENO)` means:
+
+- Close file descriptor `1` if it is open.
+- Make descriptor `1` refer to the same open file description as `fd`.
+- Future writes to stdout go to that file.
+
+Common exam trap:
+
+- `dup2(oldfd, newfd)` duplicates `oldfd` onto `newfd`.
+- Direction matters.
+
+## Pattern 10: Redirect Then `execvp`
+
+```c
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    char *args[] = {"wc", "-l", NULL};
+
+    int fd = open("input.txt", O_RDONLY);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    // Make stdin come from input.txt.
+    dup2(fd, STDIN_FILENO);
+    close(fd);
+
+    execvp(args[0], args);
+    perror("execvp");
+    exit(1);
+}
+```
+
+Why this works:
+
+- File descriptors survive across successful `execvp` unless marked close-on-exec.
+- The process becomes `wc`, but fd `0` still points to `input.txt`.
+- So `wc -l` reads from the file as if the shell ran `wc -l < input.txt`.
+
+## Pattern 11: Pipe Basics
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int fds[2];
+
+    if (pipe(fds) < 0) {
+        perror("pipe");
+        exit(1);
+    }
+
+    // fds[0] is the read end.
+    // fds[1] is the write end.
+    write(fds[1], "abc", 3);
+
+    char buf[4];
+    int n = read(fds[0], buf, 3);
+    buf[n] = '\0';
+
+    printf("%s\n", buf);
+
+    close(fds[0]);
+    close(fds[1]);
+    return 0;
+}
+```
+
+Pipe rule:
+
+- Data written to `fds[1]` can be read from `fds[0]`.
+- Pipes are byte streams, not message objects.
+- Reads can return fewer bytes than requested.
+
+## Pattern 12: Pipe Between Parent and Child
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+int main(void) {
+    int fds[2];
+    pipe(fds);
+
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child writes; it does not read.
+        close(fds[0]);
+
+        write(fds[1], "hello", 5);
+        close(fds[1]);
+        return 0;
+    }
+
+    // Parent reads; it does not write.
+    close(fds[1]);
+
+    char buf[16];
+    ssize_t n = read(fds[0], buf, sizeof(buf));
+    write(STDOUT_FILENO, buf, n);
+
+    close(fds[0]);
+    waitpid(pid, NULL, 0);
+    return 0;
+}
+```
+
+Why the closes matter:
+
+- The child closes the read end because it only writes.
+- The parent closes the write end because it only reads.
+- A reader sees EOF only after all write ends of the pipe are closed.
+
+Major exam trap:
+
+If the parent forgets to close `fds[1]`, then the parent may block forever waiting for EOF because the process still has a write end open.
+
+## Pattern 13: Shell-Style Pipeline `ls | wc -l`
+
+```c
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+
+int main(void) {
+    int fds[2];
+    pipe(fds);
+
+    pid_t left = fork();
+    if (left == 0) {
+        // Left child: stdout -> pipe write end.
+        dup2(fds[1], STDOUT_FILENO);
+
+        // Close original pipe fds after dup2.
+        close(fds[0]);
+        close(fds[1]);
+
+        char *args[] = {"ls", NULL};
+        execvp(args[0], args);
+        perror("execvp ls");
+        exit(1);
+    }
+
+    pid_t right = fork();
+    if (right == 0) {
+        // Right child: stdin <- pipe read end.
+        dup2(fds[0], STDIN_FILENO);
+
+        close(fds[0]);
+        close(fds[1]);
+
+        char *args[] = {"wc", "-l", NULL};
+        execvp(args[0], args);
+        perror("execvp wc");
+        exit(1);
+    }
+
+    // Parent must close both ends.
+    close(fds[0]);
+    close(fds[1]);
+
+    waitpid(left, NULL, 0);
+    waitpid(right, NULL, 0);
+    return 0;
+}
+```
+
+What to annotate on exams:
+
+- `ls` writes to stdout.
+- `dup2(fds[1], STDOUT_FILENO)` makes stdout go into the pipe.
+- `wc -l` reads from stdin.
+- `dup2(fds[0], STDIN_FILENO)` makes stdin come from the pipe.
+- All unused pipe ends must be closed in all processes.
+
+## Pattern 14: Threads Sharing State
+
+```cpp
+#include <thread>
+#include <iostream>
+
+int counter = 0;
+
+void worker() {
+    for (int i = 0; i < 100000; i++) {
+        counter++; // race condition
+    }
+}
+
+int main() {
+    std::thread t1(worker);
+    std::thread t2(worker);
+
+    t1.join();
+    t2.join();
+
+    std::cout << counter << "\n";
+}
+```
+
+Why this is wrong:
+
+- `counter++` is not one indivisible operation.
+- It is roughly load, add, store.
+- Two threads can both load the same old value and overwrite each other's increments.
+- The final value may be less than `200000`.
+
+This is a race condition because correctness depends on timing.
+
+## Pattern 15: Mutex Protecting Shared State
+
+```cpp
+#include <thread>
+#include <mutex>
+#include <iostream>
+
+int counter = 0;
+std::mutex counter_mutex;
+
+void worker() {
+    for (int i = 0; i < 100000; i++) {
+        counter_mutex.lock();
+        counter++;
+        counter_mutex.unlock();
+    }
+}
+
+int main() {
+    std::thread t1(worker);
+    std::thread t2(worker);
+
+    t1.join();
+    t2.join();
+
+    std::cout << counter << "\n";
+}
+```
+
+What the mutex does:
+
+- Only one thread can hold `counter_mutex` at a time.
+- The critical section is the code between `lock` and `unlock`.
+- The shared invariant is: `counter` is only modified while holding `counter_mutex`.
+
+Exam warning:
+
+Manual `lock`/`unlock` is easy to get wrong if there are early returns or exceptions. Exam solutions often use `std::unique_lock`.
+
+## Pattern 16: `std::unique_lock`
+
+```cpp
+#include <mutex>
+
+std::mutex mutex_;
+int shared_value = 0;
+
+void add_one() {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    // Lock is held here.
+    shared_value++;
+
+    // No explicit unlock needed.
+    // The destructor unlocks when lock goes out of scope.
+}
+```
+
+Why this is useful:
+
+- It prevents forgetting to unlock.
+- It unlocks on every return path.
+- It works with condition variables.
+
+Exam phrase:
+
+`std::unique_lock<std::mutex> lock(mutex_);` means "acquire the monitor lock for this method."
+
+## Pattern 17: Condition Variable Wait
+
+```cpp
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+
+std::mutex mutex_;
+std::condition_variable not_empty_;
+std::queue<int> queue_;
+
+int remove() {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    while (queue_.empty()) {
+        not_empty_.wait(lock);
+    }
+
+    int value = queue_.front();
+    queue_.pop();
+    return value;
+}
+
+void add(int value) {
+    std::unique_lock<std::mutex> lock(mutex_);
+
+    queue_.push(value);
+
+    // State changed: queue may now be non-empty.
+    not_empty_.notify_one();
+}
+```
+
+What `wait(lock)` does:
+
+1. Atomically unlocks the mutex and sleeps.
+2. Wakes after notification.
+3. Re-locks the mutex before returning.
+
+Why the wait uses `while`:
+
+- Wakeup does not guarantee the predicate is true.
+- Another thread may consume the item first.
+- `notify_all` wakes many threads, but only some can proceed.
+
+## Pattern 18: Bounded Buffer
+
+```cpp
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+
+class BoundedBuffer {
+public:
+    BoundedBuffer(size_t capacity) : capacity_(capacity) {}
+
+    void put(int value) {
+        std::unique_lock<std::mutex> lock(mutex_);
+
+        while (queue_.size() == capacity_) {
+            not_full_.wait(lock);
+        }
+
+        queue_.push(value);
+
+        // A consumer waiting for non-empty may now proceed.
+        not_empty_.notify_one();
+    }
+
+    int get() {
+        std::unique_lock<std::mutex> lock(mutex_);
+
+        while (queue_.empty()) {
+            not_empty_.wait(lock);
+        }
+
+        int value = queue_.front();
+        queue_.pop();
+
+        // A producer waiting for space may now proceed.
+        not_full_.notify_one();
+        return value;
+    }
+
+private:
+    std::mutex mutex_;
+    std::condition_variable not_empty_;
+    std::condition_variable not_full_;
+    std::queue<int> queue_;
+    size_t capacity_;
+};
+```
+
+Exam pattern:
+
+- One predicate for "can produce": queue is not full.
+- One predicate for "can consume": queue is not empty.
+- State is always checked while holding the lock.
+
+## Pattern 19: Bridge Crossing Monitor
+
+```cpp
+#include <mutex>
+#include <condition_variable>
+
+class Bridge {
+public:
+    Bridge(int capacity) : capacity_(capacity) {}
+
+    void arrive(int direction, int weight) {
+        std::unique_lock<std::mutex> lock(mutex_);
+
+        if (direction == 0) {
+            waiting0_ += weight;
+
+            while (load_ + weight > capacity_ ||
+                   (crossing1_ > 0) ||
+                   (waiting1_ > 0 && consecutive0_ >= 5)) {
+                cv0_.wait(lock);
+            }
+
+            waiting0_ -= weight;
+            crossing0_++;
+            load_ += weight;
+            consecutive0_++;
+            consecutive1_ = 0;
+        } else {
+            waiting1_ += weight;
+
+            while (load_ + weight > capacity_ ||
+                   (crossing0_ > 0) ||
+                   (waiting0_ > 0 && consecutive1_ >= 5)) {
+                cv1_.wait(lock);
+            }
+
+            waiting1_ -= weight;
+            crossing1_++;
+            load_ += weight;
+            consecutive1_++;
+            consecutive0_ = 0;
+        }
+    }
+
+    void leave(int direction, int weight) {
+        std::unique_lock<std::mutex> lock(mutex_);
+
+        load_ -= weight;
+        if (direction == 0) {
+            crossing0_--;
+        } else {
+            crossing1_--;
+        }
+
+        // Many different cars may now be eligible.
+        cv0_.notify_all();
+        cv1_.notify_all();
+    }
+
+private:
+    std::mutex mutex_;
+    std::condition_variable cv0_;
+    std::condition_variable cv1_;
+
+    int capacity_;
+    int load_ = 0;
+
+    int crossing0_ = 0;
+    int crossing1_ = 0;
+    int waiting0_ = 0;
+    int waiting1_ = 0;
+
+    int consecutive0_ = 0;
+    int consecutive1_ = 0;
+};
+```
+
+What this illustrates:
+
+- Track both active and waiting state.
+- Wait predicate includes capacity, opposite direction, and fairness.
+- Use `notify_all` when many waiters have different weights/predicates.
+
+Important:
+
+This is a pattern, not the only valid implementation. On an exam, match the exact fairness rule in the prompt.
+
+## Pattern 20: Deadlock From Opposite Lock Order
+
+```cpp
+#include <mutex>
+
+struct Account {
+    std::mutex mutex;
+    int balance;
+};
+
+void transfer(Account *from, Account *to, int amount) {
+    from->mutex.lock();
+    to->mutex.lock();
+
+    from->balance -= amount;
+    to->balance += amount;
+
+    to->mutex.unlock();
+    from->mutex.unlock();
+}
+```
+
+Deadlock execution:
+
+1. Thread A calls `transfer(x, y, 10)` and locks `x`.
+2. Thread B calls `transfer(y, x, 20)` and locks `y`.
+3. Thread A waits for `y`.
+4. Thread B waits for `x`.
+5. Neither can proceed.
+
+Fix: acquire locks in a global order.
+
+```cpp
+void transfer_safe(Account *a1, Account *a2, int amount) {
+    Account *first = a1 < a2 ? a1 : a2;
+    Account *second = a1 < a2 ? a2 : a1;
+
+    first->mutex.lock();
+    second->mutex.lock();
+
+    a1->balance -= amount;
+    a2->balance += amount;
+
+    second->mutex.unlock();
+    first->mutex.unlock();
+}
+```
+
+Why this avoids deadlock:
+
+- All threads acquire account locks in the same order.
+- This breaks circular wait.
+
+## Pattern 21: Page Offset and Page Number
+
+```c
+#include <stdint.h>
+#include <stdio.h>
+
+int main(void) {
+    uint64_t va = 0x12345;
+    uint64_t page_size = 4096;        // 2^12
+    uint64_t offset_mask = page_size - 1;
+
+    uint64_t offset = va & offset_mask;
+    uint64_t vpn = va >> 12;
+
+    printf("vpn = %llu, offset = %llu\n", vpn, offset);
+    return 0;
+}
+```
+
+Why this works:
+
+- If page size is 4096 bytes, offset is 12 bits.
+- The low 12 bits are the offset within the page.
+- The remaining high bits are the virtual page number.
+
+Exam translation formula:
+
+```text
+virtual address = virtual page number || offset
+physical address = physical page frame number || same offset
+```
+
+The offset does not change during translation.
+
+## Pattern 22: Multilevel Page Table Indexing
+
+```c
+#include <stdint.h>
+
+uint64_t pml4_index(uint64_t va) {
+    return (va >> 39) & 0x1ff; // 9 bits
+}
+
+uint64_t pml3_index(uint64_t va) {
+    return (va >> 30) & 0x1ff; // 9 bits
+}
+
+uint64_t pml2_index(uint64_t va) {
+    return (va >> 21) & 0x1ff; // 9 bits
+}
+
+uint64_t pml1_index(uint64_t va) {
+    return (va >> 12) & 0x1ff; // 9 bits
+}
+
+uint64_t page_offset(uint64_t va) {
+    return va & 0xfff; // 12 bits for 4 KB pages
+}
+```
+
+For x86-64-style 4 KB pages:
+
+```text
+9 bits   9 bits   9 bits   9 bits   12 bits
+PML4     PML3     PML2     PML1     offset
+```
+
+Why `0x1ff`?
+
+- `0x1ff` is binary `111111111`.
+- It extracts 9 bits.
+
+## Pattern 23: TLB Entry Fields
+
+```c
+struct tlb_entry {
+    unsigned long virtual_page_number;
+    unsigned long physical_page_frame;
+    int readable;
+    int writable;
+    int executable;
+    int user_accessible;
+    int address_space_id;
+    int valid;
+};
+```
+
+What belongs in a TLB entry:
+
+- Virtual page tag: so the hardware knows what virtual page this entry is for.
+- Physical page frame: the translation result.
+- Permission bits: so the TLB can enforce protection without consulting page tables.
+- Valid bit: whether entry is usable.
+- Address-space id or equivalent: if the system wants to avoid flushing the TLB on every process switch.
+
+What does not need to be in a TLB entry:
+
+- The entire page contents.
+- Non-present page mappings.
+
+## Pattern 24: Unix V6 Inode Scan
+
+```c
+int find_allocated_inode(struct unixfilesystem *fs) {
+    int ninodes = fs->superblock.s_isize * INODES_PER_BLOCK;
+
+    for (int inumber = 1; inumber <= ninodes; inumber++) {
+        struct inode inp;
+
+        if (inode_get(fs, inumber, &inp) < 0) {
+            return -1;
+        }
+
+        if (inp.i_mode & IALLOC) {
+            return inumber;
+        }
+    }
+
+    return -1;
+}
+```
+
+What this shows:
+
+- Inodes are numbered starting at 1 in many Unix V6 project helpers.
+- `inode_get` reads an inode from disk.
+- `IALLOC` means the inode is currently allocated.
+
+Exam code pattern:
+
+- Compute how many inodes exist.
+- Loop over inumbers.
+- Read each inode.
+- Skip unallocated inodes.
+
+## Pattern 25: Unix V6 Directory Scan
+
+```c
+int dir_lookup_name(struct unixfilesystem *fs, int dir_inumber,
+                    const char *name) {
+    for (int block_index = 0; ; block_index++) {
+        struct direntv6 entries[NUM_DIRENTS_PER_BLOCK];
+
+        int n = file_getblock(fs, dir_inumber, block_index, entries);
+        if (n <= 0) {
+            break;
+        }
+
+        for (int i = 0; i < NUM_DIRENTS_PER_BLOCK; i++) {
+            if (entries[i].d_inumber == 0) {
+                continue;
+            }
+
+            if (strncmp(entries[i].d_name, name, sizeof(entries[i].d_name)) == 0) {
+                return entries[i].d_inumber;
+            }
+        }
+    }
+
+    return -1;
+}
+```
+
+What this shows:
+
+- A directory is a file containing directory entries.
+- Each entry maps a name to an inumber.
+- `file_getblock` reads logical file block `block_index`.
+- Empty entries usually have inumber `0`.
+
+Exam trap:
+
+The file name is in the directory entry, not in the inode.
+
+## Pattern 26: Direct vs Indirect Blocks
+
+```c
+int inode_uses_block_as_indirect(struct unixfilesystem *fs,
+                                 struct inode *inp,
+                                 int block_num) {
+    if (!(inp->i_mode & ILARG)) {
+        return 0; // small files do not use indirect blocks
+    }
+
+    // In Unix V6 large files, the first 7 addresses are indirect blocks.
+    for (int i = 0; i < 7; i++) {
+        if (inp->i_addr[i] == block_num) {
+            return 1;
+        }
+    }
+
+    // The last address may point to a doubly-indirect block.
+    int doubly = inp->i_addr[7];
+    if (doubly == 0) {
+        return 0;
+    }
+
+    uint16_t indirect_blocks[BLOCK_NUMS_PER_INDIRECT];
+    if (diskimg_readsector(fs->dfd, doubly, indirect_blocks) < 0) {
+        return -1;
+    }
+
+    for (int i = 0; i < BLOCK_NUMS_PER_INDIRECT; i++) {
+        if (indirect_blocks[i] == block_num) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+```
+
+What this shows:
+
+- Small file: inode points directly to data blocks.
+- Large file: inode points to indirect blocks.
+- Doubly-indirect block points to indirect blocks.
+- An indirect block contains block numbers for data blocks.
+
+## Pattern 27: Updating File-System Metadata
+
+When a file-system operation creates a hard link, it may need to update:
+
+```text
+target inode reference count
+new parent directory data block
+possibly parent directory inode size
+possibly free map if a new directory block is allocated
+possibly log records if using write-ahead logging
+```
+
+Pseudo-code:
+
+```c
+int hard_link(char *target_path, char *link_path) {
+    int target_inumber = pathname_lookup(target_path);
+    int parent_inumber = pathname_lookup(parent_directory(link_path));
+
+    struct inode target;
+    inode_get(fs, target_inumber, &target);
+
+    if (target.i_mode & IFDIR) {
+        return -1; // usually disallow hard links to directories
+    }
+
+    add_directory_entry(parent_inumber, basename(link_path), target_inumber);
+
+    target.i_nlink++;
+    inode_put(fs, target_inumber, &target);
+
+    return 0;
+}
+```
+
+Crash-recovery angle:
+
+- If directory entry is written but reference count is not, fsck can repair count.
+- If reference count is written but directory entry is not, inode may appear referenced but unreachable.
+- Logging groups these changes into a transaction.
+
+## Pattern 28: Write-Ahead Log Replay
+
+```c
+void replay_log_entry(struct log_entry *entry) {
+    char block[BLOCK_SIZE];
+
+    disk_read(entry->blockno, block);
+
+    // Apply the patch described by the log entry.
+    memcpy(block + entry->offset, entry->bytes, entry->length);
+
+    disk_write(entry->blockno, block);
+}
+```
+
+Why this must be idempotent:
+
+- Recovery may crash while replaying.
+- On reboot, recovery may replay the same entry again.
+- Applying the same patch twice must produce the same final block contents.
+
+Good log entry:
+
+```text
+Set bytes 100..103 of block 55 to value X.
+```
+
+Bad log entry:
+
+```text
+Increment reference count in block 55.
+```
+
+Incrementing twice changes the result, so it is not idempotent unless the system has another mechanism to prevent duplicate replay.
+
+## Pattern 29: Flash FTL Write
+
+```c
+void ftl_write(int logical_block, char *data) {
+    int old_page = map[logical_block];
+    int new_page = find_free_erased_page();
+
+    mark_allocated_not_written(new_page);
+    flash_write(new_page, data);
+    mark_written(new_page);
+
+    map[logical_block] = new_page;
+
+    if (old_page >= 0) {
+        mark_garbage(old_page);
+    }
+}
+```
+
+What this shows:
+
+- Flash does not overwrite the old physical page in place.
+- New data goes to a fresh erased page.
+- The logical-to-physical map changes.
+- The old page becomes garbage.
+
+Crash angle:
+
+- The page-header state can reveal whether a crash occurred before or after the new page was fully written.
+
+## Pattern 30: Trap-and-Simulate
+
+```c
+void hypervisor_trap_handler(struct vm *vm, struct trap *trap) {
+    if (trap->instruction == CLI) {
+        // Guest tried to disable interrupts.
+        // Do not disable real machine interrupts for everyone.
+        vm->virtual_interrupts_enabled = 0;
+        vm->guest_pc += trap->instruction_length;
+        resume_guest(vm);
+    }
+}
+```
+
+What this shows:
+
+- Guest OS executes a privileged instruction.
+- Hardware traps to the hypervisor.
+- Hypervisor simulates the effect on virtual machine state.
+- Guest resumes as if the instruction succeeded.
+
+Exam phrasing:
+
+The guest thinks it controls hardware. The hypervisor actually controls hardware and maintains virtual hardware state for each VM.
+
+## Pattern 31: Trust/Ethics Answer Skeleton
+
+Trust questions are not code, but a good answer has a structure as strict as code:
+
+```text
+Trustor:
+    Who is relying on something?
+
+Trustee:
+    What person/system/source is being trusted?
+
+Trusted action or claim:
+    What exactly is expected?
+
+Basis for trust:
+    Assumption, inference, or substitution?
+
+Failure mode:
+    Over-trust, untrustworthiness, confirmation bias, false trust in numbers?
+
+Mitigation:
+    What concrete validation or design change reduces the risk?
+```
+
+Example:
+
+```text
+The team over-trusted the generated report because it sounded authoritative
+and matched their expectations. That is weak inference plus confirmation
+bias. They should have validated the claims against primary logs or a
+trusted independent source before acting.
+```
+
+This is how to avoid vague ethics answers.
 
 ---
 
