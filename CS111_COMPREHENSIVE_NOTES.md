@@ -4,11 +4,11 @@ These notes are a standalone study document for the lectures currently in the `L
 
 ## Site Navigation
 
-- `CS111_SLIDE_TEXT_REFERENCE.html`: slide-by-slide extracted lecture text coverage backstop.
-- `CS111_FINAL_STUDY_GUIDE.html`: quick final-review version with traps, drills, and problem patterns.
-- `CS111_EXAM_C_CHEATSHEET.html`: C/C++ syntax and exam-code reference.
-- `CS111_MIDTERM_PRACTICE_GUIDE.html`: midterm practice guide, still useful for concurrency and memory foundations.
-- `C_FOR_CS111_CHEATSHEET.html`: compact C refresher.
+- [Slide Text Reference](CS111_SLIDE_TEXT_REFERENCE.html): slide-by-slide extracted lecture text coverage backstop.
+- [Quick Final Study Guide](CS111_FINAL_STUDY_GUIDE.html): final-review version with traps, drills, and problem patterns.
+- [Exam C/C++ Cheatsheet](CS111_EXAM_C_CHEATSHEET.html): C/C++ syntax and exam-code reference.
+- [Midterm Practice Guide](CS111_MIDTERM_PRACTICE_GUIDE.html): midterm practice guide, still useful for concurrency and memory foundations.
+- [Compact C Refresher](C_FOR_CS111_CHEATSHEET.html): compact C refresher.
 
 Lecture 11 is byte-for-byte identical to Lecture 10 in this folder, so it is treated as a duplicate.
 

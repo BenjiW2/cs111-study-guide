@@ -9,152 +9,6 @@
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
     */
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    svg {
-      height: auto;
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      white-space: pre-wrap;
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #1a1a1a;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
@@ -235,11 +89,848 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
+  <link rel="stylesheet" href="study.css" />
 </head>
 <body>
 <header id="title-block-header">
 <h1 class="title">CS111 Comprehensive Notes</h1>
 </header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#cs111-comprehensive-catch-up-notes"
+id="toc-cs111-comprehensive-catch-up-notes">CS111 Comprehensive Catch-Up
+Notes</a>
+<ul>
+<li><a href="#site-navigation" id="toc-site-navigation">Site
+Navigation</a></li>
+<li><a href="#table-of-contents" id="toc-table-of-contents">Table of
+Contents</a></li>
+</ul></li>
+<li><a href="#lecture-1-introduction-to-operating-systems"
+id="toc-lecture-1-introduction-to-operating-systems">Lecture 1:
+Introduction to Operating Systems</a>
+<ul>
+<li><a href="#what-is-an-operating-system"
+id="toc-what-is-an-operating-system">What Is an Operating
+System?</a></li>
+<li><a href="#why-study-os-history" id="toc-why-study-os-history">Why
+Study OS History?</a></li>
+<li><a href="#s-and-early-systems" id="toc-s-and-early-systems">1940s
+and Early Systems</a></li>
+<li><a href="#batch-systems" id="toc-batch-systems">Batch
+Systems</a></li>
+<li><a href="#multiprogramming-and-the-kernel"
+id="toc-multiprogramming-and-the-kernel">Multiprogramming and the
+Kernel</a></li>
+<li><a href="#timesharing" id="toc-timesharing">Timesharing</a></li>
+<li><a href="#networking-and-modern-systems"
+id="toc-networking-and-modern-systems">Networking and Modern
+Systems</a></li>
+<li><a href="#what-operating-systems-do-today"
+id="toc-what-operating-systems-do-today">What Operating Systems Do
+Today</a></li>
+<li><a href="#the-os-as-abstraction-provider"
+id="toc-the-os-as-abstraction-provider">The OS as Abstraction
+Provider</a></li>
+<li><a href="#the-os-as-resource-manager"
+id="toc-the-os-as-resource-manager">The OS as Resource Manager</a></li>
+<li><a href="#core-takeaways" id="toc-core-takeaways">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do" id="toc-exam-questions-to-do">Exam
+Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-2-threads-processes-and-system-calls"
+id="toc-lecture-2-threads-processes-and-system-calls">Lecture 2:
+Threads, Processes, and System Calls</a>
+<ul>
+<li><a href="#problem-decomposition"
+id="toc-problem-decomposition">Problem Decomposition</a></li>
+<li><a href="#concurrency-motivation"
+id="toc-concurrency-motivation">Concurrency Motivation</a></li>
+<li><a href="#thread-definition" id="toc-thread-definition">Thread
+Definition</a></li>
+<li><a href="#process-definition" id="toc-process-definition">Process
+Definition</a></li>
+<li><a href="#thread-vs-process" id="toc-thread-vs-process">Thread vs
+Process</a></li>
+<li><a href="#hardware-executes-instructions-concurrently"
+id="toc-hardware-executes-instructions-concurrently">Hardware Executes
+Instructions Concurrently</a></li>
+<li><a href="#execution-state" id="toc-execution-state">Execution
+State</a></li>
+<li><a href="#system-calls" id="toc-system-calls">System Calls</a></li>
+<li><a href="#linux-process-creation-fork"
+id="toc-linux-process-creation-fork">Linux Process Creation:
+<code>fork</code></a></li>
+<li><a href="#exec" id="toc-exec"><code>exec</code></a></li>
+<li><a href="#wait" id="toc-wait"><code>wait</code></a></li>
+<li><a href="#why-copy-then-overwrite"
+id="toc-why-copy-then-overwrite">Why Copy Then Overwrite?</a></li>
+<li><a href="#windows-process-creation"
+id="toc-windows-process-creation">Windows Process Creation</a></li>
+<li><a href="#thread-creation" id="toc-thread-creation">Thread
+Creation</a></li>
+<li><a href="#core-takeaways-1" id="toc-core-takeaways-1">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-1"
+id="toc-exam-questions-to-do-1">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-3-dispatching-and-context-switching"
+id="toc-lecture-3-dispatching-and-context-switching">Lecture 3:
+Dispatching and Context Switching</a>
+<ul>
+<li><a href="#review-of-execution-abstractions"
+id="toc-review-of-execution-abstractions">Review of Execution
+Abstractions</a></li>
+<li><a href="#cores" id="toc-cores">Cores</a></li>
+<li><a href="#dispatching-vs-scheduling"
+id="toc-dispatching-vs-scheduling">Dispatching vs Scheduling</a></li>
+<li><a href="#thread-states" id="toc-thread-states">Thread
+States</a></li>
+<li><a href="#process-control-block-and-thread-control-block"
+id="toc-process-control-block-and-thread-control-block">Process Control
+Block and Thread Control Block</a></li>
+<li><a href="#dispatcher" id="toc-dispatcher">Dispatcher</a></li>
+<li><a href="#context-switch" id="toc-context-switch">Context
+Switch</a></li>
+<li><a href="#what-causes-the-dispatcher-to-run"
+id="toc-what-causes-the-dispatcher-to-run">What Causes the Dispatcher to
+Run?</a></li>
+<li><a href="#blocking" id="toc-blocking">Blocking</a></li>
+<li><a href="#ready-queues" id="toc-ready-queues">Ready Queues</a></li>
+<li><a href="#core-takeaways-2" id="toc-core-takeaways-2">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-2"
+id="toc-exam-questions-to-do-2">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-4-concurrency"
+id="toc-lecture-4-concurrency">Lecture 4: Concurrency</a>
+<ul>
+<li><a href="#independent-threads"
+id="toc-independent-threads">Independent Threads</a></li>
+<li><a href="#cooperating-threads"
+id="toc-cooperating-threads">Cooperating Threads</a></li>
+<li><a href="#why-permit-thread-cooperation"
+id="toc-why-permit-thread-cooperation">Why Permit Thread
+Cooperation?</a></li>
+<li><a href="#when-does-order-matter"
+id="toc-when-does-order-matter">When Does Order Matter?</a></li>
+<li><a href="#atomic-operation" id="toc-atomic-operation">Atomic
+Operation</a></li>
+<li><a href="#race-conditions" id="toc-race-conditions">Race
+Conditions</a></li>
+<li><a href="#critical-sections" id="toc-critical-sections">Critical
+Sections</a></li>
+<li><a href="#the-too-much-milk-problem"
+id="toc-the-too-much-milk-problem">The “Too Much Milk” Problem</a></li>
+<li><a href="#bad-attempts-and-lessons"
+id="toc-bad-attempts-and-lessons">Bad Attempts and Lessons</a></li>
+<li><a href="#key-definitions" id="toc-key-definitions">Key
+Definitions</a></li>
+<li><a href="#core-takeaways-3" id="toc-core-takeaways-3">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-3"
+id="toc-exam-questions-to-do-3">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-5-locks-and-condition-variables"
+id="toc-lecture-5-locks-and-condition-variables">Lecture 5: Locks and
+Condition Variables</a>
+<ul>
+<li><a href="#why-locks" id="toc-why-locks">Why Locks?</a></li>
+<li><a href="#mutual-exclusion" id="toc-mutual-exclusion">Mutual
+Exclusion</a></li>
+<li><a href="#what-locks-do-not-automatically-solve"
+id="toc-what-locks-do-not-automatically-solve">What Locks Do Not
+Automatically Solve</a></li>
+<li><a href="#producerconsumer-problem"
+id="toc-producerconsumer-problem">Producer/Consumer Problem</a></li>
+<li><a href="#broken-version-no-lock"
+id="toc-broken-version-no-lock">Broken Version: No Lock</a></li>
+<li><a href="#broken-version-lock-but-no-waiting"
+id="toc-broken-version-lock-but-no-waiting">Broken Version: Lock but No
+Waiting</a></li>
+<li><a href="#condition-variables"
+id="toc-condition-variables">Condition Variables</a></li>
+<li><a href="#correct-wait-pattern"
+id="toc-correct-wait-pattern">Correct Wait Pattern</a></li>
+<li><a href="#what-wait-does" id="toc-what-wait-does">What
+<code>wait</code> Does</a></li>
+<li><a href="#notification" id="toc-notification">Notification</a></li>
+<li><a href="#producerconsumer-with-condition-variables"
+id="toc-producerconsumer-with-condition-variables">Producer/Consumer
+with Condition Variables</a></li>
+<li><a href="#monitor-style-locking"
+id="toc-monitor-style-locking">Monitor-Style Locking</a></li>
+<li><a href="#how-many-locks" id="toc-how-many-locks">How Many
+Locks?</a></li>
+<li><a href="#core-takeaways-4" id="toc-core-takeaways-4">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-4"
+id="toc-exam-questions-to-do-4">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-6-lock-implementation"
+id="toc-lecture-6-lock-implementation">Lecture 6: Lock
+Implementation</a>
+<ul>
+<li><a href="#the-question" id="toc-the-question">The Question</a></li>
+<li><a href="#uniprocessor-lock-implementation"
+id="toc-uniprocessor-lock-implementation">Uniprocessor Lock
+Implementation</a></li>
+<li><a href="#example-lock-state" id="toc-example-lock-state">Example
+Lock State</a></li>
+<li><a href="#lock-acquire-on-one-core"
+id="toc-lock-acquire-on-one-core">Lock Acquire on One Core</a></li>
+<li><a href="#lock-release-on-one-core"
+id="toc-lock-release-on-one-core">Lock Release on One Core</a></li>
+<li><a href="#why-disable-interrupts"
+id="toc-why-disable-interrupts">Why Disable Interrupts?</a></li>
+<li><a href="#why-must-blocking-be-careful"
+id="toc-why-must-blocking-be-careful">Why Must Blocking Be
+Careful?</a></li>
+<li><a href="#multiprocessor-locks"
+id="toc-multiprocessor-locks">Multiprocessor Locks</a></li>
+<li><a href="#hardware-atomic-instructions"
+id="toc-hardware-atomic-instructions">Hardware Atomic
+Instructions</a></li>
+<li><a href="#spin-locks" id="toc-spin-locks">Spin Locks</a></li>
+<li><a href="#blocking-locks-vs-spin-locks"
+id="toc-blocking-locks-vs-spin-locks">Blocking Locks vs Spin
+Locks</a></li>
+<li><a href="#why-busy-waiting-can-be-acceptable"
+id="toc-why-busy-waiting-can-be-acceptable">Why Busy Waiting Can Be
+Acceptable</a></li>
+<li><a href="#races-inside-lock-implementation"
+id="toc-races-inside-lock-implementation">Races Inside Lock
+Implementation</a></li>
+<li><a href="#core-takeaways-5" id="toc-core-takeaways-5">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-5"
+id="toc-exam-questions-to-do-5">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-7-deadlock" id="toc-lecture-7-deadlock">Lecture 7:
+Deadlock</a>
+<ul>
+<li><a href="#why-multiple-locks-exist"
+id="toc-why-multiple-locks-exist">Why Multiple Locks Exist</a></li>
+<li><a href="#simple-deadlock-example"
+id="toc-simple-deadlock-example">Simple Deadlock Example</a></li>
+<li><a href="#informal-definition" id="toc-informal-definition">Informal
+Definition</a></li>
+<li><a href="#four-conditions-for-deadlock"
+id="toc-four-conditions-for-deadlock">Four Conditions for
+Deadlock</a></li>
+<li><a href="#mutual-exclusion-1" id="toc-mutual-exclusion-1">Mutual
+Exclusion</a></li>
+<li><a href="#hold-and-wait" id="toc-hold-and-wait">Hold and
+Wait</a></li>
+<li><a href="#no-preemption" id="toc-no-preemption">No
+Preemption</a></li>
+<li><a href="#circular-wait" id="toc-circular-wait">Circular
+Wait</a></li>
+<li><a href="#deadlock-is-broader-than-locks"
+id="toc-deadlock-is-broader-than-locks">Deadlock Is Broader Than
+Locks</a></li>
+<li><a href="#solution-1-deadlock-detection"
+id="toc-solution-1-deadlock-detection">Solution 1: Deadlock
+Detection</a></li>
+<li><a href="#solution-2-deadlock-prevention"
+id="toc-solution-2-deadlock-prevention">Solution 2: Deadlock
+Prevention</a></li>
+<li><a href="#practical-lock-ordering"
+id="toc-practical-lock-ordering">Practical Lock Ordering</a></li>
+<li><a href="#case-study-two-processes-doing-mv"
+id="toc-case-study-two-processes-doing-mv">Case Study: Two Processes
+Doing <code>mv</code></a></li>
+<li><a href="#core-takeaways-6" id="toc-core-takeaways-6">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-6"
+id="toc-exam-questions-to-do-6">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-8-scheduling"
+id="toc-lecture-8-scheduling">Lecture 8: Scheduling</a>
+<ul>
+<li><a href="#what-is-cpu-scheduling"
+id="toc-what-is-cpu-scheduling">What Is CPU Scheduling?</a></li>
+<li><a href="#single-core-first" id="toc-single-core-first">Single-Core
+First</a></li>
+<li><a href="#fifo-scheduling" id="toc-fifo-scheduling">FIFO
+Scheduling</a></li>
+<li><a href="#preemption-and-time-slices"
+id="toc-preemption-and-time-slices">Preemption and Time Slices</a></li>
+<li><a href="#round-robin-scheduling"
+id="toc-round-robin-scheduling">Round Robin Scheduling</a></li>
+<li><a href="#time-slice-tradeoff" id="toc-time-slice-tradeoff">Time
+Slice Tradeoff</a></li>
+<li><a href="#scheduling-goals" id="toc-scheduling-goals">Scheduling
+Goals</a></li>
+<li><a href="#response-time-vs-turnaround-time"
+id="toc-response-time-vs-turnaround-time">Response Time vs Turnaround
+Time</a></li>
+<li><a href="#srpt-shortest-remaining-processing-time"
+id="toc-srpt-shortest-remaining-processing-time">SRPT: Shortest
+Remaining Processing Time</a></li>
+<li><a href="#can-we-approximate-srpt"
+id="toc-can-we-approximate-srpt">Can We Approximate SRPT?</a></li>
+<li><a href="#priority-based-scheduling"
+id="toc-priority-based-scheduling">Priority-Based Scheduling</a></li>
+<li><a href="#unix-nice-level" id="toc-unix-nice-level">Unix Nice
+Level</a></li>
+<li><a href="#bsd-scheduler" id="toc-bsd-scheduler">BSD
+Scheduler</a></li>
+<li><a href="#multicore-scheduling"
+id="toc-multicore-scheduling">Multicore Scheduling</a></li>
+<li><a href="#work-conserving-scheduling"
+id="toc-work-conserving-scheduling">Work-Conserving Scheduling</a></li>
+<li><a href="#core-takeaways-7" id="toc-core-takeaways-7">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-7"
+id="toc-exam-questions-to-do-7">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-9-linkers-and-process-memory-layout"
+id="toc-lecture-9-linkers-and-process-memory-layout">Lecture 9: Linkers
+and Process Memory Layout</a>
+<ul>
+<li><a href="#transition-to-memory"
+id="toc-transition-to-memory">Transition to Memory</a></li>
+<li><a href="#main-memory" id="toc-main-memory">Main Memory</a></li>
+<li><a href="#application-memory-of-a-process"
+id="toc-application-memory-of-a-process">Application Memory of a
+Process</a></li>
+<li><a href="#process-memory-layout"
+id="toc-process-memory-layout">Process Memory Layout</a></li>
+<li><a href="#source-code-to-running-process"
+id="toc-source-code-to-running-process">Source Code to Running
+Process</a></li>
+<li><a href="#compiler" id="toc-compiler">Compiler</a></li>
+<li><a href="#assembler" id="toc-assembler">Assembler</a></li>
+<li><a href="#linker" id="toc-linker">Linker</a></li>
+<li><a href="#symbol-resolution" id="toc-symbol-resolution">Symbol
+Resolution</a></li>
+<li><a href="#loader" id="toc-loader">Loader</a></li>
+<li><a href="#static-linking" id="toc-static-linking">Static
+Linking</a></li>
+<li><a href="#dynamic-linking" id="toc-dynamic-linking">Dynamic
+Linking</a></li>
+<li><a href="#jump-tables-and-dynamic-loader"
+id="toc-jump-tables-and-dynamic-loader">Jump Tables and Dynamic
+Loader</a></li>
+<li><a href="#core-takeaways-8" id="toc-core-takeaways-8">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-8"
+id="toc-exam-questions-to-do-8">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-10-dynamic-storage-management"
+id="toc-lecture-10-dynamic-storage-management">Lecture 10: Dynamic
+Storage Management</a>
+<ul>
+<li><a href="#the-problem" id="toc-the-problem">The Problem</a></li>
+<li><a href="#stack-allocation" id="toc-stack-allocation">Stack
+Allocation</a></li>
+<li><a href="#heap-allocation" id="toc-heap-allocation">Heap
+Allocation</a></li>
+<li><a href="#free-space-management" id="toc-free-space-management">Free
+Space Management</a></li>
+<li><a href="#fragmentation"
+id="toc-fragmentation">Fragmentation</a></li>
+<li><a href="#free-list" id="toc-free-list">Free List</a></li>
+<li><a href="#first-fit" id="toc-first-fit">First Fit</a></li>
+<li><a href="#best-fit" id="toc-best-fit">Best Fit</a></li>
+<li><a href="#splitting-and-coalescing"
+id="toc-splitting-and-coalescing">Splitting and Coalescing</a></li>
+<li><a href="#slab-allocator" id="toc-slab-allocator">Slab
+Allocator</a></li>
+<li><a href="#bitmaps" id="toc-bitmaps">Bitmaps</a></li>
+<li><a href="#storage-reclamation" id="toc-storage-reclamation">Storage
+Reclamation</a></li>
+<li><a href="#manual-memory-bugs" id="toc-manual-memory-bugs">Manual
+Memory Bugs</a></li>
+<li><a href="#reference-counting" id="toc-reference-counting">Reference
+Counting</a></li>
+<li><a href="#garbage-collection" id="toc-garbage-collection">Garbage
+Collection</a></li>
+<li><a href="#mark-and-sweep" id="toc-mark-and-sweep">Mark and
+Sweep</a></li>
+<li><a href="#core-takeaways-9" id="toc-core-takeaways-9">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-9"
+id="toc-exam-questions-to-do-9">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-12-trust-and-operating-systems"
+id="toc-lecture-12-trust-and-operating-systems">Lecture 12: Trust and
+Operating Systems</a>
+<ul>
+<li><a href="#what-is-trust" id="toc-what-is-trust">What Is
+Trust?</a></li>
+<li><a href="#philosophy-version" id="toc-philosophy-version">Philosophy
+Version</a></li>
+<li><a href="#why-trust-matters" id="toc-why-trust-matters">Why Trust
+Matters</a></li>
+<li><a href="#risks-of-trust" id="toc-risks-of-trust">Risks of
+Trust</a></li>
+<li><a href="#how-trust-is-established"
+id="toc-how-trust-is-established">How Trust Is Established</a></li>
+<li><a href="#trust-and-software" id="toc-trust-and-software">Trust and
+Software</a></li>
+<li><a href="#establishing-trust-in-software"
+id="toc-establishing-trust-in-software">Establishing Trust in
+Software</a></li>
+<li><a href="#confirmation-bias" id="toc-confirmation-bias">Confirmation
+Bias</a></li>
+<li><a href="#operating-system-as-root-of-trust"
+id="toc-operating-system-as-root-of-trust">Operating System as Root of
+Trust</a></li>
+<li><a href="#why-users-trust-linux" id="toc-why-users-trust-linux">Why
+Users Trust Linux</a></li>
+<li><a href="#why-developers-trust-linux"
+id="toc-why-developers-trust-linux">Why Developers Trust Linux</a></li>
+<li><a href="#trust-within-linux-developers"
+id="toc-trust-within-linux-developers">Trust Within Linux
+Developers</a></li>
+<li><a href="#trojan-horse-example-xz-ssh-attack"
+id="toc-trojan-horse-example-xz-ssh-attack">Trojan Horse Example: xz /
+ssh Attack</a></li>
+<li><a href="#ai-generated-code-and-trust"
+id="toc-ai-generated-code-and-trust">AI-Generated Code and
+Trust</a></li>
+<li><a href="#core-takeaways-10" id="toc-core-takeaways-10">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-10"
+id="toc-exam-questions-to-do-10">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-13-virtual-memory-base-and-bound-and-segmentation"
+id="toc-lecture-13-virtual-memory-base-and-bound-and-segmentation">Lecture
+13: Virtual Memory, Base and Bound, and Segmentation</a>
+<ul>
+<li><a href="#why-virtualize-memory" id="toc-why-virtualize-memory">Why
+Virtualize Memory?</a></li>
+<li><a href="#single-tasking-memory-layout"
+id="toc-single-tasking-memory-layout">Single-Tasking Memory
+Layout</a></li>
+<li><a href="#load-time-relocation"
+id="toc-load-time-relocation">Load-Time Relocation</a></li>
+<li><a href="#load-time-relocation-limitations"
+id="toc-load-time-relocation-limitations">Load-Time Relocation
+Limitations</a></li>
+<li><a href="#dynamic-address-translation"
+id="toc-dynamic-address-translation">Dynamic Address
+Translation</a></li>
+<li><a href="#address-spaces" id="toc-address-spaces">Address
+Spaces</a></li>
+<li><a href="#base-and-bound" id="toc-base-and-bound">Base and
+Bound</a></li>
+<li><a href="#base-and-bound-example"
+id="toc-base-and-bound-example">Base and Bound Example</a></li>
+<li><a href="#process-to-os-transitions"
+id="toc-process-to-os-transitions">Process to OS Transitions</a></li>
+<li><a href="#base-and-bound-evaluation"
+id="toc-base-and-bound-evaluation">Base and Bound Evaluation</a></li>
+<li><a href="#segmentation" id="toc-segmentation">Segmentation</a></li>
+<li><a href="#determining-the-segment"
+id="toc-determining-the-segment">Determining the Segment</a></li>
+<li><a href="#segmentation-advantages"
+id="toc-segmentation-advantages">Segmentation Advantages</a></li>
+<li><a href="#segmentation-disadvantages"
+id="toc-segmentation-disadvantages">Segmentation Disadvantages</a></li>
+<li><a href="#core-takeaways-11" id="toc-core-takeaways-11">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-11"
+id="toc-exam-questions-to-do-11">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-15-paging-and-page-translation"
+id="toc-lecture-15-paging-and-page-translation">Lecture 15: Paging and
+Page Translation</a>
+<ul>
+<li><a href="#why-paging" id="toc-why-paging">Why Paging?</a></li>
+<li><a href="#pages-and-page-frames"
+id="toc-pages-and-page-frames">Pages and Page Frames</a></li>
+<li><a href="#page-map-page-table" id="toc-page-map-page-table">Page Map
+/ Page Table</a></li>
+<li><a href="#page-table-entry" id="toc-page-table-entry">Page Table
+Entry</a></li>
+<li><a href="#fixed-size-makes-memory-management-easier"
+id="toc-fixed-size-makes-memory-management-easier">Fixed Size Makes
+Memory Management Easier</a></li>
+<li><a href="#x86-64-style-address-translation"
+id="toc-x86-64-style-address-translation">x86-64-Style Address
+Translation</a></li>
+<li><a href="#multilevel-page-tables"
+id="toc-multilevel-page-tables">Multilevel Page Tables</a></li>
+<li><a href="#translation-example"
+id="toc-translation-example">Translation Example</a></li>
+<li><a href="#mapping-code-data-and-stack"
+id="toc-mapping-code-data-and-stack">Mapping Code, Data, and
+Stack</a></li>
+<li><a href="#sharing-memory-between-processes"
+id="toc-sharing-memory-between-processes">Sharing Memory Between
+Processes</a></li>
+<li><a href="#translation-lookaside-buffer"
+id="toc-translation-lookaside-buffer">Translation Lookaside
+Buffer</a></li>
+<li><a href="#tlb-os-complications" id="toc-tlb-os-complications">TLB OS
+Complications</a></li>
+<li><a href="#os-access-to-user-memory"
+id="toc-os-access-to-user-memory">OS Access to User Memory</a></li>
+<li><a href="#os-and-user-in-the-same-address-space"
+id="toc-os-and-user-in-the-same-address-space">OS and User in the Same
+Address Space</a></li>
+<li><a href="#memory-aliasing" id="toc-memory-aliasing">Memory
+Aliasing</a></li>
+<li><a href="#fragmentation-internal-and-external"
+id="toc-fragmentation-internal-and-external">Fragmentation: Internal and
+External</a></li>
+<li><a href="#core-takeaways-12" id="toc-core-takeaways-12">Core
+Takeaways</a></li>
+<li><a href="#exam-questions-to-do-12"
+id="toc-exam-questions-to-do-12">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#lecture-16-demand-paging-and-page-replacement"
+id="toc-lecture-16-demand-paging-and-page-replacement">Lecture 16:
+Demand Paging and Page Replacement</a>
+<ul>
+<li><a href="#why-demand-paging" id="toc-why-demand-paging">Why Demand
+Paging?</a></li>
+<li><a href="#true-virtual-memory" id="toc-true-virtual-memory">True
+Virtual Memory</a></li>
+<li><a href="#page-faults" id="toc-page-faults">Page Faults</a></li>
+<li><a href="#hardware-support-for-paging"
+id="toc-hardware-support-for-paging">Hardware Support for
+Paging</a></li>
+<li><a href="#paging-policies" id="toc-paging-policies">Paging
+Policies</a></li>
+<li><a href="#demand-fetching" id="toc-demand-fetching">Demand
+Fetching</a></li>
+<li><a href="#prefetching" id="toc-prefetching">Prefetching</a></li>
+<li><a href="#page-replacement" id="toc-page-replacement">Page
+Replacement</a></li>
+<li><a href="#lru" id="toc-lru">LRU</a></li>
+<li><a href="#clock-algorithm" id="toc-clock-algorithm">Clock
+Algorithm</a></li>
+<li><a href="#clock-hand-speed" id="toc-clock-hand-speed">Clock Hand
+Speed</a></li>
+<li><a href="#global-vs-per-process-replacement"
+id="toc-global-vs-per-process-replacement">Global vs Per-Process
+Replacement</a></li>
+<li><a href="#thrashing" id="toc-thrashing">Thrashing</a></li>
+<li><a href="#core-takeaways-13" id="toc-core-takeaways-13">Core
+Takeaways</a></li>
+<li><a href="#study-checks" id="toc-study-checks">Study Checks</a></li>
+</ul></li>
+<li><a href="#lecture-18-magnetic-disks-and-io-devices"
+id="toc-lecture-18-magnetic-disks-and-io-devices">Lecture 18: Magnetic
+Disks and I/O Devices</a>
+<ul>
+<li><a href="#why-disks-matter" id="toc-why-disks-matter">Why Disks
+Matter</a></li>
+<li><a href="#hard-disk-drive-structure"
+id="toc-hard-disk-drive-structure">Hard Disk Drive Structure</a></li>
+<li><a href="#reading-and-writing-disks"
+id="toc-reading-and-writing-disks">Reading and Writing Disks</a></li>
+<li><a href="#disk-performance-intuition"
+id="toc-disk-performance-intuition">Disk Performance Intuition</a></li>
+<li><a href="#disk-api" id="toc-disk-api">Disk API</a></li>
+<li><a href="#communicating-with-io-devices"
+id="toc-communicating-with-io-devices">Communicating With I/O
+Devices</a></li>
+<li><a href="#example-disk-read" id="toc-example-disk-read">Example Disk
+Read</a></li>
+<li><a href="#interrupts" id="toc-interrupts">Interrupts</a></li>
+<li><a href="#data-transfer" id="toc-data-transfer">Data
+Transfer</a></li>
+<li><a href="#modern-device-interfaces"
+id="toc-modern-device-interfaces">Modern Device Interfaces</a></li>
+<li><a href="#core-takeaways-14" id="toc-core-takeaways-14">Core
+Takeaways</a></li>
+<li><a href="#study-checks-1" id="toc-study-checks-1">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-19-file-systems"
+id="toc-lecture-19-file-systems">Lecture 19: File Systems</a>
+<ul>
+<li><a href="#what-problems-do-file-systems-solve"
+id="toc-what-problems-do-file-systems-solve">What Problems Do File
+Systems Solve?</a></li>
+<li><a href="#what-is-a-file" id="toc-what-is-a-file">What Is a
+File?</a></li>
+<li><a href="#file-access-patterns" id="toc-file-access-patterns">File
+Access Patterns</a></li>
+<li><a href="#issues-to-consider" id="toc-issues-to-consider">Issues To
+Consider</a></li>
+<li><a href="#inodes" id="toc-inodes">Inodes</a></li>
+<li><a href="#file-structure" id="toc-file-structure">File
+Structure</a></li>
+<li><a href="#contiguous-allocation"
+id="toc-contiguous-allocation">Contiguous Allocation</a></li>
+<li><a href="#linked-files" id="toc-linked-files">Linked Files</a></li>
+<li><a href="#fat" id="toc-fat">FAT</a></li>
+<li><a href="#core-takeaways-15" id="toc-core-takeaways-15">Core
+Takeaways</a></li>
+<li><a href="#study-checks-2" id="toc-study-checks-2">Study
+Checks</a></li>
+</ul></li>
+<li><a
+href="#lecture-20-bsd-inodes-block-cache-free-space-and-disk-scheduling"
+id="toc-lecture-20-bsd-inodes-block-cache-free-space-and-disk-scheduling">Lecture
+20: BSD Inodes, Block Cache, Free Space, and Disk Scheduling</a>
+<ul>
+<li><a href="#multi-level-indexes"
+id="toc-multi-level-indexes">Multi-Level Indexes</a></li>
+<li><a href="#direct-blocks" id="toc-direct-blocks">Direct
+Blocks</a></li>
+<li><a href="#indirect-blocks" id="toc-indirect-blocks">Indirect
+Blocks</a></li>
+<li><a href="#doubly-indirect-blocks"
+id="toc-doubly-indirect-blocks">Doubly Indirect Blocks</a></li>
+<li><a href="#reading-file-blocks" id="toc-reading-file-blocks">Reading
+File Blocks</a></li>
+<li><a href="#bsd-inode-evaluation" id="toc-bsd-inode-evaluation">BSD
+Inode Evaluation</a></li>
+<li><a href="#block-cache" id="toc-block-cache">Block Cache</a></li>
+<li><a href="#modified-blocks" id="toc-modified-blocks">Modified
+Blocks</a></li>
+<li><a href="#free-space-management-1"
+id="toc-free-space-management-1">Free Space Management</a></li>
+<li><a href="#block-sizes" id="toc-block-sizes">Block Sizes</a></li>
+<li><a href="#file-system-challenges"
+id="toc-file-system-challenges">File System Challenges</a></li>
+<li><a href="#disk-scheduling" id="toc-disk-scheduling">Disk
+Scheduling</a></li>
+<li><a href="#core-takeaways-16" id="toc-core-takeaways-16">Core
+Takeaways</a></li>
+<li><a href="#study-checks-3" id="toc-study-checks-3">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-22-directories-and-links"
+id="toc-lecture-22-directories-and-links">Lecture 22: Directories and
+Links</a>
+<ul>
+<li><a href="#naming-files" id="toc-naming-files">Naming Files</a></li>
+<li><a href="#i-number" id="toc-i-number">i-number</a></li>
+<li><a href="#storing-inodes-on-disk"
+id="toc-storing-inodes-on-disk">Storing Inodes on Disk</a></li>
+<li><a href="#inodes-and-open-files"
+id="toc-inodes-and-open-files">Inodes and Open Files</a></li>
+<li><a href="#file-naming" id="toc-file-naming">File Naming</a></li>
+<li><a href="#hierarchical-directories"
+id="toc-hierarchical-directories">Hierarchical Directories</a></li>
+<li><a href="#openabc"
+id="toc-openabc"><code>open("/a/b/c")</code></a></li>
+<li><a href="#working-directories" id="toc-working-directories">Working
+Directories</a></li>
+<li><a href="#hard-links" id="toc-hard-links">Hard Links</a></li>
+<li><a href="#hard-link-limitations" id="toc-hard-link-limitations">Hard
+Link Limitations</a></li>
+<li><a href="#symbolic-links" id="toc-symbolic-links">Symbolic
+Links</a></li>
+<li><a href="#core-takeaways-17" id="toc-core-takeaways-17">Core
+Takeaways</a></li>
+<li><a href="#study-checks-4" id="toc-study-checks-4">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-23-file-system-crash-recovery"
+id="toc-lecture-23-file-system-crash-recovery">Lecture 23: File System
+Crash Recovery</a>
+<ul>
+<li><a href="#why-crash-recovery-is-hard-for-file-systems"
+id="toc-why-crash-recovery-is-hard-for-file-systems">Why Crash Recovery
+Is Hard for File Systems</a></li>
+<li><a href="#example-inconsistencies"
+id="toc-example-inconsistencies">Example Inconsistencies</a></li>
+<li><a href="#approach-1-repair-after-crash"
+id="toc-approach-1-repair-after-crash">Approach 1: Repair After
+Crash</a></li>
+<li><a href="#fsck-checks" id="toc-fsck-checks">fsck Checks</a></li>
+<li><a href="#fsck-limitations" id="toc-fsck-limitations">fsck
+Limitations</a></li>
+<li><a href="#approach-2-ordered-writes"
+id="toc-approach-2-ordered-writes">Approach 2: Ordered Writes</a></li>
+<li><a href="#problems-with-ordered-writes"
+id="toc-problems-with-ordered-writes">Problems With Ordered
+Writes</a></li>
+<li><a href="#approach-3-write-ahead-logging"
+id="toc-approach-3-write-ahead-logging">Approach 3: Write-Ahead
+Logging</a></li>
+<li><a href="#log-entries-and-consistent-groups"
+id="toc-log-entries-and-consistent-groups">Log Entries and Consistent
+Groups</a></li>
+<li><a href="#idempotence" id="toc-idempotence">Idempotence</a></li>
+<li><a href="#logging-advantages" id="toc-logging-advantages">Logging
+Advantages</a></li>
+<li><a href="#logging-disadvantages"
+id="toc-logging-disadvantages">Logging Disadvantages</a></li>
+<li><a href="#delayed-log-writes" id="toc-delayed-log-writes">Delayed
+Log Writes</a></li>
+<li><a href="#remaining-problems" id="toc-remaining-problems">Remaining
+Problems</a></li>
+<li><a href="#core-takeaways-18" id="toc-core-takeaways-18">Core
+Takeaways</a></li>
+<li><a href="#study-checks-5" id="toc-study-checks-5">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-25-truth-trust-and-technology"
+id="toc-lecture-25-truth-trust-and-technology">Lecture 25: Truth, Trust,
+and Technology</a>
+<ul>
+<li><a href="#trust-refresher" id="toc-trust-refresher">Trust
+Refresher</a></li>
+<li><a href="#societal-conflicts-and-truth"
+id="toc-societal-conflicts-and-truth">Societal Conflicts and
+Truth</a></li>
+<li><a href="#confirmation-bias-1"
+id="toc-confirmation-bias-1">Confirmation Bias</a></li>
+<li><a href="#false-trust-in-numbers"
+id="toc-false-trust-in-numbers">False Trust in Numbers</a></li>
+<li><a href="#social-media-algorithms"
+id="toc-social-media-algorithms">Social Media Algorithms</a></li>
+<li><a href="#generative-ai" id="toc-generative-ai">Generative
+AI</a></li>
+<li><a href="#synthetic-media" id="toc-synthetic-media">Synthetic
+Media</a></li>
+<li><a href="#how-to-answer-ethicstrust-questions"
+id="toc-how-to-answer-ethicstrust-questions">How To Answer Ethics/Trust
+Questions</a></li>
+<li><a href="#exam-questions-to-do-13"
+id="toc-exam-questions-to-do-13">Exam Questions To Do</a></li>
+<li><a href="#study-checks-6" id="toc-study-checks-6">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-26-flash-memory"
+id="toc-lecture-26-flash-memory">Lecture 26: Flash Memory</a>
+<ul>
+<li><a href="#flash-compared-with-disks-and-dram"
+id="toc-flash-compared-with-disks-and-dram">Flash Compared With Disks
+and DRAM</a></li>
+<li><a href="#flash-pages-and-erase-units"
+id="toc-flash-pages-and-erase-units">Flash Pages and Erase
+Units</a></li>
+<li><a href="#write-asymmetry" id="toc-write-asymmetry">Write
+Asymmetry</a></li>
+<li><a href="#why-existing-file-systems-need-an-ftl"
+id="toc-why-existing-file-systems-need-an-ftl">Why Existing File Systems
+Need an FTL</a></li>
+<li><a href="#direct-mapped-ftl"
+id="toc-direct-mapped-ftl">Direct-Mapped FTL</a></li>
+<li><a href="#better-ftl-out-of-place-writes"
+id="toc-better-ftl-out-of-place-writes">Better FTL: Out-of-Place
+Writes</a></li>
+<li><a href="#page-header-bits-a-w-g"
+id="toc-page-header-bits-a-w-g">Page Header Bits: A-W-G</a></li>
+<li><a href="#garbage-collection-1"
+id="toc-garbage-collection-1">Garbage Collection</a></li>
+<li><a href="#write-amplification" id="toc-write-amplification">Write
+Amplification</a></li>
+<li><a href="#hot-and-cold-data" id="toc-hot-and-cold-data">Hot and Cold
+Data</a></li>
+<li><a href="#wear-leveling"
+id="toc-wear-leveling">Wear-Leveling</a></li>
+<li><a href="#trim" id="toc-trim">TRIM</a></li>
+<li><a href="#exam-questions-to-do-14"
+id="toc-exam-questions-to-do-14">Exam Questions To Do</a></li>
+<li><a href="#study-checks-7" id="toc-study-checks-7">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-27-virtual-machines"
+id="toc-lecture-27-virtual-machines">Lecture 27: Virtual Machines</a>
+<ul>
+<li><a href="#process-abstraction-vs-machine-abstraction"
+id="toc-process-abstraction-vs-machine-abstraction">Process Abstraction
+vs Machine Abstraction</a></li>
+<li><a href="#hypervisor-virtual-machine-monitor"
+id="toc-hypervisor-virtual-machine-monitor">Hypervisor / Virtual Machine
+Monitor</a></li>
+<li><a href="#hosted-vmm" id="toc-hosted-vmm">Hosted VMM</a></li>
+<li><a href="#simulation" id="toc-simulation">Simulation</a></li>
+<li><a href="#direct-execution-and-trap-and-simulate"
+id="toc-direct-execution-and-trap-and-simulate">Direct Execution and
+Trap-and-Simulate</a></li>
+<li><a href="#system-calls-inside-a-vm"
+id="toc-system-calls-inside-a-vm">System Calls Inside a VM</a></li>
+<li><a href="#virtual-io-devices" id="toc-virtual-io-devices">Virtual
+I/O Devices</a></li>
+<li><a href="#virtualizing-memory"
+id="toc-virtualizing-memory">Virtualizing Memory</a></li>
+<li><a href="#shadow-page-maps" id="toc-shadow-page-maps">Shadow Page
+Maps</a></li>
+<li><a href="#hardware-support-for-vm-memory"
+id="toc-hardware-support-for-vm-memory">Hardware Support for VM
+Memory</a></li>
+<li><a href="#why-vms-matter" id="toc-why-vms-matter">Why VMs
+Matter</a></li>
+<li><a href="#exam-questions-to-do-15"
+id="toc-exam-questions-to-do-15">Exam Questions To Do</a></li>
+<li><a href="#study-checks-8" id="toc-study-checks-8">Study
+Checks</a></li>
+</ul></li>
+<li><a href="#lecture-28-course-review"
+id="toc-lecture-28-course-review">Lecture 28: Course Review</a>
+<ul>
+<li><a href="#concurrency-management"
+id="toc-concurrency-management">Concurrency Management</a></li>
+<li><a href="#memory-management" id="toc-memory-management">Memory
+Management</a></li>
+<li><a href="#storage-management" id="toc-storage-management">Storage
+Management</a></li>
+<li><a href="#major-ideas" id="toc-major-ideas">Major Ideas</a></li>
+<li><a href="#final-exam-strategy" id="toc-final-exam-strategy">Final
+Exam Strategy</a></li>
+<li><a href="#exam-questions-to-do-16"
+id="toc-exam-questions-to-do-16">Exam Questions To Do</a></li>
+</ul></li>
+<li><a href="#final-review-map" id="toc-final-review-map">Final Review
+Map</a>
+<ul>
+<li><a href="#the-course-story-so-far"
+id="toc-the-course-story-so-far">The Course Story So Far</a></li>
+<li><a href="#most-important-definitions"
+id="toc-most-important-definitions">Most Important Definitions</a></li>
+<li><a href="#high-value-examquiz-patterns"
+id="toc-high-value-examquiz-patterns">High-Value Exam/Quiz
+Patterns</a></li>
+<li><a href="#minimal-study-checklist"
+id="toc-minimal-study-checklist">Minimal Study Checklist</a></li>
+</ul></li>
+<li><a href="#appendix-locks-and-synchronization-from-sections"
+id="toc-appendix-locks-and-synchronization-from-sections">Appendix:
+Locks and Synchronization From Sections</a>
+<ul>
+<li><a href="#the-monitor-style" id="toc-the-monitor-style">The Monitor
+Style</a></li>
+<li><a href="#stdunique_lock"
+id="toc-stdunique_lock"><code>std::unique_lock</code></a></li>
+<li><a href="#condition-variable-semantics"
+id="toc-condition-variable-semantics">Condition Variable
+Semantics</a></li>
+<li><a href="#why-waits-must-be-in-a-loop"
+id="toc-why-waits-must-be-in-a-loop">Why Waits Must Be in a
+Loop</a></li>
+<li><a href="#how-to-design-a-monitor"
+id="toc-how-to-design-a-monitor">How To Design a Monitor</a></li>
+<li><a href="#caltrain-pattern" id="toc-caltrain-pattern">CalTrain
+Pattern</a></li>
+<li><a href="#one-lane-bridge-pattern"
+id="toc-one-lane-bridge-pattern">One-Lane Bridge Pattern</a></li>
+<li><a href="#party-matching-pattern"
+id="toc-party-matching-pattern">Party Matching Pattern</a></li>
+<li><a href="#exam-problem-pattern-2022-merge"
+id="toc-exam-problem-pattern-2022-merge">Exam Problem Pattern: 2022
+Merge</a></li>
+<li><a href="#exam-problem-pattern-2023-flight"
+id="toc-exam-problem-pattern-2023-flight">Exam Problem Pattern: 2023
+Flight</a></li>
+<li><a href="#exam-problem-pattern-2024-inventory"
+id="toc-exam-problem-pattern-2024-inventory">Exam Problem Pattern: 2024
+Inventory</a></li>
+<li><a href="#notify_one-vs-notify_all"
+id="toc-notify_one-vs-notify_all"><code>notify_one</code> vs
+<code>notify_all</code></a></li>
+<li><a href="#common-wrong-solutions"
+id="toc-common-wrong-solutions">Common Wrong Solutions</a></li>
+<li><a
+href="#how-to-solve-a-new-synchronization-problem-under-time-pressure"
+id="toc-how-to-solve-a-new-synchronization-problem-under-time-pressure">How
+to Solve a New Synchronization Problem Under Time Pressure</a></li>
+</ul></li>
+</ul>
+</nav>
 <h1 id="cs111-comprehensive-catch-up-notes">CS111 Comprehensive Catch-Up
 Notes</h1>
 <p>These notes are a standalone study document for the lectures
@@ -249,15 +940,17 @@ headings so you can study without constantly jumping back to the
 PDFs.</p>
 <h2 id="site-navigation">Site Navigation</h2>
 <ul>
-<li><code>CS111_SLIDE_TEXT_REFERENCE.html</code>: slide-by-slide
-extracted lecture text coverage backstop.</li>
-<li><code>CS111_FINAL_STUDY_GUIDE.html</code>: quick final-review
-version with traps, drills, and problem patterns.</li>
-<li><code>CS111_EXAM_C_CHEATSHEET.html</code>: C/C++ syntax and
-exam-code reference.</li>
-<li><code>CS111_MIDTERM_PRACTICE_GUIDE.html</code>: midterm practice
-guide, still useful for concurrency and memory foundations.</li>
-<li><code>C_FOR_CS111_CHEATSHEET.html</code>: compact C refresher.</li>
+<li><a href="CS111_SLIDE_TEXT_REFERENCE.html">Slide Text Reference</a>:
+slide-by-slide extracted lecture text coverage backstop.</li>
+<li><a href="CS111_FINAL_STUDY_GUIDE.html">Quick Final Study Guide</a>:
+final-review version with traps, drills, and problem patterns.</li>
+<li><a href="CS111_EXAM_C_CHEATSHEET.html">Exam C/C++ Cheatsheet</a>:
+C/C++ syntax and exam-code reference.</li>
+<li><a href="CS111_MIDTERM_PRACTICE_GUIDE.html">Midterm Practice
+Guide</a>: midterm practice guide, still useful for concurrency and
+memory foundations.</li>
+<li><a href="C_FOR_CS111_CHEATSHEET.html">Compact C Refresher</a>:
+compact C refresher.</li>
 </ul>
 <p>Lecture 11 is byte-for-byte identical to Lecture 10 in this folder,
 so it is treated as a duplicate.</p>
