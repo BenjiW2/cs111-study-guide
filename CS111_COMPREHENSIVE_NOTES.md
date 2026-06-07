@@ -5,6 +5,7 @@ These notes are a standalone study document for the lectures currently in the `L
 ## Site Navigation
 
 - [Slide Text Reference](CS111_SLIDE_TEXT_REFERENCE.html): slide-by-slide extracted lecture text coverage backstop.
+- [TA Notes Reference](CS111_TA_NOTES_REFERENCE.html): full extracted text from the unofficial TA-made course notes.
 - [Quick Final Study Guide](CS111_FINAL_STUDY_GUIDE.html): final-review version with traps, drills, and problem patterns.
 - [Exam C/C++ Cheatsheet](CS111_EXAM_C_CHEATSHEET.html): C/C++ syntax and exam-code reference.
 - [Midterm Practice Guide](CS111_MIDTERM_PRACTICE_GUIDE.html): midterm practice guide, still useful for concurrency and memory foundations.
@@ -48,7 +49,8 @@ Lecture 25 `(1)` is a duplicate copy of Lecture 25.
 22. Lecture 27: Virtual Machines
 23. Lecture 28: Course Review
 24. Annotated Final Code Patterns
-25. Final Review Map
+25. TA Notes Coverage Addendum
+26. Final Review Map
 
 ---
 
@@ -6059,6 +6061,421 @@ trusted independent source before acting.
 ```
 
 This is how to avoid vague ethics answers.
+
+---
+
+# TA Notes Coverage Addendum
+
+The TA-made unofficial notes are now included on the site as `CS111_TA_NOTES_REFERENCE.html`. This addendum pulls out details from those notes that are easy to miss but plausibly exam-relevant because they sharpen the lecture slides.
+
+## Hardware, Cores, Threads, Scheduler, and Dispatcher
+
+The TA notes emphasize the physical execution model:
+
+- A CPU contains one or more cores.
+- For CS111 purposes, each core runs one thread at a time.
+- Modern hardware can complicate this with simultaneous hardware threads, but the course model is still "one currently running thread per core."
+- The scheduler decides which ready thread should run next.
+- The dispatcher performs the actual switch on a single core.
+- Scheduling/dispatching is per-core: each core must have a currently running thread or be idle.
+
+When a thread is switched out:
+
+- Its execution state is saved.
+- That includes enough register/program-counter/stack state to resume it later.
+- Another thread's saved state is loaded.
+- The old thread may move back to ready if preempted, or blocked if it is waiting for something.
+
+Exam wording trap:
+
+- The dispatcher is not a thread.
+- A context switch is not "copying the whole thread's memory."
+- Threads in the same process share address space, but each thread has separate execution state.
+
+## Interrupt-Disable Ordering for Lock Implementation
+
+The TA notes state this particularly directly:
+
+- On a uniprocessor, traps and interrupts are the only way control shifts from a running thread to the OS.
+- If the OS is manipulating lock state, it must not be interrupted halfway through.
+- Therefore interrupts must be disabled before touching lock state and re-enabled only after lock/unlock state changes are complete.
+
+On a multiprocessor:
+
+- Disabling interrupts on one core does not stop another core.
+- Lock implementation needs hardware atomic read-modify-write instructions.
+- A correct multiprocessor lock implementation often combines interrupt control with an atomic instruction.
+
+Important ordering:
+
+```text
+disable interrupts
+then acquire/manipulate the low-level lock state
+...
+release/manipulate lock state
+then re-enable interrupts
+```
+
+Why order matters:
+
+- If a thread grabs a spinlock and is preempted before disabling interrupts, another thread may run and spin forever waiting for that lock.
+- This can waste an entire time slice or deadlock under priority assumptions.
+
+This connects directly to `Spr2024FinalSolution.pdf` Problem 3(a).
+
+## Linker as Linkage Editor
+
+The TA notes call the linker the linkage editor. That is useful because it makes the role clearer:
+
+1. You write source files.
+2. The compiler turns source into assembly.
+3. The assembler turns assembly into object files.
+4. Object files contain machine code but may have unresolved references to symbols in other files.
+5. The linkage editor combines object files and runtime libraries into one executable.
+6. It fills in final symbol addresses where possible.
+7. The loader later loads the executable into memory.
+
+Key point:
+
+- The assembler processes one source file at a time, so it cannot resolve cross-file references by itself.
+- The linker exists because separately compiled files need to become one coherent executable image.
+
+What the linker does:
+
+- Combines like sections, such as text with text and data with data.
+- Resolves symbols.
+- Relocates references.
+- Includes needed runtime/library code.
+- Produces the executable binary.
+
+What the loader does:
+
+- Places the executable into the process address space.
+- Sets up the process so it can begin executing.
+
+## Base-and-Bound Trap Transition Detail
+
+The TA notes explain how base-and-bound interacts with traps/syscalls:
+
+During normal user execution:
+
+- Virtual addresses are checked against the bound.
+- If valid, physical address = base + virtual address.
+- If invalid, the hardware traps.
+
+On a trap/interrupt/syscall:
+
+1. Processor saves the current program counter.
+2. Processor saves processor status, including user/kernel mode information.
+3. Processor switches to privileged OS execution.
+4. Base-and-bound translation for the user process is effectively not used in the same way while the OS is running.
+5. The OS handles the trap.
+6. The OS restores process state and returns to user execution.
+
+Important terms:
+
+- Program counter: address of the next instruction.
+- PSR / processor status register: holds CPU mode and status flags.
+- Kernel mode: privileged mode.
+- User mode: restricted mode.
+
+Exam angle:
+
+- Base-and-bound protects user processes from each other.
+- The OS must be able to access/manage physical memory more generally than any one user process.
+- Trap entry is a controlled transition from user to kernel.
+
+## Segmentation Limitations From the TA Notes
+
+Segmentation improves on one base/bound pair by allowing multiple regions:
+
+- Code segment.
+- Data segment.
+- Heap segment.
+- Stack segment.
+- Shared library segment.
+
+But the TA notes emphasize that segmentation still has limitations:
+
+- A fixed number of segments can still be restrictive.
+- Variable-size segments still create external fragmentation.
+- The address space can become rigidly divided between segments.
+- Sharing is possible, but only at segment granularity.
+
+Exam sentence:
+
+Segmentation helps with logical regions and sharing, but it does not solve the core variable-sized-hole fragmentation problem.
+
+## Paging vs Demand Paging
+
+The TA notes draw a clean distinction:
+
+- Paging is about how memory is represented and translated: fixed-size virtual pages to fixed-size physical page frames.
+- Demand paging is about when pages are actually kept in physical memory.
+
+Demand paging goal:
+
+- Run programs without keeping all their pages in memory at the same time.
+- Move pages between memory and disk/backing store as needed.
+- Keep memory usage efficient.
+
+Two loading policies:
+
+- Demand fetching: load a page only when a page fault happens.
+- Prefetching: load pages before they are strictly demanded, based on prediction/locality.
+
+Prefetching tradeoff:
+
+- Good if access is sequential or predictable.
+- Bad if it loads pages that are never used.
+
+Final trap:
+
+- A page fault is not automatically an error. It may be the normal mechanism for demand fetching.
+- Too many page faults can cause thrashing.
+
+## Clock-Hand Speed Intuition
+
+The TA notes use a useful mental model for clock replacement:
+
+- The hand's speed reflects memory pressure.
+- If the hand moves slowly, the system has enough memory for the workload.
+- If the hand moves quickly, the system is struggling to find pages to evict.
+
+Interpretation:
+
+- Slow hand: many pages still have useful locality; replacement is not under severe pressure.
+- Fast hand: pages are being considered/reconsidered quickly; the working set may not fit.
+
+Thrashing connection:
+
+- If the working sets of running processes do not fit in memory, the system spends most of its time paging.
+- The CPU scheduler can help only by running a mix of processes whose memory footprints fit together.
+- Adding CPU cores does not fix memory pressure.
+- More memory or reducing the active working set usually helps more directly.
+
+## File-System Design Questions From the TA Notes
+
+The TA notes frame file-system design around four questions:
+
+- Disk space management: how do we organize disk blocks efficiently?
+- Naming: how do names map to disk data?
+- Reliability: how do files survive crashes/hardware failures?
+- Protection: how do users share/isolate data?
+
+Two views of a file:
+
+- User view: a named persistent collection of bytes.
+- OS view: disk blocks plus metadata.
+
+Access patterns:
+
+- Sequential access: bytes are processed in order.
+- Random access: address bytes by position.
+- Keyed/indexed access: search by content/key, usually provided by databases rather than the OS file abstraction.
+
+File-system design constraints:
+
+- Most files are small, so per-file overhead matters.
+- Some files grow very large, so max file size matters.
+- Files can grow unpredictably, so the OS usually does not know the final size at creation time.
+
+## Inode Details From the TA Notes
+
+An inode is an OS-specific per-file metadata structure.
+
+The TA notes list typical inode contents:
+
+- File size.
+- Sectors/blocks occupied by the file.
+- Access times.
+- Modification times.
+- Protection information.
+- Owner id.
+- Group id.
+- Read/write/execute permissions.
+
+Important subtlety:
+
+- Even a read can modify inode metadata if it updates last-access time.
+- That means read-heavy workloads can still dirty inode/cache metadata, depending on file-system mount options and implementation.
+
+Exam implication:
+
+- "Read-only operation" at the user level may still cause metadata writes.
+
+## Allocation Schemes: TA Notes Framing
+
+Contiguous / extent-based allocation:
+
+- Inode stores first sector and length.
+- Good sequential and random access.
+- Few seeks.
+- Bad when files grow unpredictably.
+- External fragmentation creates holes.
+
+Linked allocation:
+
+- Each block points to the next block.
+- Easy growth.
+- Poor random access because you must follow links.
+- Many seeks can make even sequential access slow if blocks are scattered.
+
+FAT:
+
+- File Allocation Table has one entry per block.
+- Directory stores the first block.
+- FAT entry says next block, free, or end-of-file.
+- FAT can be cached in memory.
+- Early FAT with 16-bit entries and 512-byte blocks limited disk size to roughly 32 MB.
+
+Unix multi-level indexed allocation:
+
+- Small files can be cheap.
+- Large files can grow through indirect and doubly indirect blocks.
+- Block size affects both data capacity and how many pointers fit in indirect blocks.
+
+## Directories, Pathnames, and Working Directories
+
+TA notes details:
+
+- A directory is stored like a normal file.
+- Directory inode has a directory type.
+- Directory entries map names to i-numbers.
+- In old Unix V6, each directory entry is 16 bytes:
+  - 2 bytes for the i-number.
+  - 14 bytes for the name.
+- Entries are not necessarily sorted.
+- Root directory has i-number 1 in the old Unix model used in CS111.
+
+Path lookup example `/a/b/c`:
+
+1. Start at root inode 1.
+2. Scan root directory blocks for name `a`.
+3. Read inode for `a`.
+4. Scan `a` directory blocks for name `b`.
+5. Read inode for `b`.
+6. Scan `b` directory blocks for name `c`.
+7. Read inode for `c`.
+
+Working directory:
+
+- Each process stores a current working directory.
+- Relative pathnames start from the working directory, not root.
+- Absolute pathnames start at `/`.
+
+Hard link:
+
+- A directory entry that directly maps a name to an existing i-number.
+- Multiple names can point to the same inode.
+- `rm` removes one hard link.
+- File data is deleted only when link count reaches zero and no active references remain.
+
+## Block Cache and Disk Fullness
+
+The TA notes emphasize that modern operating systems have large block caches because the OS controls both:
+
+- Process memory through virtual memory.
+- File-system cache memory through the buffer/block cache.
+
+Disk fullness detail:
+
+- If the disk has plenty of free space, finding free blocks can be cheap.
+- If the disk is nearly full, it can become expensive to find free blocks.
+- Bitmap/free-map scans may travel farther before finding a free block.
+
+This is related to final-style performance questions:
+
+- The data structure may be theoretically simple, but behavior changes when utilization is high.
+- This parallels flash FTL performance degradation at high utilization.
+
+## Crash Recovery Details From the TA Notes
+
+The TA notes reinforce that file-system crash recovery is hard because disk data persists, unlike most in-memory OS state.
+
+Crash can cause:
+
+- Recent data loss if dirty blocks were not written back.
+- Inconsistency when a multi-block operation is partially written.
+- Reordered writes from the block cache.
+
+Typical metadata scanned by fsck:
+
+- Inodes.
+- Indirect blocks.
+- Doubly indirect blocks.
+- Free map.
+- Directories.
+
+Examples:
+
+- Block appears in an inode and also in the free map: remove it from free map.
+- Inode reference count disagrees with directory links: recompute/fix reference count.
+- Allocated inode with no directory reference: link into `/lost+found`.
+- Same block appears in two files: no perfect repair; recovery must choose/copy/remove.
+
+Logging:
+
+- Log operations before home-location writes.
+- Log entries must be replay-safe/idempotent.
+- Transactions/consistent groups prevent applying half of a logical operation.
+- Checkpoints allow log truncation.
+
+## Flash Memory Details From the TA Notes
+
+The TA notes add clear FTL intuition:
+
+- Flash inherits a disk-like interface largely because existing file systems expected disks.
+- This creates duplication:
+  - file block -> logical disk block -> flash page
+  - instead of directly mapping file block -> flash page
+- The FTL lacks file-system information.
+- It does not know when the OS has freed a block unless told.
+- Garbage collection may copy data that the file system no longer cares about.
+
+Wear-leveling:
+
+- Hot erase units are erased constantly and can wear out.
+- The FTL sometimes garbage-collects cold units even though it gets little free space back.
+- This provides relatively unworn erase units for future writes.
+- Goal: spread erases across the device.
+
+Useful exam comparison:
+
+- Disk near full: free-block search can degrade.
+- Flash near full: garbage collection/write amplification can degrade.
+- Both are utilization-sensitive storage systems.
+
+## Virtual Machine Details From the TA Notes
+
+The TA notes phrase VM motivation this way:
+
+- A normal OS process sees only a subset of the machine:
+  - virtual memory.
+  - system calls.
+  - non-privileged instructions/registers.
+- A virtual machine tries to make that process-like container look like a full hardware machine.
+
+VM provides virtualized:
+
+- Privileged and non-privileged CPU behavior.
+- Physical memory, from the guest OS perspective.
+- MMU/page tables.
+- I/O devices.
+- Traps and interrupts.
+
+Hypervisor job:
+
+- Maintain virtual hardware state.
+- Let safe instructions run directly.
+- Trap and simulate privileged operations.
+- Virtualize memory through shadow page maps or hardware nested translation.
+- Virtualize I/O devices and inject virtual interrupts.
+
+Paravirtualization:
+
+- Guest drivers are aware they are running under a hypervisor.
+- They use hypervisor-friendly interfaces to reduce trap overhead.
 
 ---
 
