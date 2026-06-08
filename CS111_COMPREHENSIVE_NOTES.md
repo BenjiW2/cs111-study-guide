@@ -409,6 +409,74 @@ This is why Unix process creation often looks like:
 2. In the child, `exec` to run a different program.
 3. In the parent, `wait` to observe child completion.
 
+### Where The New Program Comes From
+
+`exec` loads the new program from an executable file.
+
+For example:
+
+```c
+char *argv[] = {"wc", "-l", NULL};
+execvp(argv[0], argv);
+```
+
+Here `argv[0]` is `"wc"`. `execvp` means:
+
+```text
+Find an executable program called wc.
+Load it into this process.
+Start running wc with arguments wc -l.
+```
+
+Because this is `execvp` with a `p`, it searches the process's `PATH`, like a shell does. So `"wc"` might resolve to:
+
+```text
+/usr/bin/wc
+```
+
+The "new program" is the compiled executable code for `wc`.
+
+Before `execvp`:
+
+```text
+process 1234 is running your_program
+```
+
+After successful `execvp("wc", argv)`:
+
+```text
+process 1234 is running wc
+```
+
+Same process ID. Different program loaded into that process.
+
+So `execvp` does **not** create a new process. It replaces the current process's:
+
+```text
+old code
+old globals
+old heap
+old stack
+```
+
+with the new program's:
+
+```text
+wc code
+wc globals
+wc heap
+wc stack
+```
+
+But file descriptors usually stay open. That is why this works:
+
+```c
+dup2(fd, STDIN_FILENO);
+execvp("wc", argv);
+```
+
+The process redirects stdin first. Then `execvp` turns the process into `wc`. The `wc` program inherits stdin already pointing at the file.
+
 ### Minimal `execvp` Example
 
 ```c
