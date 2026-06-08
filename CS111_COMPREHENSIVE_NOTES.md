@@ -1759,6 +1759,112 @@ Better mental model:
 
 This idea appears again in final-style monitor problems: if the prompt says "exactly one", "exactly N", "the selected thread", or "no spot stealing", you need state that identifies which waiter is selected.
 
+Correct exam-style shape:
+
+```cpp
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+
+class Water {
+private:
+    struct Waiter {
+        bool assigned = false;
+        std::condition_variable cv;
+    };
+
+    std::mutex m;
+    std::deque<Waiter *> waiting_h;
+    std::deque<Waiter *> waiting_o;
+
+    void try_form_group() {
+        if (waiting_h.size() >= 2 && waiting_o.size() >= 1) {
+            Waiter *h1 = waiting_h.front();
+            waiting_h.pop_front();
+
+            Waiter *h2 = waiting_h.front();
+            waiting_h.pop_front();
+
+            Waiter *o = waiting_o.front();
+            waiting_o.pop_front();
+
+            h1->assigned = true;
+            h2->assigned = true;
+            o->assigned = true;
+
+            h1->cv.notify_one();
+            h2->cv.notify_one();
+            o->cv.notify_one();
+        }
+    }
+
+public:
+    void hydrogen() {
+        Waiter self;
+
+        std::unique_lock<std::mutex> lock(m);
+
+        waiting_h.push_back(&self);
+
+        try_form_group();
+
+        while (!self.assigned) {
+            self.cv.wait(lock);
+        }
+
+        lock.unlock();
+
+        bond(); // exactly selected hydrogen calls this
+    }
+
+    void oxygen() {
+        Waiter self;
+
+        std::unique_lock<std::mutex> lock(m);
+
+        waiting_o.push_back(&self);
+
+        try_form_group();
+
+        while (!self.assigned) {
+            self.cv.wait(lock);
+        }
+
+        lock.unlock();
+
+        bond(); // exactly selected oxygen calls this
+    }
+
+    void bond() {
+        // Provided by the problem, or just a placeholder here.
+    }
+};
+```
+
+What makes this correct:
+
+- `waiting_h` and `waiting_o` store exact waiting thread records, not just counts.
+- `try_form_group()` pops exactly two hydrogen records and one oxygen record.
+- Only those three records get `assigned = true`.
+- Only those three condition variables are notified.
+- A new arrival cannot steal a spot, because the selected spots are already attached to specific `Waiter` records.
+- Each thread waits for **itself** to be selected:
+
+```cpp
+while (!self.assigned) {
+    self.cv.wait(lock);
+}
+```
+
+Do not read this as "wait until some group exists." Read it as "wait until I personally have been assigned to a group."
+
+Why `lock.unlock()` appears before `bond()`:
+
+- The shared monitor state has already been updated.
+- `bond()` represents external work by the selected thread.
+- Holding the monitor lock during external work would unnecessarily block other arrivals.
+- RAII would unlock automatically at the end of the function, but here we intentionally release the lock earlier.
+
 ## Notification
 
 After changing shared state, a thread may notify waiters:
