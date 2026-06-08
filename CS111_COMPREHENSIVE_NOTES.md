@@ -685,6 +685,144 @@ This is how a shell implements:
 echo hello > out.txt
 ```
 
+### Exam-Style Combined Example: `fork`, `execvp`, `dup2`, `waitpid`
+
+This is the kind of code exam questions like because it mixes several ideas at once.
+
+```c
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    // This is the command we want the child to run:
+    // wc -l
+    //
+    // argv must end with NULL because execvp needs a sentinel.
+    char *argv[] = {"wc", "-l", NULL};
+
+    // Create a new process.
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        // fork failed. There is no child.
+        perror("fork");
+        exit(1);
+    }
+
+    if (pid == 0) {
+        // CHILD PROCESS
+        //
+        // The child starts as a copy of the parent.
+        // Same code, copied variables, copied file descriptor table.
+
+        int fd = open("input.txt", O_RDONLY);
+        if (fd < 0) {
+            perror("open");
+            exit(1);
+        }
+
+        // Replace stdin, fd 0, with input.txt.
+        //
+        // After this:
+        // - STDIN_FILENO still has number 0
+        // - but fd 0 now refers to input.txt
+        dup2(fd, STDIN_FILENO);
+
+        // Close the extra descriptor.
+        // This does not close stdin, because stdin is now a separate
+        // descriptor referring to the same open file description.
+        close(fd);
+
+        // Replace the child process image with wc.
+        //
+        // The child keeps the same PID, but its code/data/stack are replaced.
+        // File descriptor 0 survives, so wc reads from input.txt.
+        execvp(argv[0], argv);
+
+        // Runs only if execvp fails.
+        perror("execvp");
+        exit(1);
+    }
+
+    // PARENT PROCESS
+    //
+    // In the parent, pid is the child's actual process id.
+    // The parent did not exec. It is still running this original program.
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        printf("child exit code = %d\n", WEXITSTATUS(status));
+    } else {
+        printf("child did not exit normally\n");
+    }
+
+    printf("parent done\n");
+    return 0;
+}
+```
+
+What this program does:
+
+```text
+parent forks
+child opens input.txt
+child redirects stdin to input.txt
+child execs wc -l
+wc reads from input.txt
+parent waits for the child
+parent prints the child's exit status
+```
+
+The shell equivalent is roughly:
+
+```sh
+wc -l < input.txt
+```
+
+but wrapped in a parent program that waits and inspects the result.
+
+Line-by-line exam logic:
+
+- `fork()` creates two processes.
+- In the child, `pid == 0`.
+- In the parent, `pid` is the child's PID.
+- `open("input.txt", O_RDONLY)` returns a file descriptor, probably `3`.
+- `dup2(fd, STDIN_FILENO)` makes descriptor `0` point to `input.txt`.
+- `close(fd)` closes the extra descriptor, not stdin.
+- `execvp("wc", argv)` replaces the child with `wc`.
+- The child keeps its PID across `execvp`.
+- The child does not keep the old code if `execvp` succeeds.
+- The parent's memory is not replaced because the parent did not call `execvp`.
+- `waitpid(pid, &status, 0)` waits for that exact child.
+- `WIFEXITED(status)` checks whether the child exited normally.
+- `WEXITSTATUS(status)` extracts the child's exit code.
+
+Possible output if `input.txt` has 12 lines:
+
+```text
+12
+child exit code = 0
+parent done
+```
+
+The `12` is printed by `wc`, not by the original child code. After successful `execvp`, the child is running the `wc` program.
+
+Important exam traps:
+
+- The parent and child both exist after `fork`, but only the child goes into the `pid == 0` branch.
+- `execvp` does not create a new process.
+- `execvp` replaces the child process; it does not replace the parent.
+- Code after `execvp` runs only on failure.
+- Redirection must happen before `execvp`, because after `execvp` the old program is gone.
+- File descriptors survive across `execvp` unless marked close-on-exec.
+- `waitpid` waits for a process, not for a thread.
+- `status` is encoded; do not treat it as the raw return value without `WEXITSTATUS`.
+
 ## Why Copy Then Overwrite?
 
 Unix's `fork` followed by `exec` may seem odd: why copy a process only to replace it?
