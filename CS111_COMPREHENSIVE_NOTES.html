@@ -103,6 +103,29 @@ Notes</a>
 <ul>
 <li><a href="#site-navigation" id="toc-site-navigation">Site
 Navigation</a></li>
+<li><a href="#official-final-topics-checklist"
+id="toc-official-final-topics-checklist">Official Final Topics
+Checklist</a>
+<ul>
+<li><a href="#processes-and-multiprocessing"
+id="toc-processes-and-multiprocessing">Processes and
+Multiprocessing</a></li>
+<li><a href="#threads-and-synchronization"
+id="toc-threads-and-synchronization">Threads and
+Synchronization</a></li>
+<li><a href="#dispatching-and-scheduling"
+id="toc-dispatching-and-scheduling">Dispatching and Scheduling</a></li>
+<li><a href="#virtual-memory" id="toc-virtual-memory">Virtual
+Memory</a></li>
+<li><a href="#linking" id="toc-linking">Linking</a></li>
+<li><a href="#modern-technologies" id="toc-modern-technologies">Modern
+Technologies</a></li>
+<li><a href="#filesystems" id="toc-filesystems">Filesystems</a></li>
+<li><a href="#crash-recovery" id="toc-crash-recovery">Crash
+Recovery</a></li>
+<li><a href="#ethics-and-trust" id="toc-ethics-and-trust">Ethics and
+Trust</a></li>
+</ul></li>
 <li><a href="#table-of-contents" id="toc-table-of-contents">Table of
 Contents</a></li>
 </ul></li>
@@ -1222,6 +1245,240 @@ so it is treated as a duplicate.</p>
 <p>Lecture 24 repeats the crash-recovery material from Lecture 23, so it
 is treated as a duplicate.</p>
 <p>Lecture 25 <code>(1)</code> is a duplicate copy of Lecture 25.</p>
+<h2 id="official-final-topics-checklist">Official Final Topics
+Checklist</h2>
+<p>The course final page lists these as the main final topics. Use this
+as the top-level checklist for whether the guide has you covered.</p>
+<h3 id="processes-and-multiprocessing">Processes and
+Multiprocessing</h3>
+<p>Know:</p>
+<ul>
+<li>processes</li>
+<li>PIDs</li>
+<li><code>fork</code></li>
+<li>execution order after <code>fork</code></li>
+<li><code>waitpid</code></li>
+<li><code>execvp</code></li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Trace how many processes exist after one or more <code>fork</code>
+calls.</li>
+<li>Identify which branch is parent vs. child.</li>
+<li>Explain why the child gets <code>0</code> and the parent gets the
+child’s PID.</li>
+<li>Explain that <code>execvp</code> replaces the current process image;
+it does not create another process.</li>
+<li>Use <code>waitpid</code> to wait for a specific child and collect
+its status.</li>
+</ul>
+<h3 id="threads-and-synchronization">Threads and Synchronization</h3>
+<p>Know:</p>
+<ul>
+<li>processes vs. threads</li>
+<li>C++ threads and <code>.join()</code></li>
+<li>thread safety</li>
+<li>race conditions</li>
+<li>atomicity</li>
+<li>critical sections</li>
+<li>mutexes</li>
+<li>deadlock</li>
+<li>busy waiting</li>
+<li>condition variables</li>
+<li><code>notify_all</code></li>
+<li><code>unique_lock</code></li>
+<li>monitor pattern</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Decide what state is shared and therefore needs
+synchronization.</li>
+<li>Protect critical sections with locks.</li>
+<li>Explain why unsynchronized reads/writes can race.</li>
+<li>Use condition variables with a <code>while</code> loop around the
+wait predicate.</li>
+<li>Explain when <code>notify_one</code> is enough and when
+<code>notify_all</code> is safer.</li>
+<li>Recognize deadlock and starvation risks.</li>
+</ul>
+<h3 id="dispatching-and-scheduling">Dispatching and Scheduling</h3>
+<p>Know:</p>
+<ul>
+<li>process control blocks</li>
+<li>traps and interrupts</li>
+<li>context switching</li>
+<li>thread states: running, blocked, ready</li>
+<li>I/O-bound vs. CPU-bound threads</li>
+<li>FCFS scheduling</li>
+<li>round robin scheduling</li>
+<li>shortest remaining processing time, SRPT</li>
+<li>priority-based scheduling</li>
+<li>preemption</li>
+<li>implementing single-core locks and condition variables</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Trace thread state transitions.</li>
+<li>Explain what gets saved/restored during a context switch.</li>
+<li>Distinguish dispatching from scheduling.</li>
+<li>Compare scheduling policies using turnaround time, response time,
+fairness, and starvation.</li>
+<li>Explain why interrupts allow preemption.</li>
+</ul>
+<h3 id="virtual-memory">Virtual Memory</h3>
+<p>Know:</p>
+<ul>
+<li>single-tasking</li>
+<li>process memory</li>
+<li>memory sharing goals</li>
+<li>load-time relocation</li>
+<li>dynamic address translation and MMU</li>
+<li>virtual vs. physical addresses</li>
+<li>base and bound</li>
+<li>multiple segments</li>
+<li>paging</li>
+<li>demand paging</li>
+<li>page maps/page tables</li>
+<li>page faults</li>
+<li>thrashing</li>
+<li>fragmentation</li>
+<li>disk swap</li>
+<li>page replacement policies</li>
+<li>random replacement</li>
+<li>FIFO replacement</li>
+<li>LRU replacement</li>
+<li>clock algorithm</li>
+<li>per-process vs. global replacement</li>
+<li>virtualization</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Translate virtual addresses to physical addresses.</li>
+<li>Identify invalid addresses, protection faults, and page faults.</li>
+<li>Compare segmentation and paging.</li>
+<li>Simulate page replacement algorithms.</li>
+<li>Explain thrashing and working-set pressure.</li>
+</ul>
+<h3 id="linking">Linking</h3>
+<p>Know:</p>
+<ul>
+<li>static linking</li>
+<li>dynamic linking</li>
+<li>object files</li>
+<li>shared libraries</li>
+<li>symbol resolution</li>
+<li>debugging information</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Explain how separately compiled files become one executable.</li>
+<li>Distinguish compile-time, link-time, load-time, and run-time
+behavior.</li>
+<li>Explain why dynamic linking can allow shared library code to be
+reused.</li>
+</ul>
+<h3 id="modern-technologies">Modern Technologies</h3>
+<p>Know:</p>
+<ul>
+<li>multicore processors</li>
+<li>multicore scheduling</li>
+<li>work stealing</li>
+<li>core affinity</li>
+<li>multicore locks at a high level</li>
+<li>why interrupts alone are insufficient to prevent races</li>
+<li>atomic operations</li>
+<li>why busy waiting may be necessary inside low-level lock
+implementations</li>
+<li>flash storage erase/write quirks</li>
+<li>flash wear-out</li>
+<li>wear-leveling</li>
+<li>flash translation layer, FTL, at a high level</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Explain why multicore makes races possible even without
+interrupts.</li>
+<li>Explain the high-level point of atomic instructions.</li>
+<li>Explain why flash cannot simply overwrite bytes like RAM.</li>
+<li>Explain why an FTL exists.</li>
+</ul>
+<h3 id="filesystems">Filesystems</h3>
+<p>Know:</p>
+<ul>
+<li>magnetic disks</li>
+<li>disk scheduling</li>
+<li>filesystem design tradeoffs</li>
+<li>internal vs. external fragmentation</li>
+<li>contiguous allocation</li>
+<li>linked files</li>
+<li>FAT</li>
+<li>multi-level indexes</li>
+<li>Unix V6</li>
+<li>inodes</li>
+<li>direct, single-indirect, and double-indirect addressing</li>
+<li>directories</li>
+<li>lookup</li>
+<li>block cache</li>
+<li>delayed vs. synchronous writes</li>
+<li>locality</li>
+<li>free lists</li>
+<li>bitmaps</li>
+<li>flash memory</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Calculate which block pointer is used for a given file offset.</li>
+<li>Compare contiguous, linked, FAT, and indexed allocation.</li>
+<li>Explain directory lookup.</li>
+<li>Explain block cache tradeoffs.</li>
+<li>Explain free-space tracking with linked lists vs. bitmaps.</li>
+</ul>
+<h3 id="crash-recovery">Crash Recovery</h3>
+<p>Know:</p>
+<ul>
+<li>crash-recovery tradeoffs</li>
+<li>data loss vs. inconsistency</li>
+<li>atomic operations</li>
+<li>free list and block cache recovery problems</li>
+<li><code>fsck</code></li>
+<li>ordered writes</li>
+<li>write-ahead logging</li>
+<li>transactions</li>
+<li>checkpoints</li>
+<li>idempotency</li>
+<li>durability</li>
+<li>consistency</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Identify what can go wrong if a crash happens between filesystem
+writes.</li>
+<li>Explain why write ordering matters.</li>
+<li>Explain the difference between losing recent data and corrupting
+filesystem metadata.</li>
+<li>Explain how logging/transactions help recovery.</li>
+<li>Explain why idempotent recovery operations are useful.</li>
+</ul>
+<h3 id="ethics-and-trust">Ethics and Trust</h3>
+<p>Know:</p>
+<ul>
+<li>trust and agency</li>
+<li>trust by assumption</li>
+<li>trust by inference</li>
+<li>trust by substitution</li>
+<li>over-trust</li>
+<li>stakeholders</li>
+<li>pervasiveness</li>
+<li>time</li>
+<li>impact of technology on trust</li>
+</ul>
+<p>Core exam tasks:</p>
+<ul>
+<li>Identify who is trusting whom and for what.</li>
+<li>Separate technical reliability from social trust.</li>
+<li>Discuss how agency, stakeholders, and long-term effects change trust
+decisions.</li>
+</ul>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ol type="1">
 <li>Lecture 1: Introduction to Operating Systems</li>

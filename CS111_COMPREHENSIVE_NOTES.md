@@ -23,6 +23,233 @@ Lecture 24 repeats the crash-recovery material from Lecture 23, so it is treated
 
 Lecture 25 `(1)` is a duplicate copy of Lecture 25.
 
+## Official Final Topics Checklist
+
+The course final page lists these as the main final topics. Use this as the top-level checklist for whether the guide has you covered.
+
+### Processes and Multiprocessing
+
+Know:
+
+- processes
+- PIDs
+- `fork`
+- execution order after `fork`
+- `waitpid`
+- `execvp`
+
+Core exam tasks:
+
+- Trace how many processes exist after one or more `fork` calls.
+- Identify which branch is parent vs. child.
+- Explain why the child gets `0` and the parent gets the child's PID.
+- Explain that `execvp` replaces the current process image; it does not create another process.
+- Use `waitpid` to wait for a specific child and collect its status.
+
+### Threads and Synchronization
+
+Know:
+
+- processes vs. threads
+- C++ threads and `.join()`
+- thread safety
+- race conditions
+- atomicity
+- critical sections
+- mutexes
+- deadlock
+- busy waiting
+- condition variables
+- `notify_all`
+- `unique_lock`
+- monitor pattern
+
+Core exam tasks:
+
+- Decide what state is shared and therefore needs synchronization.
+- Protect critical sections with locks.
+- Explain why unsynchronized reads/writes can race.
+- Use condition variables with a `while` loop around the wait predicate.
+- Explain when `notify_one` is enough and when `notify_all` is safer.
+- Recognize deadlock and starvation risks.
+
+### Dispatching and Scheduling
+
+Know:
+
+- process control blocks
+- traps and interrupts
+- context switching
+- thread states: running, blocked, ready
+- I/O-bound vs. CPU-bound threads
+- FCFS scheduling
+- round robin scheduling
+- shortest remaining processing time, SRPT
+- priority-based scheduling
+- preemption
+- implementing single-core locks and condition variables
+
+Core exam tasks:
+
+- Trace thread state transitions.
+- Explain what gets saved/restored during a context switch.
+- Distinguish dispatching from scheduling.
+- Compare scheduling policies using turnaround time, response time, fairness, and starvation.
+- Explain why interrupts allow preemption.
+
+### Virtual Memory
+
+Know:
+
+- single-tasking
+- process memory
+- memory sharing goals
+- load-time relocation
+- dynamic address translation and MMU
+- virtual vs. physical addresses
+- base and bound
+- multiple segments
+- paging
+- demand paging
+- page maps/page tables
+- page faults
+- thrashing
+- fragmentation
+- disk swap
+- page replacement policies
+- random replacement
+- FIFO replacement
+- LRU replacement
+- clock algorithm
+- per-process vs. global replacement
+- virtualization
+
+Core exam tasks:
+
+- Translate virtual addresses to physical addresses.
+- Identify invalid addresses, protection faults, and page faults.
+- Compare segmentation and paging.
+- Simulate page replacement algorithms.
+- Explain thrashing and working-set pressure.
+
+### Linking
+
+Know:
+
+- static linking
+- dynamic linking
+- object files
+- shared libraries
+- symbol resolution
+- debugging information
+
+Core exam tasks:
+
+- Explain how separately compiled files become one executable.
+- Distinguish compile-time, link-time, load-time, and run-time behavior.
+- Explain why dynamic linking can allow shared library code to be reused.
+
+### Modern Technologies
+
+Know:
+
+- multicore processors
+- multicore scheduling
+- work stealing
+- core affinity
+- multicore locks at a high level
+- why interrupts alone are insufficient to prevent races
+- atomic operations
+- why busy waiting may be necessary inside low-level lock implementations
+- flash storage erase/write quirks
+- flash wear-out
+- wear-leveling
+- flash translation layer, FTL, at a high level
+
+Core exam tasks:
+
+- Explain why multicore makes races possible even without interrupts.
+- Explain the high-level point of atomic instructions.
+- Explain why flash cannot simply overwrite bytes like RAM.
+- Explain why an FTL exists.
+
+### Filesystems
+
+Know:
+
+- magnetic disks
+- disk scheduling
+- filesystem design tradeoffs
+- internal vs. external fragmentation
+- contiguous allocation
+- linked files
+- FAT
+- multi-level indexes
+- Unix V6
+- inodes
+- direct, single-indirect, and double-indirect addressing
+- directories
+- lookup
+- block cache
+- delayed vs. synchronous writes
+- locality
+- free lists
+- bitmaps
+- flash memory
+
+Core exam tasks:
+
+- Calculate which block pointer is used for a given file offset.
+- Compare contiguous, linked, FAT, and indexed allocation.
+- Explain directory lookup.
+- Explain block cache tradeoffs.
+- Explain free-space tracking with linked lists vs. bitmaps.
+
+### Crash Recovery
+
+Know:
+
+- crash-recovery tradeoffs
+- data loss vs. inconsistency
+- atomic operations
+- free list and block cache recovery problems
+- `fsck`
+- ordered writes
+- write-ahead logging
+- transactions
+- checkpoints
+- idempotency
+- durability
+- consistency
+
+Core exam tasks:
+
+- Identify what can go wrong if a crash happens between filesystem writes.
+- Explain why write ordering matters.
+- Explain the difference between losing recent data and corrupting filesystem metadata.
+- Explain how logging/transactions help recovery.
+- Explain why idempotent recovery operations are useful.
+
+### Ethics and Trust
+
+Know:
+
+- trust and agency
+- trust by assumption
+- trust by inference
+- trust by substitution
+- over-trust
+- stakeholders
+- pervasiveness
+- time
+- impact of technology on trust
+
+Core exam tasks:
+
+- Identify who is trusting whom and for what.
+- Separate technical reliability from social trust.
+- Discuss how agency, stakeholders, and long-term effects change trust decisions.
+
 ## Table of Contents
 
 1. Lecture 1: Introduction to Operating Systems
