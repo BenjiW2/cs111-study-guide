@@ -968,6 +968,51 @@ Trap-and-Simulate</a></li>
 id="toc-pattern-31-trustethics-answer-skeleton">Pattern 31: Trust/Ethics
 Answer Skeleton</a></li>
 </ul></li>
+<li><a href="#graded-midterm-postmortem"
+id="toc-graded-midterm-postmortem">Graded Midterm Postmortem</a>
+<ul>
+<li><a href="#biggest-takeaways" id="toc-biggest-takeaways">Biggest
+Takeaways</a></li>
+<li><a href="#threads-and-processes-execvp-in-a-multithreaded-process"
+id="toc-threads-and-processes-execvp-in-a-multithreaded-process">Threads
+and Processes: <code>execvp</code> in a Multithreaded Process</a></li>
+<li><a href="#threads-and-processes-fork-with-user-level-threads"
+id="toc-threads-and-processes-fork-with-user-level-threads">Threads and
+Processes: <code>fork</code> With User-Level Threads</a></li>
+<li><a href="#cooperative-multitasking"
+id="toc-cooperative-multitasking">Cooperative Multitasking</a></li>
+<li><a href="#atomic-operations-can-still-be-involved-in-races"
+id="toc-atomic-operations-can-still-be-involved-in-races">Atomic
+Operations Can Still Be Involved in Races</a></li>
+<li><a href="#thread-state-transition-traces"
+id="toc-thread-state-transition-traces">Thread State Transition
+Traces</a></li>
+<li><a href="#deadlock-vs-starvation"
+id="toc-deadlock-vs-starvation">Deadlock vs Starvation</a></li>
+<li><a href="#bsd-scheduler-priority"
+id="toc-bsd-scheduler-priority">BSD Scheduler Priority</a></li>
+<li><a href="#work-stealing-and-work-conservation"
+id="toc-work-stealing-and-work-conservation">Work Stealing and Work
+Conservation</a></li>
+<li><a href="#dynamic-linking-and-decompilation"
+id="toc-dynamic-linking-and-decompilation">Dynamic Linking and
+Decompilation</a></li>
+<li><a href="#memory-leak-vs-dangling-pointer"
+id="toc-memory-leak-vs-dangling-pointer">Memory Leak vs Dangling
+Pointer</a></li>
+<li><a href="#message-passing-with-base-and-bound"
+id="toc-message-passing-with-base-and-bound">Message Passing With
+Base-and-Bound</a></li>
+<li><a href="#counting-processes-after-repeated-fork"
+id="toc-counting-processes-after-repeated-fork">Counting Processes After
+Repeated <code>fork</code></a></li>
+<li><a href="#waterfactory-h2o-synchronization-problem"
+id="toc-waterfactory-h2o-synchronization-problem">WaterFactory / H2O
+Synchronization Problem</a></li>
+<li><a href="#personal-final-drill-from-this-midterm"
+id="toc-personal-final-drill-from-this-midterm">Personal Final Drill
+From This Midterm</a></li>
+</ul></li>
 <li><a href="#ta-notes-coverage-addendum"
 id="toc-ta-notes-coverage-addendum">TA Notes Coverage Addendum</a>
 <ul>
@@ -1131,6 +1176,7 @@ Scheduling</li>
 <li>Lecture 27: Virtual Machines</li>
 <li>Lecture 28: Course Review</li>
 <li>Annotated Final Code Patterns</li>
+<li>Graded Midterm Postmortem</li>
 <li>TA Notes Coverage Addendum</li>
 <li>Final Review Map</li>
 </ol>
@@ -6792,6 +6838,498 @@ bias. They should have validated the claims against primary logs or a
 trusted independent source before acting.</code></pre>
 <p>This is how to avoid vague ethics answers.</p>
 <hr />
+<h1 id="graded-midterm-postmortem">Graded Midterm Postmortem</h1>
+<p>This section is based on the graded midterm rubric, but it does not
+include the raw submission PDF or the score. The goal is to convert
+lost-credit areas into final-review rules and reusable answer
+templates.</p>
+<h2 id="biggest-takeaways">Biggest Takeaways</h2>
+<p>The main weak spots to drill:</p>
+<ul>
+<li>Exact semantics of <code>execvp</code> and <code>fork</code> in
+multithreaded/user-level-thread settings.</li>
+<li>Cooperative multitasking vs preemptive multitasking.</li>
+<li>Thread state transition traces.</li>
+<li>Starvation vs deadlock conditions.</li>
+<li>BSD scheduler priority and CPU usage.</li>
+<li>Dynamic linking/decompilation information.</li>
+<li>Memory leaks vs dangling pointers.</li>
+<li>Base-and-bound message passing through the kernel.</li>
+<li>Counting processes after repeated <code>fork</code>.</li>
+<li>Monitor design where exactly the right threads proceed, especially
+WaterFactory-style grouping.</li>
+</ul>
+<h2 id="threads-and-processes-execvp-in-a-multithreaded-process">Threads
+and Processes: <code>execvp</code> in a Multithreaded Process</h2>
+<p>If a thread in a multithreaded process calls <code>execvp</code>
+successfully:</p>
+<ul>
+<li>The current process image is replaced by the new program.</li>
+<li>The old address space contents are overwritten/replaced.</li>
+<li>Existing threads do not keep running.</li>
+<li>The new program starts with a single thread.</li>
+<li>The process id remains the same.</li>
+<li>File descriptors generally remain open unless configured
+close-on-exec.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>execvp replaces the entire process image, not just the calling thread.
+All old threads are terminated, and the new program begins executing with
+a single thread in the same process.</code></pre>
+<p>Common wrong model:</p>
+<pre class="text"><code>Only the calling thread changes into the new program while other old threads continue.</code></pre>
+<p>That is wrong. <code>execvp</code> is process-wide.</p>
+<h2 id="threads-and-processes-fork-with-user-level-threads">Threads and
+Processes: <code>fork</code> With User-Level Threads</h2>
+<p>For user-level threads, thread state is stored in the process memory
+by the threading library. If <code>fork</code> copies the parent’s
+process memory, then the child receives a copy of that user-level thread
+state.</p>
+<p>High-scoring answer:</p>
+<pre class="text"><code>The child process gets a copy of the parent&#39;s process memory. Since user-level
+thread state lives in that memory, the child receives copies of the user-level
+threads/thread-control structures as well.</code></pre>
+<p>Contrast:</p>
+<ul>
+<li>Kernel-level threads are known to the OS kernel.</li>
+<li>User-level threads are mostly just library-managed data structures
+inside process memory.</li>
+</ul>
+<p>Exam trap:</p>
+<p>If the question says “user-level threads,” think “thread metadata is
+in user memory, so copying memory copies the thread state.”</p>
+<h2 id="cooperative-multitasking">Cooperative Multitasking</h2>
+<p>Preemptive multitasking:</p>
+<ul>
+<li>The OS can interrupt a running thread, often by timer
+interrupt.</li>
+<li>Threads do not need to voluntarily yield for the scheduler to regain
+control.</li>
+</ul>
+<p>Cooperative multitasking:</p>
+<ul>
+<li>The OS/runtime does not forcibly preempt running threads.</li>
+<li>Threads are responsible for yielding.</li>
+<li>Timer-preemption mechanisms are removed or not used for
+scheduling.</li>
+<li>A badly behaved thread can hog the CPU by never yielding.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>In a cooperative system, preemption mechanisms such as timer-driven forced
+context switches are removed. Threads must explicitly yield or block for
+another thread to run.</code></pre>
+<p>Race-condition nuance:</p>
+<p>Cooperative multitasking can still have race conditions:</p>
+<ul>
+<li>A thread can yield in the middle of a multi-step update.</li>
+<li>Code can block in a library/system call.</li>
+<li>Multiple cores can still run threads simultaneously if the system is
+multicore.</li>
+<li>Shared mutable state still needs synchronization unless the problem
+gives stronger guarantees.</li>
+</ul>
+<h2 id="atomic-operations-can-still-be-involved-in-races">Atomic
+Operations Can Still Be Involved in Races</h2>
+<p>Atomic operations make one specific operation indivisible. They do
+not automatically make an entire algorithm correct.</p>
+<p>Example:</p>
+<div class="sourceCode" id="cb110"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>atomic_exchange<span class="op">(&amp;</span>lock_word<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a>shared_counter<span class="op">++;</span></span></code></pre></div>
+<p>The exchange may be atomic, but <code>shared_counter++</code> can
+still race if it is not protected properly.</p>
+<p>High-scoring answer:</p>
+<pre class="text"><code>Yes, atomic operations can still appear in code with race conditions. Atomicity
+only applies to the individual atomic operation; surrounding reads/writes or
+higher-level invariants can still interleave incorrectly.</code></pre>
+<h2 id="thread-state-transition-traces">Thread State Transition
+Traces</h2>
+<p>Common states:</p>
+<ul>
+<li>Ready: thread can run but is not currently on a core.</li>
+<li>Running: thread is executing on a core.</li>
+<li>Blocked: thread is waiting for some event.</li>
+<li>Exited/dead: thread has finished.</li>
+</ul>
+<p>Transitions:</p>
+<pre class="text"><code>ready -&gt; running      dispatcher selects thread
+running -&gt; ready      yield or timer preemption
+running -&gt; blocked    waits for lock/CV/I/O/sleep
+blocked -&gt; ready      event occurs, lock/CV/I/O/sleep completes
+running -&gt; exited     calls exit or returns from thread function</code></pre>
+<p>For a trace question, annotate each event:</p>
+<pre class="text"><code>yield()        running -&gt; ready
+sleep()        running -&gt; blocked
+timer expires  running -&gt; ready
+CV wait        running -&gt; blocked
+CV notify      blocked -&gt; ready
+exit()         running -&gt; exited</code></pre>
+<p>Common mistake:</p>
+<p>Adding an extra blocked state when the thread did not make a blocking
+system call, or missing a blocking state when it sleeps/waits.</p>
+<h2 id="deadlock-vs-starvation">Deadlock vs Starvation</h2>
+<p>Deadlock:</p>
+<ul>
+<li>A set of threads is stuck forever.</li>
+<li>Each is waiting for a resource/event that can only be produced by
+another stuck thread in the set.</li>
+</ul>
+<p>Starvation:</p>
+<ul>
+<li>Some threads continue to make progress.</li>
+<li>One or more unlucky threads wait indefinitely because the system
+keeps choosing others.</li>
+</ul>
+<p>Four deadlock conditions:</p>
+<pre class="text"><code>limited access / mutual exclusion
+no preemption
+hold-and-wait / multiple independent requests
+circular wait</code></pre>
+<p>Rubric-specific point:</p>
+<p>For starvation, the deadlock condition that can be necessary in
+certain starvation examples is circular wait only if the question asks
+which deadlock condition is required by that starvation setup. Do not
+blindly list all four deadlock conditions unless the prompt asks for
+deadlock.</p>
+<p>Strong answer shape:</p>
+<pre class="text"><code>This is starvation, not deadlock, because some threads continue making progress
+while one thread is repeatedly bypassed. The relevant deadlock condition is
+circular wait only if the starvation mechanism creates a waiting cycle; the
+other deadlock conditions are not automatically required for starvation.</code></pre>
+<h2 id="bsd-scheduler-priority">BSD Scheduler Priority</h2>
+<p>4.4 BSD-style scheduler intuition:</p>
+<ul>
+<li>Recent CPU usage affects priority.</li>
+<li>Threads that use lots of CPU become lower priority.</li>
+<li>Threads that block/sleep often tend to have lower recent CPU usage
+and can get higher priority.</li>
+</ul>
+<p>How to increase priority:</p>
+<ul>
+<li>Voluntarily block.</li>
+<li>Sleep.</li>
+<li>Yield or otherwise stop consuming CPU.</li>
+<li>Reduce recent CPU usage.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>Priority is based partly on recent CPU usage. To increase priority, a thread
+should reduce its recent CPU usage, for example by blocking or sleeping instead
+of continuously consuming the CPU.</code></pre>
+<p>Watch out:</p>
+<ul>
+<li><code>nice</code> may be relevant in Unix generally, but for this
+course question the core idea is recent CPU usage.</li>
+</ul>
+<h2 id="work-stealing-and-work-conservation">Work Stealing and Work
+Conservation</h2>
+<p>Work-conserving system:</p>
+<ul>
+<li>A core should not sit idle if there is runnable work somewhere.</li>
+</ul>
+<p>Work stealing:</p>
+<ul>
+<li>An idle core looks at another core’s queue and steals runnable
+work.</li>
+</ul>
+<p>Why helpful:</p>
+<ul>
+<li>Prevents one core from being idle while another core has queued
+ready threads.</li>
+<li>Improves load balancing.</li>
+<li>Helps the system stay work-conserving.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>Work stealing helps a work-conserving scheduler because an idle core can find
+runnable work from another core&#39;s queue instead of remaining idle while work
+exists elsewhere.</code></pre>
+<p>Tradeoff:</p>
+<ul>
+<li>Work stealing has overhead.</li>
+<li>But for the conceptual question, the key point is that it helps
+avoid idle cores when runnable work exists.</li>
+</ul>
+<h2 id="dynamic-linking-and-decompilation">Dynamic Linking and
+Decompilation</h2>
+<p>Dynamic linking preserves useful symbolic information:</p>
+<ul>
+<li>Names of imported functions.</li>
+<li>Names of shared libraries.</li>
+<li>Sometimes relocation/import table information.</li>
+</ul>
+<p>Why the dynamic linker needs this:</p>
+<ul>
+<li>It must know which shared library to load.</li>
+<li>It must know which function/symbol names to resolve.</li>
+<li>It patches or sets up calls to the loaded library code at
+runtime.</li>
+</ul>
+<p>Why decompilers/reverse engineers care:</p>
+<ul>
+<li>Imported function names reveal behavior.</li>
+<li>Example: seeing imports like <code>socket</code>,
+<code>connect</code>, <code>send</code>, <code>recv</code> suggests
+networking.</li>
+<li>Seeing <code>open</code>, <code>read</code>, <code>write</code>
+suggests file I/O.</li>
+<li>Seeing <code>pthread_create</code> suggests threading.</li>
+<li>Seeing <code>execvp</code> suggests process execution.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>Dynamic linking requires information such as imported function names and the
+shared libraries that define them, because the loader/linker must resolve those
+symbols at runtime. Those names are also useful for decompilation because they
+reveal what library services the program uses and therefore hint at program
+behavior.</code></pre>
+<h2 id="memory-leak-vs-dangling-pointer">Memory Leak vs Dangling
+Pointer</h2>
+<p>Memory leak:</p>
+<ul>
+<li>Allocated memory still exists but the program has lost all usable
+references to it.</li>
+<li>It cannot be freed because the program no longer knows where it
+is.</li>
+</ul>
+<p>Dangling pointer:</p>
+<ul>
+<li>A pointer still points to memory that has already been freed or is
+no longer valid.</li>
+<li>Dereferencing it is unsafe.</li>
+</ul>
+<p>Examples:</p>
+<div class="sourceCode" id="cb119"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb119-1"><a href="#cb119-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Memory leak:</span></span>
+<span id="cb119-2"><a href="#cb119-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>p <span class="op">=</span> malloc<span class="op">(</span><span class="dv">100</span><span class="op">);</span></span>
+<span id="cb119-3"><a href="#cb119-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> NULL<span class="op">;</span>          <span class="co">// lost the only pointer; cannot free the 100 bytes</span></span></code></pre></div>
+<div class="sourceCode" id="cb120"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Dangling pointer:</span></span>
+<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a><span class="dt">char</span> <span class="op">*</span>p <span class="op">=</span> malloc<span class="op">(</span><span class="dv">100</span><span class="op">);</span></span>
+<span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a>free<span class="op">(</span>p<span class="op">);</span></span>
+<span id="cb120-4"><a href="#cb120-4" aria-hidden="true" tabindex="-1"></a>p<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">=</span> <span class="ch">&#39;x&#39;</span><span class="op">;</span>        <span class="co">// p points to freed memory</span></span></code></pre></div>
+<p>Exam distinction:</p>
+<pre class="text"><code>Lost pointer to allocated object -&gt; memory leak.
+Pointer to freed object -&gt; dangling pointer.</code></pre>
+<h2 id="message-passing-with-base-and-bound">Message Passing With
+Base-and-Bound</h2>
+<p>Question shape:</p>
+<p>Can two processes communicate/message-pass under base-and-bound if
+their address spaces are isolated?</p>
+<p>Correct answer:</p>
+<p>Yes.</p>
+<p>Mechanism:</p>
+<pre class="text"><code>sender user memory -&gt; kernel memory -&gt; receiver user memory</code></pre>
+<p>Why this works:</p>
+<ul>
+<li>Processes cannot directly access each other’s memory.</li>
+<li>The kernel is trusted and privileged.</li>
+<li>A system call can copy data out of the sender’s address space into
+kernel memory.</li>
+<li>The kernel can then copy data into the receiver’s address
+space.</li>
+</ul>
+<p>High-scoring answer:</p>
+<pre class="text"><code>Yes. Base-and-bound prevents processes from directly reading/writing each
+other&#39;s memory, but the kernel can implement message passing. The sender traps
+into the kernel, the kernel copies bytes from the sender&#39;s address space into
+kernel memory, and then copies them into the receiver&#39;s address space.</code></pre>
+<p>Do not answer:</p>
+<pre class="text"><code>No, because base-and-bound isolates processes.</code></pre>
+<p>Isolation prevents direct access. It does not prevent kernel-mediated
+communication.</p>
+<h2 id="counting-processes-after-repeated-fork">Counting Processes After
+Repeated <code>fork</code></h2>
+<p>If each process calls <code>fork</code> in a loop, the number of
+processes doubles each iteration.</p>
+<div class="sourceCode" id="cb125"><pre
+class="sourceCode c"><code class="sourceCode c"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> N<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>    fork<span class="op">();</span></span>
+<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Process count:</p>
+<pre class="text"><code>after 0 forks: 1 process
+after 1 fork:  2 processes
+after 2 forks: 4 processes
+after 3 forks: 8 processes</code></pre>
+<p>New processes created:</p>
+<pre class="text"><code>2^N - 1</code></pre>
+<p>For <code>N = 1</code>:</p>
+<pre class="text"><code>2^1 - 1 = 1 new process</code></pre>
+<p>For <code>N = 3</code>:</p>
+<pre class="text"><code>2^3 - 1 = 7 new processes</code></pre>
+<p>Important:</p>
+<ul>
+<li>Total processes includes the original.</li>
+<li>New processes excludes the original.</li>
+</ul>
+<p>Exam answer template:</p>
+<pre class="text"><code>Each iteration doubles the number of processes because every existing process
+continues the loop and calls fork. After N iterations there are 2^N total
+processes, so 2^N - 1 new processes were created.</code></pre>
+<h2 id="waterfactory-h2o-synchronization-problem">WaterFactory / H2O
+Synchronization Problem</h2>
+<p>Problem shape:</p>
+<ul>
+<li>Hydrogen threads call <code>hydrogen()</code>.</li>
+<li>Oxygen threads call <code>oxygen()</code>.</li>
+<li>Exactly two hydrogens and one oxygen should be grouped into each
+water molecule.</li>
+<li>Exactly those three assigned threads should call
+<code>bond()</code>.</li>
+<li>Threads not assigned to the current molecule must keep waiting.</li>
+</ul>
+<p>The hard parts:</p>
+<ul>
+<li>Counting waiting H and O atoms.</li>
+<li>Waking exactly two H and one O.</li>
+<li>Avoiding spot-stealing, where a newly arrived thread grabs a slot
+intended for an older notified thread.</li>
+<li>Updating counters consistently.</li>
+<li>Using <code>while</code> around waits.</li>
+<li>Notifying after molecule formation.</li>
+</ul>
+<h3 id="robust-pattern-per-thread-waiter-objects">Robust Pattern:
+Per-Thread Waiter Objects</h3>
+<p>This pattern avoids spot-stealing by assigning specific waiting
+threads to a molecule.</p>
+<div class="sourceCode" id="cb131"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;condition_variable&gt;</span></span>
+<span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;mutex&gt;</span></span>
+<span id="cb131-3"><a href="#cb131-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;queue&gt;</span></span>
+<span id="cb131-4"><a href="#cb131-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-5"><a href="#cb131-5" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> WaterFactory <span class="op">{</span></span>
+<span id="cb131-6"><a href="#cb131-6" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb131-7"><a href="#cb131-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> hydrogen<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb131-8"><a href="#cb131-8" aria-hidden="true" tabindex="-1"></a>        Waiter self<span class="op">;</span></span>
+<span id="cb131-9"><a href="#cb131-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-10"><a href="#cb131-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb131-11"><a href="#cb131-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
+<span id="cb131-12"><a href="#cb131-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-13"><a href="#cb131-13" aria-hidden="true" tabindex="-1"></a>            <span class="co">// This thread is now waiting as one hydrogen atom.</span></span>
+<span id="cb131-14"><a href="#cb131-14" aria-hidden="true" tabindex="-1"></a>            <span class="va">hydrogens_</span><span class="op">.</span>push<span class="op">(&amp;</span>self<span class="op">);</span></span>
+<span id="cb131-15"><a href="#cb131-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-16"><a href="#cb131-16" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Maybe this arrival completes a molecule.</span></span>
+<span id="cb131-17"><a href="#cb131-17" aria-hidden="true" tabindex="-1"></a>            make_water_if_possible<span class="op">();</span></span>
+<span id="cb131-18"><a href="#cb131-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-19"><a href="#cb131-19" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Wait until this exact thread has been assigned.</span></span>
+<span id="cb131-20"><a href="#cb131-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">while</span> <span class="op">(!</span>self<span class="op">.</span>assigned<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb131-21"><a href="#cb131-21" aria-hidden="true" tabindex="-1"></a>                self<span class="op">.</span>cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb131-22"><a href="#cb131-22" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb131-23"><a href="#cb131-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb131-24"><a href="#cb131-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-25"><a href="#cb131-25" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Calling bond outside the lock lets other threads keep forming groups.</span></span>
+<span id="cb131-26"><a href="#cb131-26" aria-hidden="true" tabindex="-1"></a>        bond<span class="op">();</span></span>
+<span id="cb131-27"><a href="#cb131-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb131-28"><a href="#cb131-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-29"><a href="#cb131-29" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> oxygen<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb131-30"><a href="#cb131-30" aria-hidden="true" tabindex="-1"></a>        Waiter self<span class="op">;</span></span>
+<span id="cb131-31"><a href="#cb131-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-32"><a href="#cb131-32" aria-hidden="true" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb131-33"><a href="#cb131-33" aria-hidden="true" tabindex="-1"></a>            <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
+<span id="cb131-34"><a href="#cb131-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-35"><a href="#cb131-35" aria-hidden="true" tabindex="-1"></a>            <span class="va">oxygens_</span><span class="op">.</span>push<span class="op">(&amp;</span>self<span class="op">);</span></span>
+<span id="cb131-36"><a href="#cb131-36" aria-hidden="true" tabindex="-1"></a>            make_water_if_possible<span class="op">();</span></span>
+<span id="cb131-37"><a href="#cb131-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-38"><a href="#cb131-38" aria-hidden="true" tabindex="-1"></a>            <span class="cf">while</span> <span class="op">(!</span>self<span class="op">.</span>assigned<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb131-39"><a href="#cb131-39" aria-hidden="true" tabindex="-1"></a>                self<span class="op">.</span>cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb131-40"><a href="#cb131-40" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb131-41"><a href="#cb131-41" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb131-42"><a href="#cb131-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-43"><a href="#cb131-43" aria-hidden="true" tabindex="-1"></a>        bond<span class="op">();</span></span>
+<span id="cb131-44"><a href="#cb131-44" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb131-45"><a href="#cb131-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-46"><a href="#cb131-46" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb131-47"><a href="#cb131-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> Waiter <span class="op">{</span></span>
+<span id="cb131-48"><a href="#cb131-48" aria-hidden="true" tabindex="-1"></a>        <span class="bu">std::</span>condition_variable cv<span class="op">;</span></span>
+<span id="cb131-49"><a href="#cb131-49" aria-hidden="true" tabindex="-1"></a>        <span class="dt">bool</span> assigned <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb131-50"><a href="#cb131-50" aria-hidden="true" tabindex="-1"></a>    <span class="op">};</span></span>
+<span id="cb131-51"><a href="#cb131-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-52"><a href="#cb131-52" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> make_water_if_possible<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb131-53"><a href="#cb131-53" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Must hold mutex_ when calling this helper.</span></span>
+<span id="cb131-54"><a href="#cb131-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="op">(</span><span class="va">hydrogens_</span><span class="op">.</span>size<span class="op">()</span> <span class="op">&gt;=</span> <span class="dv">2</span> <span class="op">&amp;&amp;</span> <span class="va">oxygens_</span><span class="op">.</span>size<span class="op">()</span> <span class="op">&gt;=</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb131-55"><a href="#cb131-55" aria-hidden="true" tabindex="-1"></a>            Waiter <span class="op">*</span>h1 <span class="op">=</span> <span class="va">hydrogens_</span><span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb131-56"><a href="#cb131-56" aria-hidden="true" tabindex="-1"></a>            <span class="va">hydrogens_</span><span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb131-57"><a href="#cb131-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-58"><a href="#cb131-58" aria-hidden="true" tabindex="-1"></a>            Waiter <span class="op">*</span>h2 <span class="op">=</span> <span class="va">hydrogens_</span><span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb131-59"><a href="#cb131-59" aria-hidden="true" tabindex="-1"></a>            <span class="va">hydrogens_</span><span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb131-60"><a href="#cb131-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-61"><a href="#cb131-61" aria-hidden="true" tabindex="-1"></a>            Waiter <span class="op">*</span>o <span class="op">=</span> <span class="va">oxygens_</span><span class="op">.</span>front<span class="op">();</span></span>
+<span id="cb131-62"><a href="#cb131-62" aria-hidden="true" tabindex="-1"></a>            <span class="va">oxygens_</span><span class="op">.</span>pop<span class="op">();</span></span>
+<span id="cb131-63"><a href="#cb131-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-64"><a href="#cb131-64" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Assign exactly these three waiters to the next molecule.</span></span>
+<span id="cb131-65"><a href="#cb131-65" aria-hidden="true" tabindex="-1"></a>            h1<span class="op">-&gt;</span>assigned <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb131-66"><a href="#cb131-66" aria-hidden="true" tabindex="-1"></a>            h2<span class="op">-&gt;</span>assigned <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb131-67"><a href="#cb131-67" aria-hidden="true" tabindex="-1"></a>            o<span class="op">-&gt;</span>assigned <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb131-68"><a href="#cb131-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-69"><a href="#cb131-69" aria-hidden="true" tabindex="-1"></a>            <span class="co">// Wake exactly the assigned threads.</span></span>
+<span id="cb131-70"><a href="#cb131-70" aria-hidden="true" tabindex="-1"></a>            h1<span class="op">-&gt;</span>cv<span class="op">.</span>notify_one<span class="op">();</span></span>
+<span id="cb131-71"><a href="#cb131-71" aria-hidden="true" tabindex="-1"></a>            h2<span class="op">-&gt;</span>cv<span class="op">.</span>notify_one<span class="op">();</span></span>
+<span id="cb131-72"><a href="#cb131-72" aria-hidden="true" tabindex="-1"></a>            o<span class="op">-&gt;</span>cv<span class="op">.</span>notify_one<span class="op">();</span></span>
+<span id="cb131-73"><a href="#cb131-73" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb131-74"><a href="#cb131-74" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb131-75"><a href="#cb131-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-76"><a href="#cb131-76" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> bond<span class="op">();</span></span>
+<span id="cb131-77"><a href="#cb131-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb131-78"><a href="#cb131-78" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex <span class="va">mutex_</span><span class="op">;</span></span>
+<span id="cb131-79"><a href="#cb131-79" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>queue<span class="op">&lt;</span>Waiter <span class="op">*&gt;</span> <span class="va">hydrogens_</span><span class="op">;</span></span>
+<span id="cb131-80"><a href="#cb131-80" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>queue<span class="op">&lt;</span>Waiter <span class="op">*&gt;</span> <span class="va">oxygens_</span><span class="op">;</span></span>
+<span id="cb131-81"><a href="#cb131-81" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Why this solves the rubric items:</p>
+<ul>
+<li>One lock protects all shared state.</li>
+<li>Each thread has a condition variable through its
+<code>Waiter</code>.</li>
+<li>Shared queues are accessed only while holding the lock.</li>
+<li><code>while (!self.assigned)</code> handles wakeups correctly.</li>
+<li>Counters/queues are updated consistently by popping assigned
+waiters.</li>
+<li>Exactly two H waiters and one O waiter are assigned.</li>
+<li>The assigned threads are the original notified threads, so no
+spot-stealing.</li>
+</ul>
+<h3 id="why-simple-counters-can-fail">Why Simple Counters Can Fail</h3>
+<p>Buggy idea:</p>
+<div class="sourceCode" id="cb132"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> waiting_h <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> waiting_o <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb132-4"><a href="#cb132-4" aria-hidden="true" tabindex="-1"></a><span class="co">// If enough atoms exist, notify some condition variables.</span></span></code></pre></div>
+<p>Counters alone are dangerous because:</p>
+<ul>
+<li>They do not identify which specific threads were assigned.</li>
+<li>A newly arriving thread can wake/check the predicate and take a
+spot.</li>
+<li>If counters are not decremented when a molecule is formed, too many
+threads may pass.</li>
+<li>If notifications are missing, assigned threads can sleep
+forever.</li>
+</ul>
+<p>Rubric phrase:</p>
+<pre class="text"><code>Upon molecule formation, exactly three threads (2 H, 1 O) proceed to bond().
+The threads that proceed are the original notified threads.</code></pre>
+<p>That is why explicit assignment state is useful.</p>
+<h2 id="personal-final-drill-from-this-midterm">Personal Final Drill
+From This Midterm</h2>
+<p>Before the final, be able to answer these without notes:</p>
+<ul>
+<li>What exactly happens to other threads when <code>execvp</code>
+succeeds?</li>
+<li>Why does <code>fork</code> copy user-level thread state?</li>
+<li>What mechanisms disappear or change under cooperative
+multitasking?</li>
+<li>Can cooperative multitasking still have races? Why?</li>
+<li>What state transitions happen for yield, sleep, wait, notify, and
+exit?</li>
+<li>What is starvation, and how is it different from deadlock?</li>
+<li>Which deadlock condition is about cycles?</li>
+<li>How does reducing recent CPU usage affect BSD scheduler
+priority?</li>
+<li>What import information does dynamic linking preserve?</li>
+<li>Is a lost pointer a memory leak or dangling pointer?</li>
+<li>How can message passing work with base-and-bound isolation?</li>
+<li>Why does <code>N = 3</code> repeated fork create <code>7</code> new
+processes?</li>
+<li>How do you design a monitor so exactly selected threads
+proceed?</li>
+</ul>
+<hr />
 <h1 id="ta-notes-coverage-addendum">TA Notes Coverage Addendum</h1>
 <p>The TA-made unofficial notes are now included on the site as
 <code>CS111_TA_NOTES_REFERENCE.html</code>. This addendum pulls out
@@ -7496,13 +8034,13 @@ vendors, institutions, or recovery mechanisms.</li>
 <h2 id="high-value-examquiz-patterns">High-Value Exam/Quiz Patterns</h2>
 <h3 id="process-creation">Process Creation</h3>
 <p>Be able to trace:</p>
-<div class="sourceCode" id="cb107"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="dt">pid_t</span> pid <span class="op">=</span> fork<span class="op">();</span></span>
-<span id="cb107-2"><a href="#cb107-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb107-3"><a href="#cb107-3" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(...);</span></span>
-<span id="cb107-4"><a href="#cb107-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb107-5"><a href="#cb107-5" aria-hidden="true" tabindex="-1"></a>    waitpid<span class="op">(</span>pid<span class="op">,</span> <span class="op">...);</span></span>
-<span id="cb107-6"><a href="#cb107-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb135"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a><span class="dt">pid_t</span> pid <span class="op">=</span> fork<span class="op">();</span></span>
+<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>pid <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb135-3"><a href="#cb135-3" aria-hidden="true" tabindex="-1"></a>    execvp<span class="op">(...);</span></span>
+<span id="cb135-4"><a href="#cb135-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb135-5"><a href="#cb135-5" aria-hidden="true" tabindex="-1"></a>    waitpid<span class="op">(</span>pid<span class="op">,</span> <span class="op">...);</span></span>
+<span id="cb135-6"><a href="#cb135-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Know what runs in parent vs child.</p>
 <h3 id="thread-state-transitions">Thread State Transitions</h3>
 <p>Be able to explain:</p>
@@ -7659,34 +8197,34 @@ mutex.</li>
 exist.</li>
 </ul>
 <p>Skeleton:</p>
-<div class="sourceCode" id="cb108"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Thing <span class="op">{</span></span>
-<span id="cb108-2"><a href="#cb108-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb108-3"><a href="#cb108-3" aria-hidden="true" tabindex="-1"></a>    Thing<span class="op">();</span></span>
-<span id="cb108-4"><a href="#cb108-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method1<span class="op">();</span></span>
-<span id="cb108-5"><a href="#cb108-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method2<span class="op">();</span></span>
-<span id="cb108-6"><a href="#cb108-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb108-7"><a href="#cb108-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb108-8"><a href="#cb108-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex <span class="va">mutex_</span><span class="op">;</span></span>
-<span id="cb108-9"><a href="#cb108-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>condition_variable <span class="va">cv_</span><span class="op">;</span></span>
-<span id="cb108-10"><a href="#cb108-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb108-11"><a href="#cb108-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Shared state protected by mutex_.</span></span>
-<span id="cb108-12"><a href="#cb108-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="va">count_</span><span class="op">;</span></span>
-<span id="cb108-13"><a href="#cb108-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> <span class="va">active_</span><span class="op">;</span></span>
-<span id="cb108-14"><a href="#cb108-14" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<div class="sourceCode" id="cb136"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Thing <span class="op">{</span></span>
+<span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>    Thing<span class="op">();</span></span>
+<span id="cb136-4"><a href="#cb136-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method1<span class="op">();</span></span>
+<span id="cb136-5"><a href="#cb136-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> method2<span class="op">();</span></span>
+<span id="cb136-6"><a href="#cb136-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb136-7"><a href="#cb136-7" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb136-8"><a href="#cb136-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>mutex <span class="va">mutex_</span><span class="op">;</span></span>
+<span id="cb136-9"><a href="#cb136-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>condition_variable <span class="va">cv_</span><span class="op">;</span></span>
+<span id="cb136-10"><a href="#cb136-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb136-11"><a href="#cb136-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Shared state protected by mutex_.</span></span>
+<span id="cb136-12"><a href="#cb136-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> <span class="va">count_</span><span class="op">;</span></span>
+<span id="cb136-13"><a href="#cb136-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> <span class="va">active_</span><span class="op">;</span></span>
+<span id="cb136-14"><a href="#cb136-14" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
 <p>Method pattern:</p>
-<div class="sourceCode" id="cb109"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Thing<span class="op">::</span>method1<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb109-2"><a href="#cb109-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
-<span id="cb109-3"><a href="#cb109-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb109-4"><a href="#cb109-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(!</span>can_proceed<span class="op">())</span> <span class="op">{</span></span>
-<span id="cb109-5"><a href="#cb109-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">cv_</span><span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
-<span id="cb109-6"><a href="#cb109-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb109-7"><a href="#cb109-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb109-8"><a href="#cb109-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Update shared state while lock is held.</span></span>
-<span id="cb109-9"><a href="#cb109-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb109-10"><a href="#cb109-10" aria-hidden="true" tabindex="-1"></a>    <span class="va">cv_</span><span class="op">.</span>notify_one<span class="op">();</span>   <span class="co">// or notify_all()</span></span>
-<span id="cb109-11"><a href="#cb109-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> Thing<span class="op">::</span>method1<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
+<span id="cb137-3"><a href="#cb137-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-4"><a href="#cb137-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="op">(!</span>can_proceed<span class="op">())</span> <span class="op">{</span></span>
+<span id="cb137-5"><a href="#cb137-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">cv_</span><span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb137-6"><a href="#cb137-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb137-7"><a href="#cb137-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-8"><a href="#cb137-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Update shared state while lock is held.</span></span>
+<span id="cb137-9"><a href="#cb137-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb137-10"><a href="#cb137-10" aria-hidden="true" tabindex="-1"></a>    <span class="va">cv_</span><span class="op">.</span>notify_one<span class="op">();</span>   <span class="co">// or notify_all()</span></span>
+<span id="cb137-11"><a href="#cb137-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Do not think of the condition variable as storing the condition. The
 condition is the Boolean expression over the shared state. The condition
 variable is only a sleeping/wakeup mechanism.</p>
@@ -7694,43 +8232,43 @@ variable is only a sleeping/wakeup mechanism.</p>
 <p>Sections emphasize <code>std::unique_lock</code> because it prevents
 a common bug: forgetting to unlock before returning.</p>
 <p>Without a lock guard:</p>
-<div class="sourceCode" id="cb110"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">mutex_</span><span class="op">.</span>lock<span class="op">();</span></span>
-<span id="cb110-3"><a href="#cb110-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>some_case<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb110-4"><a href="#cb110-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">mutex_</span><span class="op">.</span>unlock<span class="op">();</span></span>
-<span id="cb110-5"><a href="#cb110-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb110-6"><a href="#cb110-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb110-7"><a href="#cb110-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">mutex_</span><span class="op">.</span>unlock<span class="op">();</span></span>
-<span id="cb110-8"><a href="#cb110-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb138"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb138-2"><a href="#cb138-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">mutex_</span><span class="op">.</span>lock<span class="op">();</span></span>
+<span id="cb138-3"><a href="#cb138-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>some_case<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb138-4"><a href="#cb138-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">mutex_</span><span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb138-5"><a href="#cb138-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb138-6"><a href="#cb138-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb138-7"><a href="#cb138-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">mutex_</span><span class="op">.</span>unlock<span class="op">();</span></span>
+<span id="cb138-8"><a href="#cb138-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>With <code>std::unique_lock</code>:</p>
-<div class="sourceCode" id="cb111"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb111-1"><a href="#cb111-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb111-2"><a href="#cb111-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
-<span id="cb111-3"><a href="#cb111-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>some_case<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb111-4"><a href="#cb111-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
-<span id="cb111-5"><a href="#cb111-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb111-6"><a href="#cb111-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb139"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span><span class="va">mutex_</span><span class="op">);</span></span>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>some_case<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb139-5"><a href="#cb139-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb139-6"><a href="#cb139-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>When <code>lock</code> goes out of scope, its destructor unlocks the
 mutex. This is why exam solutions often start methods with:</p>
-<div class="sourceCode" id="cb112"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb112-1"><a href="#cb112-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span></code></pre></div>
+<div class="sourceCode" id="cb140"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>unique_lock<span class="op">&lt;</span><span class="bu">std::</span>mutex<span class="op">&gt;</span> lock<span class="op">(</span>mutex<span class="op">);</span></span></code></pre></div>
 <h2 id="condition-variable-semantics">Condition Variable Semantics</h2>
 <p>The custom section API for Assignment 4 is:</p>
-<div class="sourceCode" id="cb113"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb113-1"><a href="#cb113-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Mutex <span class="op">{</span></span>
-<span id="cb113-2"><a href="#cb113-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb113-3"><a href="#cb113-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> lock<span class="op">();</span></span>
-<span id="cb113-4"><a href="#cb113-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> unlock<span class="op">();</span></span>
-<span id="cb113-5"><a href="#cb113-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> mine<span class="op">();</span></span>
-<span id="cb113-6"><a href="#cb113-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
-<span id="cb113-7"><a href="#cb113-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb113-8"><a href="#cb113-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Condition <span class="op">{</span></span>
-<span id="cb113-9"><a href="#cb113-9" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb113-10"><a href="#cb113-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait<span class="op">(</span>Mutex <span class="op">&amp;</span>m<span class="op">);</span></span>
-<span id="cb113-11"><a href="#cb113-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_one<span class="op">();</span></span>
-<span id="cb113-12"><a href="#cb113-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_all<span class="op">();</span></span>
-<span id="cb113-13"><a href="#cb113-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<div class="sourceCode" id="cb141"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Mutex <span class="op">{</span></span>
+<span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> lock<span class="op">();</span></span>
+<span id="cb141-4"><a href="#cb141-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> unlock<span class="op">();</span></span>
+<span id="cb141-5"><a href="#cb141-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> mine<span class="op">();</span></span>
+<span id="cb141-6"><a href="#cb141-6" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span>
+<span id="cb141-7"><a href="#cb141-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb141-8"><a href="#cb141-8" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Condition <span class="op">{</span></span>
+<span id="cb141-9"><a href="#cb141-9" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb141-10"><a href="#cb141-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait<span class="op">(</span>Mutex <span class="op">&amp;</span>m<span class="op">);</span></span>
+<span id="cb141-11"><a href="#cb141-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_one<span class="op">();</span></span>
+<span id="cb141-12"><a href="#cb141-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_all<span class="op">();</span></span>
+<span id="cb141-13"><a href="#cb141-13" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
 <p>It has the same conceptual behavior as the standard-library condition
 variables used in exam solutions.</p>
 <p><code>wait(m)</code> does three things:</p>
@@ -7747,15 +8285,15 @@ shared state that would make the waiter proceed.</p>
 variable.</p>
 <h2 id="why-waits-must-be-in-a-loop">Why Waits Must Be in a Loop</h2>
 <p>Use:</p>
-<div class="sourceCode" id="cb114"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb114-2"><a href="#cb114-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
-<span id="cb114-3"><a href="#cb114-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb142"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb142-3"><a href="#cb142-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Not:</p>
-<div class="sourceCode" id="cb115"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
-<span id="cb115-3"><a href="#cb115-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb143"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb143-1"><a href="#cb143-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb143-2"><a href="#cb143-2" aria-hidden="true" tabindex="-1"></a>    cv<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb143-3"><a href="#cb143-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Reasons:</p>
 <ul>
 <li>Waking up does not prove the condition is true.</li>
@@ -7803,12 +8341,12 @@ time I wake up I will re-check reality.”</p>
 </ol>
 <p>Write this as a Boolean expression over shared state.</p>
 <p>Examples:</p>
-<div class="sourceCode" id="cb116"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a><span class="va">available_seats_</span> <span class="op">&gt;</span> <span class="dv">0</span></span></code></pre></div>
-<div class="sourceCode" id="cb117"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_wb_</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="op">!(</span><span class="va">waiting_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="va">consecutive_eb_</span> <span class="op">&gt;=</span> <span class="dv">5</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb118"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a>inventory<span class="op">[</span>id<span class="op">]</span> <span class="op">&gt;=</span> requested_count</span></code></pre></div>
+<div class="sourceCode" id="cb144"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb144-1"><a href="#cb144-1" aria-hidden="true" tabindex="-1"></a><span class="va">available_seats_</span> <span class="op">&gt;</span> <span class="dv">0</span></span></code></pre></div>
+<div class="sourceCode" id="cb145"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb145-1"><a href="#cb145-1" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_wb_</span> <span class="op">==</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="op">!(</span><span class="va">waiting_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> <span class="va">consecutive_eb_</span> <span class="op">&gt;=</span> <span class="dv">5</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb146"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb146-1"><a href="#cb146-1" aria-hidden="true" tabindex="-1"></a>inventory<span class="op">[</span>id<span class="op">]</span> <span class="op">&gt;=</span> requested_count</span></code></pre></div>
 <p>For multi-resource requests, the predicate may require a loop over
 arrays.</p>
 <ol start="5" type="1">
@@ -7851,22 +8389,22 @@ train.</li>
 not yet safely on board.</li>
 </ul>
 <p>Passenger wait predicate:</p>
-<div class="sourceCode" id="cb119"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb119-1"><a href="#cb119-1" aria-hidden="true" tabindex="-1"></a>available_seats <span class="op">&gt;</span> <span class="dv">0</span></span></code></pre></div>
+<div class="sourceCode" id="cb147"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb147-1"><a href="#cb147-1" aria-hidden="true" tabindex="-1"></a>available_seats <span class="op">&gt;</span> <span class="dv">0</span></span></code></pre></div>
 <p>When a passenger starts boarding:</p>
-<div class="sourceCode" id="cb120"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a>waiting_passengers<span class="op">--;</span></span>
-<span id="cb120-2"><a href="#cb120-2" aria-hidden="true" tabindex="-1"></a>available_seats<span class="op">--;</span></span>
-<span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a>boarding_passengers<span class="op">++;</span></span></code></pre></div>
+<div class="sourceCode" id="cb148"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb148-1"><a href="#cb148-1" aria-hidden="true" tabindex="-1"></a>waiting_passengers<span class="op">--;</span></span>
+<span id="cb148-2"><a href="#cb148-2" aria-hidden="true" tabindex="-1"></a>available_seats<span class="op">--;</span></span>
+<span id="cb148-3"><a href="#cb148-3" aria-hidden="true" tabindex="-1"></a>boarding_passengers<span class="op">++;</span></span></code></pre></div>
 <p>When passenger finishes:</p>
-<div class="sourceCode" id="cb121"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb121-1"><a href="#cb121-1" aria-hidden="true" tabindex="-1"></a>boarding_passengers<span class="op">--;</span></span></code></pre></div>
+<div class="sourceCode" id="cb149"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb149-1"><a href="#cb149-1" aria-hidden="true" tabindex="-1"></a>boarding_passengers<span class="op">--;</span></span></code></pre></div>
 <p>Train can leave when:</p>
-<div class="sourceCode" id="cb122"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a>available_seats <span class="op">==</span> <span class="dv">0</span> <span class="op">||</span> waiting_passengers <span class="op">==</span> <span class="dv">0</span></span></code></pre></div>
+<div class="sourceCode" id="cb150"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb150-1"><a href="#cb150-1" aria-hidden="true" tabindex="-1"></a>available_seats <span class="op">==</span> <span class="dv">0</span> <span class="op">||</span> waiting_passengers <span class="op">==</span> <span class="dv">0</span></span></code></pre></div>
 <p>and:</p>
-<div class="sourceCode" id="cb123"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb123-1"><a href="#cb123-1" aria-hidden="true" tabindex="-1"></a>boarding_passengers <span class="op">==</span> <span class="dv">0</span></span></code></pre></div>
+<div class="sourceCode" id="cb151"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb151-1"><a href="#cb151-1" aria-hidden="true" tabindex="-1"></a>boarding_passengers <span class="op">==</span> <span class="dv">0</span></span></code></pre></div>
 <p>The second condition is the easy one to forget. “No more seats” does
 not mean everyone who got a seat is safely on board.</p>
 <h2 id="one-lane-bridge-pattern">One-Lane Bridge Pattern</h2>
@@ -7883,13 +8421,13 @@ the same direction.</li>
 other direction must get a chance.</li>
 </ul>
 <p>Useful shared state:</p>
-<div class="sourceCode" id="cb124"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">waiting_eb_</span><span class="op">;</span></span>
-<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">waiting_wb_</span><span class="op">;</span></span>
-<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">crossing_eb_</span><span class="op">;</span></span>
-<span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">crossing_wb_</span><span class="op">;</span></span>
-<span id="cb124-5"><a href="#cb124-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">consecutive_eb_</span><span class="op">;</span></span>
-<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">consecutive_wb_</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb152"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb152-1"><a href="#cb152-1" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">waiting_eb_</span><span class="op">;</span></span>
+<span id="cb152-2"><a href="#cb152-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">waiting_wb_</span><span class="op">;</span></span>
+<span id="cb152-3"><a href="#cb152-3" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">crossing_eb_</span><span class="op">;</span></span>
+<span id="cb152-4"><a href="#cb152-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">crossing_wb_</span><span class="op">;</span></span>
+<span id="cb152-5"><a href="#cb152-5" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">consecutive_eb_</span><span class="op">;</span></span>
+<span id="cb152-6"><a href="#cb152-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> <span class="va">consecutive_wb_</span><span class="op">;</span></span></code></pre></div>
 <p>Eastbound can enter if:</p>
 <ul>
 <li>No westbound cars are currently crossing.</li>
@@ -7897,23 +8435,23 @@ class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="
 already had too many consecutive crossings.</li>
 </ul>
 <p>Predicate:</p>
-<div class="sourceCode" id="cb125"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">((</span><span class="va">crossing_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">||</span></span>
-<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>       <span class="op">((</span><span class="va">waiting_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(</span><span class="va">consecutive_eb_</span> <span class="op">&gt;=</span> <span class="dv">5</span><span class="op">)))</span> <span class="op">{</span></span>
-<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">done_wb_</span><span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
-<span id="cb125-4"><a href="#cb125-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb153"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb153-1"><a href="#cb153-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">((</span><span class="va">crossing_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">||</span></span>
+<span id="cb153-2"><a href="#cb153-2" aria-hidden="true" tabindex="-1"></a>       <span class="op">((</span><span class="va">waiting_wb_</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(</span><span class="va">consecutive_eb_</span> <span class="op">&gt;=</span> <span class="dv">5</span><span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb153-3"><a href="#cb153-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">done_wb_</span><span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb153-4"><a href="#cb153-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>When eastbound enters:</p>
-<div class="sourceCode" id="cb126"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="va">waiting_eb_</span><span class="op">--;</span></span>
-<span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_eb_</span><span class="op">++;</span></span>
-<span id="cb126-3"><a href="#cb126-3" aria-hidden="true" tabindex="-1"></a><span class="va">consecutive_eb_</span><span class="op">++;</span></span>
-<span id="cb126-4"><a href="#cb126-4" aria-hidden="true" tabindex="-1"></a><span class="va">consecutive_wb_</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb154"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb154-1"><a href="#cb154-1" aria-hidden="true" tabindex="-1"></a><span class="va">waiting_eb_</span><span class="op">--;</span></span>
+<span id="cb154-2"><a href="#cb154-2" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_eb_</span><span class="op">++;</span></span>
+<span id="cb154-3"><a href="#cb154-3" aria-hidden="true" tabindex="-1"></a><span class="va">consecutive_eb_</span><span class="op">++;</span></span>
+<span id="cb154-4"><a href="#cb154-4" aria-hidden="true" tabindex="-1"></a><span class="va">consecutive_wb_</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span></code></pre></div>
 <p>When eastbound leaves:</p>
-<div class="sourceCode" id="cb127"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_eb_</span><span class="op">--;</span></span>
-<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span><span class="va">crossing_eb_</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb127-3"><a href="#cb127-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">done_eb_</span><span class="op">.</span>notify_all<span class="op">();</span></span>
-<span id="cb127-4"><a href="#cb127-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb155"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb155-1"><a href="#cb155-1" aria-hidden="true" tabindex="-1"></a><span class="va">crossing_eb_</span><span class="op">--;</span></span>
+<span id="cb155-2"><a href="#cb155-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span><span class="va">crossing_eb_</span> <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb155-3"><a href="#cb155-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">done_eb_</span><span class="op">.</span>notify_all<span class="op">();</span></span>
+<span id="cb155-4"><a href="#cb155-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Why <code>notify_all</code>? Because multiple cars in the opposite
 direction may now be eligible to re-check their condition.</p>
 <p>The bridge problem teaches a general lesson: if multiple threads are
@@ -7921,8 +8459,8 @@ allowed through together, your state must count both “waiting” and
 “currently inside.”</p>
 <h2 id="party-matching-pattern">Party Matching Pattern</h2>
 <p>The Party section problem:</p>
-<div class="sourceCode" id="cb128"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string meet<span class="op">(</span><span class="bu">std::</span>string<span class="op">&amp;</span> my_name<span class="op">,</span> <span class="dt">int</span> my_sign<span class="op">,</span> <span class="dt">int</span> other_sign<span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb156"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb156-1"><a href="#cb156-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>string meet<span class="op">(</span><span class="bu">std::</span>string<span class="op">&amp;</span> my_name<span class="op">,</span> <span class="dt">int</span> my_sign<span class="op">,</span> <span class="dt">int</span> other_sign<span class="op">)</span></span></code></pre></div>
 <p>Each person has:</p>
 <ul>
 <li>Their own name.</li>
@@ -7958,12 +8496,12 @@ Merge</h2>
 <li>No starvation.</li>
 </ul>
 <p>Useful shared state:</p>
-<div class="sourceCode" id="cb129"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> waiting<span class="op">;</span></span>
-<span id="cb129-2"><a href="#cb129-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> totalWaiting<span class="op">;</span></span>
-<span id="cb129-3"><a href="#cb129-3" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="bu">std::</span>condition_variable<span class="op">&gt;</span> safe_to_merge<span class="op">;</span></span>
-<span id="cb129-4"><a href="#cb129-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> prev_lane<span class="op">;</span></span>
-<span id="cb129-5"><a href="#cb129-5" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> merging<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb157"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb157-1"><a href="#cb157-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> waiting<span class="op">;</span></span>
+<span id="cb157-2"><a href="#cb157-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> totalWaiting<span class="op">;</span></span>
+<span id="cb157-3"><a href="#cb157-3" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="bu">std::</span>condition_variable<span class="op">&gt;</span> safe_to_merge<span class="op">;</span></span>
+<span id="cb157-4"><a href="#cb157-4" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> prev_lane<span class="op">;</span></span>
+<span id="cb157-5"><a href="#cb157-5" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> merging<span class="op">;</span></span></code></pre></div>
 <p>Key idea:</p>
 <ul>
 <li>If nobody is merging, the arriving car can go immediately.</li>
@@ -7984,8 +8522,8 @@ higher positions that are still waiting.</li>
 <li><code>board_next()</code> wakes one passenger at most.</li>
 </ul>
 <p>Useful shared state:</p>
-<div class="sourceCode" id="cb130"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>map<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">,</span> <span class="bu">std::</span>condition_variable<span class="op">*&gt;</span> ready_passengers<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb158"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb158-1"><a href="#cb158-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>map<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">,</span> <span class="bu">std::</span>condition_variable<span class="op">*&gt;</span> ready_passengers<span class="op">;</span></span></code></pre></div>
 <p>Why a map?</p>
 <ul>
 <li>It keeps keys sorted.</li>
@@ -8017,29 +8555,29 @@ can complete.</li>
 be allowed to proceed.</li>
 </ul>
 <p>Useful shared state:</p>
-<div class="sourceCode" id="cb131"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> inventory<span class="op">;</span></span>
-<span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>condition_variable new_inventory<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb159"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb159-1"><a href="#cb159-1" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>vector<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;</span> inventory<span class="op">;</span></span>
+<span id="cb159-2"><a href="#cb159-2" aria-hidden="true" tabindex="-1"></a><span class="bu">std::</span>condition_variable new_inventory<span class="op">;</span></span></code></pre></div>
 <p>Reserve predicate:</p>
-<div class="sourceCode" id="cb132"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> order_ok <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
-<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> stock_ids<span class="op">.</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>inventory<span class="op">[</span>stock_ids<span class="op">[</span>i<span class="op">]]</span> <span class="op">&lt;</span> counts<span class="op">[</span>i<span class="op">])</span> <span class="op">{</span></span>
-<span id="cb132-4"><a href="#cb132-4" aria-hidden="true" tabindex="-1"></a>        order_ok <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
-<span id="cb132-5"><a href="#cb132-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
-<span id="cb132-6"><a href="#cb132-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb132-7"><a href="#cb132-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb160"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb160-1"><a href="#cb160-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> order_ok <span class="op">=</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb160-2"><a href="#cb160-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> stock_ids<span class="op">.</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb160-3"><a href="#cb160-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>inventory<span class="op">[</span>stock_ids<span class="op">[</span>i<span class="op">]]</span> <span class="op">&lt;</span> counts<span class="op">[</span>i<span class="op">])</span> <span class="op">{</span></span>
+<span id="cb160-4"><a href="#cb160-4" aria-hidden="true" tabindex="-1"></a>        order_ok <span class="op">=</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb160-5"><a href="#cb160-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span><span class="op">;</span></span>
+<span id="cb160-6"><a href="#cb160-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb160-7"><a href="#cb160-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Wait loop:</p>
-<div class="sourceCode" id="cb133"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb133-1"><a href="#cb133-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>order_ok<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb133-2"><a href="#cb133-2" aria-hidden="true" tabindex="-1"></a>    new_inventory<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
-<span id="cb133-3"><a href="#cb133-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// re-check entire order</span></span>
-<span id="cb133-4"><a href="#cb133-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb161"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb161-1"><a href="#cb161-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>order_ok<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb161-2"><a href="#cb161-2" aria-hidden="true" tabindex="-1"></a>    new_inventory<span class="op">.</span>wait<span class="op">(</span>lock<span class="op">);</span></span>
+<span id="cb161-3"><a href="#cb161-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// re-check entire order</span></span>
+<span id="cb161-4"><a href="#cb161-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Only after all items are available:</p>
-<div class="sourceCode" id="cb134"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb134-1"><a href="#cb134-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> stock_ids<span class="op">.</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>    inventory<span class="op">[</span>stock_ids<span class="op">[</span>i<span class="op">]]</span> <span class="op">-=</span> counts<span class="op">[</span>i<span class="op">];</span></span>
-<span id="cb134-3"><a href="#cb134-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb162"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb162-1"><a href="#cb162-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">size_t</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> stock_ids<span class="op">.</span>size<span class="op">();</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb162-2"><a href="#cb162-2" aria-hidden="true" tabindex="-1"></a>    inventory<span class="op">[</span>stock_ids<span class="op">[</span>i<span class="op">]]</span> <span class="op">-=</span> counts<span class="op">[</span>i<span class="op">];</span></span>
+<span id="cb162-3"><a href="#cb162-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Why <code>notify_all</code> in <code>add()</code>?</p>
 <ul>
 <li>Different waiting orders may need different stock items.</li>
@@ -8077,10 +8615,10 @@ direction.</li>
 </ul>
 <h2 id="common-wrong-solutions">Common Wrong Solutions</h2>
 <p>Wrong: Busy-waiting.</p>
-<div class="sourceCode" id="cb135"><pre
-class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// keep checking</span></span>
-<span id="cb135-3"><a href="#cb135-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb163"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb163-1"><a href="#cb163-1" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="op">(!</span>condition<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb163-2"><a href="#cb163-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// keep checking</span></span>
+<span id="cb163-3"><a href="#cb163-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>This wastes CPU and usually violates the problem statement.</p>
 <p>Wrong: Holding the lock while doing long external work.</p>
 <p>For example, once a method returns and the simulated car/passenger

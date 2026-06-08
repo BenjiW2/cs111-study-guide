@@ -49,8 +49,9 @@ Lecture 25 `(1)` is a duplicate copy of Lecture 25.
 22. Lecture 27: Virtual Machines
 23. Lecture 28: Course Review
 24. Annotated Final Code Patterns
-25. TA Notes Coverage Addendum
-26. Final Review Map
+25. Graded Midterm Postmortem
+26. TA Notes Coverage Addendum
+27. Final Review Map
 
 ---
 
@@ -6061,6 +6062,569 @@ trusted independent source before acting.
 ```
 
 This is how to avoid vague ethics answers.
+
+---
+
+# Graded Midterm Postmortem
+
+This section is based on the graded midterm rubric, but it does not include the raw submission PDF or the score. The goal is to convert lost-credit areas into final-review rules and reusable answer templates.
+
+## Biggest Takeaways
+
+The main weak spots to drill:
+
+- Exact semantics of `execvp` and `fork` in multithreaded/user-level-thread settings.
+- Cooperative multitasking vs preemptive multitasking.
+- Thread state transition traces.
+- Starvation vs deadlock conditions.
+- BSD scheduler priority and CPU usage.
+- Dynamic linking/decompilation information.
+- Memory leaks vs dangling pointers.
+- Base-and-bound message passing through the kernel.
+- Counting processes after repeated `fork`.
+- Monitor design where exactly the right threads proceed, especially WaterFactory-style grouping.
+
+## Threads and Processes: `execvp` in a Multithreaded Process
+
+If a thread in a multithreaded process calls `execvp` successfully:
+
+- The current process image is replaced by the new program.
+- The old address space contents are overwritten/replaced.
+- Existing threads do not keep running.
+- The new program starts with a single thread.
+- The process id remains the same.
+- File descriptors generally remain open unless configured close-on-exec.
+
+High-scoring answer:
+
+```text
+execvp replaces the entire process image, not just the calling thread.
+All old threads are terminated, and the new program begins executing with
+a single thread in the same process.
+```
+
+Common wrong model:
+
+```text
+Only the calling thread changes into the new program while other old threads continue.
+```
+
+That is wrong. `execvp` is process-wide.
+
+## Threads and Processes: `fork` With User-Level Threads
+
+For user-level threads, thread state is stored in the process memory by the threading library. If `fork` copies the parent's process memory, then the child receives a copy of that user-level thread state.
+
+High-scoring answer:
+
+```text
+The child process gets a copy of the parent's process memory. Since user-level
+thread state lives in that memory, the child receives copies of the user-level
+threads/thread-control structures as well.
+```
+
+Contrast:
+
+- Kernel-level threads are known to the OS kernel.
+- User-level threads are mostly just library-managed data structures inside process memory.
+
+Exam trap:
+
+If the question says "user-level threads," think "thread metadata is in user memory, so copying memory copies the thread state."
+
+## Cooperative Multitasking
+
+Preemptive multitasking:
+
+- The OS can interrupt a running thread, often by timer interrupt.
+- Threads do not need to voluntarily yield for the scheduler to regain control.
+
+Cooperative multitasking:
+
+- The OS/runtime does not forcibly preempt running threads.
+- Threads are responsible for yielding.
+- Timer-preemption mechanisms are removed or not used for scheduling.
+- A badly behaved thread can hog the CPU by never yielding.
+
+High-scoring answer:
+
+```text
+In a cooperative system, preemption mechanisms such as timer-driven forced
+context switches are removed. Threads must explicitly yield or block for
+another thread to run.
+```
+
+Race-condition nuance:
+
+Cooperative multitasking can still have race conditions:
+
+- A thread can yield in the middle of a multi-step update.
+- Code can block in a library/system call.
+- Multiple cores can still run threads simultaneously if the system is multicore.
+- Shared mutable state still needs synchronization unless the problem gives stronger guarantees.
+
+## Atomic Operations Can Still Be Involved in Races
+
+Atomic operations make one specific operation indivisible. They do not automatically make an entire algorithm correct.
+
+Example:
+
+```c
+atomic_exchange(&lock_word, 1);
+shared_counter++;
+```
+
+The exchange may be atomic, but `shared_counter++` can still race if it is not protected properly.
+
+High-scoring answer:
+
+```text
+Yes, atomic operations can still appear in code with race conditions. Atomicity
+only applies to the individual atomic operation; surrounding reads/writes or
+higher-level invariants can still interleave incorrectly.
+```
+
+## Thread State Transition Traces
+
+Common states:
+
+- Ready: thread can run but is not currently on a core.
+- Running: thread is executing on a core.
+- Blocked: thread is waiting for some event.
+- Exited/dead: thread has finished.
+
+Transitions:
+
+```text
+ready -> running      dispatcher selects thread
+running -> ready      yield or timer preemption
+running -> blocked    waits for lock/CV/I/O/sleep
+blocked -> ready      event occurs, lock/CV/I/O/sleep completes
+running -> exited     calls exit or returns from thread function
+```
+
+For a trace question, annotate each event:
+
+```text
+yield()        running -> ready
+sleep()        running -> blocked
+timer expires  running -> ready
+CV wait        running -> blocked
+CV notify      blocked -> ready
+exit()         running -> exited
+```
+
+Common mistake:
+
+Adding an extra blocked state when the thread did not make a blocking system call, or missing a blocking state when it sleeps/waits.
+
+## Deadlock vs Starvation
+
+Deadlock:
+
+- A set of threads is stuck forever.
+- Each is waiting for a resource/event that can only be produced by another stuck thread in the set.
+
+Starvation:
+
+- Some threads continue to make progress.
+- One or more unlucky threads wait indefinitely because the system keeps choosing others.
+
+Four deadlock conditions:
+
+```text
+limited access / mutual exclusion
+no preemption
+hold-and-wait / multiple independent requests
+circular wait
+```
+
+Rubric-specific point:
+
+For starvation, the deadlock condition that can be necessary in certain starvation examples is circular wait only if the question asks which deadlock condition is required by that starvation setup. Do not blindly list all four deadlock conditions unless the prompt asks for deadlock.
+
+Strong answer shape:
+
+```text
+This is starvation, not deadlock, because some threads continue making progress
+while one thread is repeatedly bypassed. The relevant deadlock condition is
+circular wait only if the starvation mechanism creates a waiting cycle; the
+other deadlock conditions are not automatically required for starvation.
+```
+
+## BSD Scheduler Priority
+
+4.4 BSD-style scheduler intuition:
+
+- Recent CPU usage affects priority.
+- Threads that use lots of CPU become lower priority.
+- Threads that block/sleep often tend to have lower recent CPU usage and can get higher priority.
+
+How to increase priority:
+
+- Voluntarily block.
+- Sleep.
+- Yield or otherwise stop consuming CPU.
+- Reduce recent CPU usage.
+
+High-scoring answer:
+
+```text
+Priority is based partly on recent CPU usage. To increase priority, a thread
+should reduce its recent CPU usage, for example by blocking or sleeping instead
+of continuously consuming the CPU.
+```
+
+Watch out:
+
+- `nice` may be relevant in Unix generally, but for this course question the core idea is recent CPU usage.
+
+## Work Stealing and Work Conservation
+
+Work-conserving system:
+
+- A core should not sit idle if there is runnable work somewhere.
+
+Work stealing:
+
+- An idle core looks at another core's queue and steals runnable work.
+
+Why helpful:
+
+- Prevents one core from being idle while another core has queued ready threads.
+- Improves load balancing.
+- Helps the system stay work-conserving.
+
+High-scoring answer:
+
+```text
+Work stealing helps a work-conserving scheduler because an idle core can find
+runnable work from another core's queue instead of remaining idle while work
+exists elsewhere.
+```
+
+Tradeoff:
+
+- Work stealing has overhead.
+- But for the conceptual question, the key point is that it helps avoid idle cores when runnable work exists.
+
+## Dynamic Linking and Decompilation
+
+Dynamic linking preserves useful symbolic information:
+
+- Names of imported functions.
+- Names of shared libraries.
+- Sometimes relocation/import table information.
+
+Why the dynamic linker needs this:
+
+- It must know which shared library to load.
+- It must know which function/symbol names to resolve.
+- It patches or sets up calls to the loaded library code at runtime.
+
+Why decompilers/reverse engineers care:
+
+- Imported function names reveal behavior.
+- Example: seeing imports like `socket`, `connect`, `send`, `recv` suggests networking.
+- Seeing `open`, `read`, `write` suggests file I/O.
+- Seeing `pthread_create` suggests threading.
+- Seeing `execvp` suggests process execution.
+
+High-scoring answer:
+
+```text
+Dynamic linking requires information such as imported function names and the
+shared libraries that define them, because the loader/linker must resolve those
+symbols at runtime. Those names are also useful for decompilation because they
+reveal what library services the program uses and therefore hint at program
+behavior.
+```
+
+## Memory Leak vs Dangling Pointer
+
+Memory leak:
+
+- Allocated memory still exists but the program has lost all usable references to it.
+- It cannot be freed because the program no longer knows where it is.
+
+Dangling pointer:
+
+- A pointer still points to memory that has already been freed or is no longer valid.
+- Dereferencing it is unsafe.
+
+Examples:
+
+```c
+// Memory leak:
+char *p = malloc(100);
+p = NULL;          // lost the only pointer; cannot free the 100 bytes
+```
+
+```c
+// Dangling pointer:
+char *p = malloc(100);
+free(p);
+p[0] = 'x';        // p points to freed memory
+```
+
+Exam distinction:
+
+```text
+Lost pointer to allocated object -> memory leak.
+Pointer to freed object -> dangling pointer.
+```
+
+## Message Passing With Base-and-Bound
+
+Question shape:
+
+Can two processes communicate/message-pass under base-and-bound if their address spaces are isolated?
+
+Correct answer:
+
+Yes.
+
+Mechanism:
+
+```text
+sender user memory -> kernel memory -> receiver user memory
+```
+
+Why this works:
+
+- Processes cannot directly access each other's memory.
+- The kernel is trusted and privileged.
+- A system call can copy data out of the sender's address space into kernel memory.
+- The kernel can then copy data into the receiver's address space.
+
+High-scoring answer:
+
+```text
+Yes. Base-and-bound prevents processes from directly reading/writing each
+other's memory, but the kernel can implement message passing. The sender traps
+into the kernel, the kernel copies bytes from the sender's address space into
+kernel memory, and then copies them into the receiver's address space.
+```
+
+Do not answer:
+
+```text
+No, because base-and-bound isolates processes.
+```
+
+Isolation prevents direct access. It does not prevent kernel-mediated communication.
+
+## Counting Processes After Repeated `fork`
+
+If each process calls `fork` in a loop, the number of processes doubles each iteration.
+
+```c
+for (int i = 0; i < N; i++) {
+    fork();
+}
+```
+
+Process count:
+
+```text
+after 0 forks: 1 process
+after 1 fork:  2 processes
+after 2 forks: 4 processes
+after 3 forks: 8 processes
+```
+
+New processes created:
+
+```text
+2^N - 1
+```
+
+For `N = 1`:
+
+```text
+2^1 - 1 = 1 new process
+```
+
+For `N = 3`:
+
+```text
+2^3 - 1 = 7 new processes
+```
+
+Important:
+
+- Total processes includes the original.
+- New processes excludes the original.
+
+Exam answer template:
+
+```text
+Each iteration doubles the number of processes because every existing process
+continues the loop and calls fork. After N iterations there are 2^N total
+processes, so 2^N - 1 new processes were created.
+```
+
+## WaterFactory / H2O Synchronization Problem
+
+Problem shape:
+
+- Hydrogen threads call `hydrogen()`.
+- Oxygen threads call `oxygen()`.
+- Exactly two hydrogens and one oxygen should be grouped into each water molecule.
+- Exactly those three assigned threads should call `bond()`.
+- Threads not assigned to the current molecule must keep waiting.
+
+The hard parts:
+
+- Counting waiting H and O atoms.
+- Waking exactly two H and one O.
+- Avoiding spot-stealing, where a newly arrived thread grabs a slot intended for an older notified thread.
+- Updating counters consistently.
+- Using `while` around waits.
+- Notifying after molecule formation.
+
+### Robust Pattern: Per-Thread Waiter Objects
+
+This pattern avoids spot-stealing by assigning specific waiting threads to a molecule.
+
+```cpp
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+
+class WaterFactory {
+public:
+    void hydrogen() {
+        Waiter self;
+
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+
+            // This thread is now waiting as one hydrogen atom.
+            hydrogens_.push(&self);
+
+            // Maybe this arrival completes a molecule.
+            make_water_if_possible();
+
+            // Wait until this exact thread has been assigned.
+            while (!self.assigned) {
+                self.cv.wait(lock);
+            }
+        }
+
+        // Calling bond outside the lock lets other threads keep forming groups.
+        bond();
+    }
+
+    void oxygen() {
+        Waiter self;
+
+        {
+            std::unique_lock<std::mutex> lock(mutex_);
+
+            oxygens_.push(&self);
+            make_water_if_possible();
+
+            while (!self.assigned) {
+                self.cv.wait(lock);
+            }
+        }
+
+        bond();
+    }
+
+private:
+    struct Waiter {
+        std::condition_variable cv;
+        bool assigned = false;
+    };
+
+    void make_water_if_possible() {
+        // Must hold mutex_ when calling this helper.
+        while (hydrogens_.size() >= 2 && oxygens_.size() >= 1) {
+            Waiter *h1 = hydrogens_.front();
+            hydrogens_.pop();
+
+            Waiter *h2 = hydrogens_.front();
+            hydrogens_.pop();
+
+            Waiter *o = oxygens_.front();
+            oxygens_.pop();
+
+            // Assign exactly these three waiters to the next molecule.
+            h1->assigned = true;
+            h2->assigned = true;
+            o->assigned = true;
+
+            // Wake exactly the assigned threads.
+            h1->cv.notify_one();
+            h2->cv.notify_one();
+            o->cv.notify_one();
+        }
+    }
+
+    void bond();
+
+    std::mutex mutex_;
+    std::queue<Waiter *> hydrogens_;
+    std::queue<Waiter *> oxygens_;
+};
+```
+
+Why this solves the rubric items:
+
+- One lock protects all shared state.
+- Each thread has a condition variable through its `Waiter`.
+- Shared queues are accessed only while holding the lock.
+- `while (!self.assigned)` handles wakeups correctly.
+- Counters/queues are updated consistently by popping assigned waiters.
+- Exactly two H waiters and one O waiter are assigned.
+- The assigned threads are the original notified threads, so no spot-stealing.
+
+### Why Simple Counters Can Fail
+
+Buggy idea:
+
+```cpp
+int waiting_h = 0;
+int waiting_o = 0;
+
+// If enough atoms exist, notify some condition variables.
+```
+
+Counters alone are dangerous because:
+
+- They do not identify which specific threads were assigned.
+- A newly arriving thread can wake/check the predicate and take a spot.
+- If counters are not decremented when a molecule is formed, too many threads may pass.
+- If notifications are missing, assigned threads can sleep forever.
+
+Rubric phrase:
+
+```text
+Upon molecule formation, exactly three threads (2 H, 1 O) proceed to bond().
+The threads that proceed are the original notified threads.
+```
+
+That is why explicit assignment state is useful.
+
+## Personal Final Drill From This Midterm
+
+Before the final, be able to answer these without notes:
+
+- What exactly happens to other threads when `execvp` succeeds?
+- Why does `fork` copy user-level thread state?
+- What mechanisms disappear or change under cooperative multitasking?
+- Can cooperative multitasking still have races? Why?
+- What state transitions happen for yield, sleep, wait, notify, and exit?
+- What is starvation, and how is it different from deadlock?
+- Which deadlock condition is about cycles?
+- How does reducing recent CPU usage affect BSD scheduler priority?
+- What import information does dynamic linking preserve?
+- Is a lost pointer a memory leak or dangling pointer?
+- How can message passing work with base-and-bound isolation?
+- Why does `N = 3` repeated fork create `7` new processes?
+- How do you design a monitor so exactly selected threads proceed?
 
 ---
 
