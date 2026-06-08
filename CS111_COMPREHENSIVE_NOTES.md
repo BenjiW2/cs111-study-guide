@@ -237,6 +237,12 @@ A thread has:
 
 Threads execute instructions. If a process has multiple threads, those threads share much of the process state, especially the address space.
 
+Exam repair:
+
+- Each thread has its own program counter and registers because each thread may be paused at a different instruction.
+- Threads in the same process share the process address space, but they do not share one execution point.
+- If the OS context-switches a thread, it saves that thread's program counter/registers and later restores them.
+
 ## Process Definition
 
 A process is a running program plus its execution environment.
@@ -346,6 +352,12 @@ if (child_pid_or_zero == 0) {
 }
 ```
 
+Exam repair: `fork` and user-level threads.
+
+- If threads are implemented in user space, their thread-control structures live in the process memory.
+- A `fork` that copies process memory therefore copies that user-level thread state into the child.
+- This is different from saying the kernel creates matching kernel threads. The key phrase is: user-level threads are represented by data structures in user memory.
+
 ## `exec`
 
 `exec` replaces the current process image with a new program.
@@ -356,6 +368,8 @@ Important points:
 - It keeps the same process identity.
 - It replaces the code, globals, heap, and stack with the new program image.
 - If `exec` succeeds, it does not return to the old program.
+- In a multithreaded process, successful `exec` replaces the entire process image, not just the calling thread.
+- The old threads are terminated; the new program starts with a single thread.
 
 This is why Unix process creation often looks like:
 
@@ -485,6 +499,20 @@ The difference between ready and blocked is critical:
 - Ready threads could run immediately if given a core.
 - Blocked threads cannot make progress even if a core is free.
 
+Exam repair: thread state traces.
+
+```text
+yield()        running -> ready
+timer expires  running -> ready
+sleep()        running -> blocked
+lock/CV wait   running -> blocked
+I/O wait       running -> blocked
+event/notify   blocked -> ready
+exit/return    running -> exited
+```
+
+Do not add a blocked state unless the thread actually waits for an event. Do not skip the blocked state for calls such as sleep, I/O wait, lock wait, or condition-variable wait.
+
 ## Process Control Block and Thread Control Block
 
 The OS stores bookkeeping information for processes and threads.
@@ -551,6 +579,25 @@ Common triggers:
 - A new thread is created.
 
 The timer interrupt is especially important for preemptive multitasking. It lets the OS regain control even if a program does not voluntarily yield.
+
+## Cooperative vs Preemptive Multitasking
+
+Preemptive multitasking:
+
+- A timer interrupt can force the running thread to stop.
+- The OS can regain control even if the thread never voluntarily yields.
+- This is why a CPU-bound thread cannot normally monopolize the CPU forever.
+
+Cooperative multitasking:
+
+- The OS/runtime does not forcibly preempt running threads.
+- Threads are responsible for yielding or blocking.
+- A badly behaved thread that never yields can prevent other threads from running on that core.
+
+Exam repair:
+
+- If asked what changes in cooperative multitasking, say both parts: remove/avoid preemption mechanisms and require threads to yield voluntarily.
+- Cooperative multitasking can still have race conditions if a thread yields or blocks in the middle of a multi-step shared-state update, or if the system has multiple cores.
 
 ## Blocking
 
@@ -670,6 +717,21 @@ Examples that are usually not atomic as full operations:
 - Checking a condition and then updating a variable.
 - Appending to a shared data structure.
 - Checking whether a buffer is empty and then removing an item.
+
+Exam repair:
+
+- Atomic operations can still appear inside code with race conditions.
+- Atomicity of one instruction does not make the whole algorithm atomic.
+- If the invariant needs several reads/writes to stay consistent, protect the entire invariant, not just one variable.
+
+Example:
+
+```cpp
+// The atomic exchange may be indivisible, but this does not automatically
+// protect shared_counter unless the rest of the protocol is correct.
+atomic_exchange(&flag, 1);
+shared_counter++;
+```
 
 ## Race Conditions
 
@@ -928,6 +990,43 @@ The loop rechecks the real predicate.
 5. Before returning from `wait`, it reacquires the mutex.
 
 The atomic release-and-sleep step prevents lost wakeups.
+
+## Grouping Problems: Exactly Selected Threads Must Proceed
+
+Some monitor problems are not just "wake anyone whose predicate is true." They require a specific group of threads to proceed.
+
+Example shape:
+
+- Make one water molecule from exactly two hydrogen threads and one oxygen thread.
+- Exactly those three assigned threads should call `bond()`.
+- New arrivals must not steal spots from already-notified threads.
+
+This requires explicit assignment state, not just counters.
+
+Bad mental model:
+
+```cpp
+if (waiting_h >= 2 && waiting_o >= 1) {
+    h_cv.notify_all();
+    o_cv.notify_one();
+}
+```
+
+Why this can fail:
+
+- More than two hydrogens may wake.
+- A newly arriving hydrogen can steal a slot.
+- If counters are not decremented when the group forms, later threads may pass incorrectly.
+
+Better mental model:
+
+- Maintain queues of waiting thread records.
+- When a complete group exists, pop exactly two H records and one O record.
+- Mark exactly those records as assigned.
+- Notify exactly those assigned waiters.
+- Each waiter waits in a `while (!assigned)` loop.
+
+This idea appears again in final-style monitor problems: if the prompt says "exactly one", "exactly N", "the selected thread", or "no spot stealing", you need state that identifies which waiter is selected.
 
 ## Notification
 
@@ -1351,6 +1450,27 @@ Deadlock can involve many resource types:
 
 The same four-condition reasoning applies.
 
+## Starvation vs Deadlock
+
+Starvation is different from deadlock.
+
+Deadlock:
+
+- A group of threads is stuck.
+- No thread in the stuck group can make progress.
+- Each waits for an event/resource controlled by another stuck thread.
+
+Starvation:
+
+- The system as a whole may still make progress.
+- Some unlucky thread waits indefinitely because other threads keep getting the resource/CPU first.
+
+Exam repair:
+
+- Do not list all four deadlock conditions when the question asks about starvation.
+- Starvation is about indefinite unfair waiting, not necessarily a completely stuck cycle.
+- Circular wait is the deadlock condition most directly tied to a waiting cycle; the other deadlock conditions are not automatically required for starvation.
+
 ## Solution 1: Deadlock Detection
 
 Deadlock detection allows deadlocks to happen, then tries to find and recover from them.
@@ -1607,6 +1727,13 @@ The lecture references the 4.4 BSD scheduler as an example of a real Unix schedu
 
 They are more complex than textbook FIFO or round robin.
 
+Exam repair:
+
+- In the BSD scheduler model, recent CPU usage affects priority.
+- A thread that uses lots of CPU tends to get lower priority.
+- A thread can improve its effective priority by reducing recent CPU usage, for example by blocking, sleeping, or yielding.
+- Mentioning `nice` alone is weaker than explaining the CPU-usage mechanism.
+
 ## Multicore Scheduling
 
 With multiple cores, the scheduler must decide:
@@ -1632,6 +1759,19 @@ Problems:
 A scheduler is work-conserving if it does not leave a core idle when there is ready work that could run.
 
 This sounds obviously good, but real systems may sometimes make more nuanced decisions for power, locality, or priority reasons.
+
+## Work Stealing
+
+Work stealing is a multicore scheduling technique:
+
+- Each core may have its own ready queue.
+- If one core becomes idle, it can steal runnable work from another core's queue.
+
+Why it matters:
+
+- It helps keep the system work-conserving.
+- It prevents one core from sitting idle while another core has ready threads queued.
+- It improves load balance, though it has overhead and can affect cache locality.
 
 ## Core Takeaways
 
@@ -1849,6 +1989,25 @@ Disadvantages:
 - Versioning issues.
 - Startup overhead.
 - Security/trust implications.
+
+Exam repair: dynamic linking and decompilation.
+
+Dynamic linking preserves information that is useful both to the loader and to a decompiler:
+
+- Names of imported functions.
+- Names of shared libraries.
+- Relocation/import-table entries.
+
+The dynamic loader needs this information to resolve calls at runtime. A reverse engineer can also use it to infer behavior:
+
+- Imports like `socket`, `connect`, `send`, `recv` suggest networking.
+- Imports like `open`, `read`, `write` suggest file I/O.
+- Imports like `pthread_create` suggest threading.
+- Imports like `execvp` suggest process execution.
+
+High-scoring sentence:
+
+> Dynamic linking needs imported symbol and library names so the loader can resolve them at runtime; those names are also useful during decompilation because they reveal what external services the program uses.
 
 ## Jump Tables and Dynamic Loader
 
@@ -2117,6 +2276,33 @@ Common bugs:
 - Invalid free: freeing a pointer that was not allocated.
 
 These bugs can cause crashes, corruption, or security vulnerabilities.
+
+Exam repair: memory leak vs dangling pointer.
+
+Memory leak:
+
+- The object is still allocated.
+- The program has lost all usable references to it.
+- The memory cannot be freed because the program no longer knows where it is.
+
+Dangling pointer:
+
+- The pointer still exists.
+- The object it points to has already been freed or is otherwise invalid.
+- Dereferencing the pointer is unsafe.
+
+```c
+// Leak: allocated object is lost.
+char *p = malloc(100);
+p = NULL;
+```
+
+```c
+// Dangling pointer: pointer remains after free.
+char *q = malloc(100);
+free(q);
+q[0] = 'x';
+```
 
 ## Reference Counting
 
@@ -2584,6 +2770,34 @@ Disadvantages:
 - It can cause external fragmentation.
 
 External fragmentation occurs when free memory exists, but it is split into pieces that are not large enough for a requested contiguous allocation.
+
+## Message Passing With Base and Bound
+
+Base-and-bound prevents processes from directly reading or writing each other's memory. It does not prevent communication.
+
+Message passing can be implemented by the kernel:
+
+```text
+sender user address space
+        |
+        | system call copies bytes
+        v
+kernel memory / kernel buffer
+        |
+        | kernel copies bytes
+        v
+receiver user address space
+```
+
+Exam repair:
+
+- The correct answer to "can processes communicate under base-and-bound?" is yes.
+- The mechanism is kernel-mediated copying.
+- Isolation blocks direct access, not trusted OS-mediated communication.
+
+High-scoring sentence:
+
+> The sender traps into the kernel, the kernel copies bytes out of the sender's bounded address space into kernel memory, and the kernel then copies them into the receiver's bounded address space.
 
 ## Segmentation
 
@@ -4871,6 +5085,28 @@ Not guaranteed:
 Exam tracing trick:
 
 Draw a process tree. Every `fork` duplicates the currently running process and both branches continue.
+
+Formula for looped forks:
+
+```c
+for (int i = 0; i < N; i++) {
+    fork();
+}
+```
+
+If every process continues the loop:
+
+```text
+total processes after loop = 2^N
+new processes created      = 2^N - 1
+```
+
+So:
+
+- `N = 1`: 2 total processes, 1 new process.
+- `N = 3`: 8 total processes, 7 new processes.
+
+The most common mistake is reporting total processes when the question asks for newly created processes, or forgetting that children also continue the loop.
 
 ## Pattern 3: `fork` With `waitpid`
 
