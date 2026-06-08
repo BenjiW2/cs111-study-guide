@@ -358,6 +358,38 @@ Exam repair: `fork` and user-level threads.
 - A `fork` that copies process memory therefore copies that user-level thread state into the child.
 - This is different from saying the kernel creates matching kernel threads. The key phrase is: user-level threads are represented by data structures in user memory.
 
+Small concrete example:
+
+```c
+// Imagine a user-level threading library stores its thread table
+// as ordinary data inside the process.
+struct uthread {
+    int id;
+    int state;      // READY, RUNNING, BLOCKED, etc.
+    void *stack;
+};
+
+struct uthread thread_table[3];
+
+pid_t pid = fork();
+```
+
+After `fork`, the child receives a copied address space. That means the child also has a copied `thread_table`.
+
+The important subtlety:
+
+- The child has copied thread metadata.
+- That does not automatically mean the kernel created matching real kernel threads.
+- The copied metadata may describe user-level threads that existed in the parent at the time of the fork.
+
+Exam wording usually wants this distinction:
+
+```text
+fork copies process memory
+user-level thread state lives in process memory
+therefore fork copies user-level thread state
+```
+
 ## `exec`
 
 `exec` replaces the current process image with a new program.
@@ -377,6 +409,99 @@ This is why Unix process creation often looks like:
 2. In the child, `exec` to run a different program.
 3. In the parent, `wait` to observe child completion.
 
+### Minimal `execvp` Example
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(void) {
+    char *argv[] = {"ls", "-l", NULL};
+
+    printf("before exec\n");
+
+    execvp(argv[0], argv);
+
+    // If execvp succeeds, this old program is gone.
+    // So this line runs only if execvp fails.
+    perror("execvp");
+    exit(1);
+}
+```
+
+What happens:
+
+- `argv[0]` is the program name: `"ls"`.
+- `argv[1]` is the first command-line argument: `"-l"`.
+- The final `NULL` tells `execvp` where the argument array ends.
+- If `execvp` succeeds, the current process becomes `ls -l`.
+- The process keeps the same PID, but its code/data/stack are replaced.
+- `printf("before exec\n")` runs before replacement.
+- The `perror` and `exit` lines run only if `execvp` fails.
+
+So this:
+
+```c
+execvp(argv[0], argv);
+printf("after exec\n");
+```
+
+usually does **not** print `"after exec"`, because successful `execvp` never returns to the old program.
+
+### Common `execvp` Mistake: Missing `NULL`
+
+Wrong:
+
+```c
+char *argv[] = {"ls", "-l"};
+execvp(argv[0], argv);
+```
+
+Right:
+
+```c
+char *argv[] = {"ls", "-l", NULL};
+execvp(argv[0], argv);
+```
+
+The argument array is not automatically length-tracked. `execvp` keeps reading pointers until it sees `NULL`.
+
+### Why `exec` Usually Appears After `fork`
+
+If the original process directly calls `execvp`, the original program disappears:
+
+```c
+int main(void) {
+    char *argv[] = {"date", NULL};
+    execvp(argv[0], argv);
+    perror("execvp");
+    exit(1);
+}
+```
+
+This program becomes `date`. There is no parent copy of the old program left to continue.
+
+If you want the original program to continue, use `fork` first:
+
+```c
+pid_t pid = fork();
+
+if (pid == 0) {
+    // Child process: become another program.
+    char *argv[] = {"date", NULL};
+    execvp(argv[0], argv);
+
+    // Child reaches here only if execvp fails.
+    perror("execvp");
+    exit(1);
+}
+
+// Parent process: keep running the original program.
+waitpid(pid, NULL, 0);
+printf("date command finished\n");
+```
+
 ## `wait`
 
 `wait` or `waitpid` lets a parent process wait for a child process to finish.
@@ -386,6 +511,179 @@ This matters because:
 - The parent may need the child's exit status.
 - The OS must clean up child process bookkeeping.
 - Without waiting, terminated children can remain as zombies until collected.
+
+### Basic `waitpid` Example
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        printf("child: doing work\n");
+        return 0;
+    }
+
+    printf("parent: waiting\n");
+    waitpid(pid, NULL, 0);
+    printf("parent: child is done\n");
+    return 0;
+}
+```
+
+Guaranteed ordering:
+
+```text
+parent: child is done
+```
+
+prints after the child exits. The earlier lines can still vary slightly because parent and child run concurrently, but the line after `waitpid` cannot run until the specific child is finished.
+
+`waitpid(pid, NULL, 0)` means:
+
+- `pid`: wait for this exact child.
+- `NULL`: do not store the child's exit status.
+- `0`: use the normal blocking behavior.
+
+### Reading The Child's Exit Status
+
+```c
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        return 7;
+    }
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        printf("child returned %d\n", WEXITSTATUS(status));
+    }
+
+    return 0;
+}
+```
+
+Meaning:
+
+- `status` is not just the raw return value.
+- `WIFEXITED(status)` checks whether the child exited normally.
+- `WEXITSTATUS(status)` extracts the actual exit code.
+- Here the parent prints `7`.
+
+### Waiting For Multiple Children
+
+```c
+pid_t pids[2];
+
+for (int i = 0; i < 2; i++) {
+    pids[i] = fork();
+
+    if (pids[i] == 0) {
+        printf("child %d\n", i);
+        return 0;   // Important: child exits so it does not keep forking.
+    }
+}
+
+waitpid(pids[0], NULL, 0);
+waitpid(pids[1], NULL, 0);
+printf("both children done\n");
+```
+
+Why the `return 0` inside the child matters:
+
+- Without it, the first child would continue the loop.
+- Then the child would also call `fork`.
+- That accidentally creates more processes than intended.
+
+### `fork` + `execvp` + `waitpid`: The Shell Pattern
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main(void) {
+    char *argv[] = {"echo", "hello", NULL};
+
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        // Child: become the echo program.
+        execvp(argv[0], argv);
+
+        // Only reached if execvp fails.
+        perror("execvp");
+        exit(1);
+    }
+
+    // Parent: wait for the command to finish.
+    waitpid(pid, NULL, 0);
+    printf("parent continues\n");
+    return 0;
+}
+```
+
+This is the core Unix command-running pattern:
+
+```text
+parent program
+  fork creates child
+  child execs command
+  parent waits
+```
+
+The child does not become a child of `echo`; the child process itself becomes `echo`.
+
+### Why Redirection Happens Before `exec`
+
+```c
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main(void) {
+    int fd = open("out.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd < 0) {
+        perror("open");
+        exit(1);
+    }
+
+    dup2(fd, STDOUT_FILENO);
+    close(fd);
+
+    char *argv[] = {"echo", "hello", NULL};
+    execvp(argv[0], argv);
+
+    perror("execvp");
+    exit(1);
+}
+```
+
+What this does:
+
+- `open` creates or truncates `out.txt`.
+- `dup2(fd, STDOUT_FILENO)` makes stdout point to that file.
+- `close(fd)` closes the extra descriptor because stdout now refers to the file.
+- `execvp` replaces the program with `echo`.
+- File descriptor `1` survives across `execvp`, so `echo` writes into `out.txt`.
+
+This is how a shell implements:
+
+```sh
+echo hello > out.txt
+```
 
 ## Why Copy Then Overwrite?
 
