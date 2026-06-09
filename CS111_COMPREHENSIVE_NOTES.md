@@ -1768,18 +1768,38 @@ Correct exam-style shape:
 
 class Water {
 private:
+    // One Waiter object represents one specific sleeping thread.
+    // This is the key difference from just keeping integer counts.
     struct Waiter {
+        // This starts false. It becomes true only when this exact
+        // thread has been selected for a molecule.
         bool assigned = false;
+
+        // Each waiter has its own condition variable, so the monitor
+        // can wake one exact selected waiter instead of waking a crowd.
         std::condition_variable cv;
     };
 
+    // One mutex protects all shared monitor state below.
     std::mutex m;
+
+    // These deques are queues.
+    //
+    // Waiter * means "pointer to a Waiter."
+    // The queues store pointers because each thread creates its own
+    // local Waiter object, then puts that object's address in the queue.
     std::deque<Waiter *> waiting_h;
     std::deque<Waiter *> waiting_o;
 
     void try_form_group() {
+        // Only form a molecule if at least two H waiters and one O waiter exist.
         if (waiting_h.size() >= 2 && waiting_o.size() >= 1) {
+            // front() returns the first pointer in the hydrogen queue.
+            // h1 points to the first waiting hydrogen's Waiter record.
             Waiter *h1 = waiting_h.front();
+
+            // pop_front() removes that first pointer from the queue.
+            // Now h1 is selected and no longer waiting in the queue.
             waiting_h.pop_front();
 
             Waiter *h2 = waiting_h.front();
@@ -1788,10 +1808,18 @@ private:
             Waiter *o = waiting_o.front();
             waiting_o.pop_front();
 
+            // h1->assigned means (*h1).assigned:
+            // go to the Waiter object h1 points at, then access assigned.
+            //
+            // These three lines mark exactly these three waiters as chosen.
             h1->assigned = true;
             h2->assigned = true;
             o->assigned = true;
 
+            // h1->cv means (*h1).cv:
+            // go to h1's Waiter object, then access that exact waiter's cv.
+            //
+            // notify_one() wakes the thread waiting on that condition variable.
             h1->cv.notify_one();
             h2->cv.notify_one();
             o->cv.notify_one();
@@ -1800,32 +1828,53 @@ private:
 
 public:
     void hydrogen() {
+        // This local object is this hydrogen thread's waiter record.
+        // It stays alive while this function is blocked in wait().
         Waiter self;
 
+        // Creating unique_lock locks m.
+        // It unlocks automatically when lock goes out of scope,
+        // unless we manually unlock earlier.
         std::unique_lock<std::mutex> lock(m);
 
+        // &self means "address of self."
+        //
+        // push_back adds that pointer to the back of the hydrogen queue.
+        // In English: this hydrogen joins the waiting_h queue.
         waiting_h.push_back(&self);
 
+        // This arrival might complete a group, so try to select 2 H + 1 O.
         try_form_group();
 
+        // Wait until this exact Waiter record has been selected.
+        // Use while, not if, because condition-variable waits can wake spuriously.
         while (!self.assigned) {
+            // wait(lock) atomically:
+            // 1. releases m
+            // 2. sleeps
+            // 3. reacquires m before returning
             self.cv.wait(lock);
         }
 
+        // We are done touching shared monitor state.
+        // Release the lock before external work.
         lock.unlock();
 
         bond(); // exactly selected hydrogen calls this
     }
 
     void oxygen() {
+        // Same structure as hydrogen(), but using the oxygen queue.
         Waiter self;
 
         std::unique_lock<std::mutex> lock(m);
 
+        // This oxygen joins the waiting_o queue.
         waiting_o.push_back(&self);
 
         try_form_group();
 
+        // Wait until this exact oxygen has been assigned to a group.
         while (!self.assigned) {
             self.cv.wait(lock);
         }
@@ -1840,6 +1889,59 @@ public:
     }
 };
 ```
+
+Syntax translation for this example:
+
+```cpp
+Waiter *h1;
+```
+
+means `h1` is a pointer to a `Waiter`.
+
+```cpp
+h1->assigned = true;
+```
+
+means:
+
+```cpp
+(*h1).assigned = true;
+```
+
+In English: go to the `Waiter` object that `h1` points to, then set its `assigned` field.
+
+```cpp
+h1->cv.notify_one();
+```
+
+means:
+
+```cpp
+(*h1).cv.notify_one();
+```
+
+In English: wake the thread waiting on `h1`'s own condition variable.
+
+```cpp
+waiting_h.push_back(&self);
+```
+
+means:
+
+- `&self`: address of this thread's local `Waiter` record.
+- `push_back(...)`: add that address to the back of the queue.
+- Together: "put me at the end of the hydrogen waiting queue."
+
+```cpp
+Waiter *h1 = waiting_h.front();
+waiting_h.pop_front();
+```
+
+means:
+
+- `front()`: look at the first waiting hydrogen.
+- `pop_front()`: remove that hydrogen from the queue.
+- Together: "select the first waiting hydrogen and take them out of the waiting line."
 
 What makes this correct:
 
