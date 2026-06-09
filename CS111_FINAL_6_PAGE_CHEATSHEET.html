@@ -1111,6 +1111,27 @@ PA = (PPN << 12) | offset</pre>
     </section>
 
     <section>
+      <h2>Allocator Weird Details</h2>
+      <ul class="tight">
+        <li><b>Slab allocator</b>: allocate large slabs, divide into fixed-size objects, maintain free objects. Fast for common kernel object types; can waste memory if slabs underused.</li>
+        <li><b>Reference counting</b>: free when count reaches zero. Fails on cycles; bugs if increments/decrements missed; can still leave dangling pointers.</li>
+        <li><b>Garbage collection</b>: runtime finds unreachable objects. Avoids many manual frees but has overhead/pauses and needs language/runtime support.</li>
+        <li><b>Mark-and-sweep</b>: mark reachable objects from roots, then sweep unmarked objects into free space.</li>
+        <li>Manual memory exam bug distinction: leak = unreachable allocated memory; dangling = pointer to invalid/freed memory.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>OS/User Same Address Space</h2>
+      <ul class="tight">
+        <li>Some designs map kernel into every process address space for fast syscall/trap transitions.</li>
+        <li>User mode cannot access kernel pages because permission bits prohibit it.</li>
+        <li>On trap/syscall, CPU switches privilege level and kernel can run using protected mappings.</li>
+        <li>Kernel must validate user pointers before copying data to/from user memory.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Worked: Address Translation</h2>
       <p>VA bits 16, page size 1KB, VA <code>0x2ABC</code>, page table maps VPN <code>0xA</code> -> PPN <code>0x35</code>.</p>
       <pre>1KB = 2^10 -> offset 10 bits
@@ -1147,6 +1168,18 @@ PA = (0x35 << 10) | 0x2BC
         <li>Sequential access much faster than random access.</li>
         <li>Disk scheduling tries to reduce movement and improve throughput.</li>
         <li>Locality matters: place related metadata/data near each other.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Device I/O Weird Details</h2>
+      <ul class="tight">
+        <li>OS talks to devices through device controllers, not directly to raw hardware mechanics.</li>
+        <li>Controllers expose registers: command, status, data/buffer address, block number, etc.</li>
+        <li>Programmed I/O: CPU copies data itself; wastes CPU for large transfers.</li>
+        <li>DMA: device/controller copies data directly between device and memory; CPU sets up transfer and is interrupted on completion.</li>
+        <li>Without interrupts, OS would poll device status; with interrupts, device signals when done.</li>
+        <li>Disk read sketch: OS programs controller with block + memory address; controller/DMA transfers; interrupt marks request complete and wakes waiter.</li>
       </ul>
     </section>
 
@@ -1414,6 +1447,18 @@ else:
     </section>
 
     <section>
+      <h2>Flash Weird Details</h2>
+      <ul class="tight">
+        <li>Lecture page header bits: A-W-G can encode allocation/write/garbage state so FTL can recover mapping by scanning headers on startup.</li>
+        <li>High utilization makes garbage collection expensive: if erase unit has utilization <code>U</code>, only <code>1-U</code> becomes free after copying live pages.</li>
+        <li>Hot data changes often; cold data rarely changes. Mixing hot+cold is bad because cold live pages get copied repeatedly during GC.</li>
+        <li>Sometimes FTL garbage-collects cold units even for little immediate free space to improve wear/locality later.</li>
+        <li><code>TRIM</code>: OS tells SSD logical blocks are no longer useful, reducing needless copying during GC.</li>
+        <li>Flash near full often gets slower because GC has less free space and write amplification rises.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Filesystem Short Answers</h2>
       <ul class="tight">
         <li>Why inodes? Separate metadata/block mapping from names; supports hard links.</li>
@@ -1627,6 +1672,18 @@ process fd table gets new fd -> open-file object</pre>
     </section>
 
     <section>
+      <h2>VM Weird Details</h2>
+      <ul class="tight">
+        <li><b>Hosted VMM</b>: runs on top of a conventional host OS; VMM is an app/service, host OS controls real hardware.</li>
+        <li><b>Full simulation</b>: simulate CPU/memory/devices/traps; very flexible but slow.</li>
+        <li><b>Direct execution</b>: ordinary guest instructions run on real CPU; privileged/sensitive operations trap.</li>
+        <li>Guest <code>CLI</code> should disable virtual interrupts for that virtual CPU, not real machine interrupts for everyone.</li>
+        <li>Virtual I/O devices: guest reads/writes virtual device registers; hypervisor simulates device and injects virtual interrupt on completion.</li>
+        <li>Three address spaces idea: guest virtual, guest physical, machine physical.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Trust Answer Skeleton</h2>
       <ol class="tight">
         <li>State the trust relationship: who trusts whom/what, for what action.</li>
@@ -1731,6 +1788,18 @@ process fd table gets new fd -> open-file object</pre>
         <li>Risks: compromised key, malicious update, dependency attack, forced changes.</li>
         <li>Stakeholders: users, admins, affected third parties, vendor, attackers.</li>
       </ol>
+    </section>
+
+    <section>
+      <h2>Trust Weird Details</h2>
+      <ul class="tight">
+        <li><b>xz/ssh attack</b>: supply-chain trust failure; trusted maintainer/project path was used to introduce malicious behavior.</li>
+        <li><b>Confirmation bias</b>: people trust evidence more when it matches expectations; platforms can profit from it.</li>
+        <li><b>False trust in numbers</b>: quantitative output can look objective even when measurement/model is flawed.</li>
+        <li><b>Generative AI</b>: easy to over-trust because fluent output sounds authoritative; verify against primary logs/tests/sources.</li>
+        <li><b>Synthetic media</b>: photos/video/audio used to imply authenticity because fabrication was hard; deepfakes weaken that inference.</li>
+        <li>Linux trust examples: users trust Linux through reputation/distribution/community; developers trust via review, maintainers, tests, signed releases, social/process evidence.</li>
+      </ul>
     </section>
   </div>
 </article>
