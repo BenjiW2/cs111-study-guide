@@ -2657,7 +2657,7 @@ This is user input into scheduling policy, not absolute control.
 
 ## BSD Scheduler
 
-The lecture references the 4.4 BSD scheduler as an example of a real Unix scheduler. The important conceptual point is that real schedulers combine:
+The lecture references the 4.4 BSD scheduler as an example of a real Unix scheduler from early 1990s Unix. The important conceptual point is that real schedulers combine:
 
 - Priorities.
 - Recent CPU usage.
@@ -2666,12 +2666,174 @@ The lecture references the 4.4 BSD scheduler as an example of a real Unix schedu
 
 They are more complex than textbook FIFO or round robin.
 
-Exam repair:
+### Core Idea
+
+The BSD scheduler keeps information about each thread's **recent CPU usage**.
+
+The dispatcher can record when threads start and stop running. From that, the scheduler can estimate which threads have used a lot of CPU recently and which have mostly been blocked or waiting.
+
+Scheduling rule of thumb:
+
+```text
+least recent CPU usage -> higher priority
+lots of recent CPU usage -> lower priority
+```
+
+Why:
+
+- Interactive threads usually run briefly, then block waiting for user input.
+- I/O-bound threads usually run briefly, then block waiting for disk/network/device I/O.
+- CPU-bound threads keep using their full time slices.
+
+So the BSD-style heuristic tends to do this:
+
+```text
+interactive / I/O-bound thread -> low recent CPU -> high priority
+CPU-bound thread               -> high recent CPU -> lower priority
+```
+
+This gives responsive behavior for things like terminal input, mouse clicks, and programs waiting on I/O.
+
+### Priority Is Dynamic
+
+Priority is not just a fixed label. It changes over time.
+
+If a thread runs a lot:
+
+```text
+recent CPU usage increases
+effective priority decreases
+```
+
+If a thread blocks, sleeps, yields, or waits without running:
+
+```text
+recent CPU usage stops increasing / decays
+effective priority can improve
+```
+
+This is why, in exam answers, saying "the thread should reduce recent CPU usage" is stronger than just saying "call `nice`."
+
+### CPU-Bound Threads And Starvation
+
+Question: can CPU-bound threads starve forever because interactive threads keep getting priority?
+
+Lecture answer: no, not under the intended BSD model.
+
+Why:
+
+- A CPU-bound thread that is waiting is not currently accumulating CPU usage.
+- As it waits, its priority can gradually improve.
+- Eventually it should become high enough priority to run.
+
+So the scheduler penalizes heavy recent CPU use, but it also avoids permanent starvation.
+
+### Overload Case
+
+Question: what if the system is so overloaded that no thread is getting much CPU time?
+
+Then many threads may look similar because nobody is accumulating much recent CPU usage.
+
+The lecture intuition:
+
+```text
+devolve to round robin among the highest-priority runnable threads
+```
+
+So BSD scheduling is not "pure priority forever." When priority stops distinguishing threads well, round-robin behavior among tied/high-priority threads matters.
+
+### Unix `nice`
+
+Unix gives users a scheduling hint through the `nice` value.
+
+Default:
+
+```text
+nice = 0
+```
+
+Examples from the lecture:
+
+```sh
+nice -n 19 ./background_script.sh
+nice -n -20 ./run_with_highest_priority.sh
+```
+
+Conceptually:
+
+- Positive nice value means "be nicer to other programs."
+- Higher nice means lower scheduling preference.
+- `+19` is very nice, so it tends to get low priority.
+- Negative nice means less nice, so it asks for higher priority.
+- `-20` asks for very high priority.
+
+The lecture phrasing is that nice can emphasize or de-emphasize the CPU-usage part of priority:
+
+```text
++19 -> emphasize CPU usage -> lower priority / most nice
+-20 -> de-emphasize CPU usage -> higher priority / least nice
+```
+
+Do not overstate `nice`. It is user input into the scheduling policy, not absolute control over the CPU.
+
+### How This Fits Priority Queues
+
+The scheduler can implement priority scheduling with multiple ready queues:
+
+```text
+priority 0 queue    highest
+priority 1 queue
+priority 2 queue
+...
+lower priority queues
+```
+
+The dispatcher quickly chooses from the highest non-empty queue. If multiple threads are in the same priority queue, the system can use round robin among them.
+
+BSD-style scheduling changes which priority queue a thread belongs in based on recent behavior.
+
+### Multicore Version
+
+For multicore scheduling, the simple lecture model is:
+
+- Scheduling data structures are shared across cores.
+- Ready queues and their lock are shared.
+- Each core has its own interrupts.
+- Each core has its own dispatcher pulling runnable threads.
+- Run the `k` highest-priority runnable threads on the `k` available cores.
+- If a newly ready thread has higher priority than the lowest-priority currently running thread, it can preempt that lower-priority thread.
+
+This is why multicore scheduling needs synchronization around scheduler data structures. Multiple cores may try to inspect or modify ready queues at the same time.
+
+### What To Say On An Exam
 
 - In the BSD scheduler model, recent CPU usage affects priority.
 - A thread that uses lots of CPU tends to get lower priority.
-- A thread can improve its effective priority by reducing recent CPU usage, for example by blocking, sleeping, or yielding.
+- Interactive and I/O-bound threads tend to stay high priority because they use little CPU before blocking.
+- CPU-bound threads tend to fall to lower priority because they accumulate recent CPU usage.
+- A thread can improve its effective priority by reducing recent CPU usage, for example by blocking, sleeping, yielding, or simply waiting without running.
+- CPU-bound threads should not starve forever because waiting gradually improves effective priority.
+- If priority ties dominate, scheduling can behave like round robin among the highest-priority queue.
+- `nice` is a user hint that adjusts priority behavior.
 - Mentioning `nice` alone is weaker than explaining the CPU-usage mechanism.
+
+### Common Wrong Answers
+
+Wrong: "BSD always runs the thread with the smallest total CPU usage."
+
+Better: BSD cares about **recent** CPU usage, not lifetime CPU usage.
+
+Wrong: "A CPU-bound thread can never run if interactive threads exist."
+
+Better: CPU-bound threads may be lowered in priority, but waiting can raise priority and prevent starvation.
+
+Wrong: "`nice` directly forces the scheduler to run my program first."
+
+Better: `nice` is a scheduling hint that changes priority preference; it does not give absolute control.
+
+Wrong: "BSD is just round robin."
+
+Better: BSD uses dynamic priority from recent CPU usage; round robin appears mainly among threads at the same/equivalent priority.
 
 ## Multicore Scheduling
 
