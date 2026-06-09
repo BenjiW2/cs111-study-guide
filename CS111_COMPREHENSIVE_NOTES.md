@@ -3877,6 +3877,56 @@ External fragmentation occurs when free memory exists, but it is split into piec
 
 Base-and-bound prevents processes from directly reading or writing each other's memory. It does not prevent communication.
 
+The key distinction is:
+
+```text
+Direct access:
+    Process A tries to read/write Process B's memory itself.
+    Base-and-bound blocks this.
+
+Kernel-mediated communication:
+    Process A asks the kernel to copy data.
+    The kernel checks both processes' bounds and performs the copy.
+```
+
+Example setup:
+
+```text
+Process A:
+    base  = 10000
+    bound = 1000
+
+Process B:
+    base  = 50000
+    bound = 2000
+```
+
+If Process A has a message at its own virtual address `100`, that refers to:
+
+```text
+A physical address = A base + 100 = 10100
+```
+
+If Process B wants to receive into its own virtual address `300`, that refers to:
+
+```text
+B physical address = B base + 300 = 50300
+```
+
+Process A cannot directly write to "B address 300." If A uses address `300`, the hardware interprets it relative to A's own base:
+
+```text
+A address 300 -> A base + 300
+```
+
+not:
+
+```text
+B base + 300
+```
+
+So communication goes through the kernel.
+
 Message passing can be implemented by the kernel:
 
 ```text
@@ -3891,11 +3941,48 @@ kernel memory / kernel buffer
 receiver user address space
 ```
 
+More concretely:
+
+```text
+1. Sender calls something like send(receiver, my_buffer, length).
+2. CPU traps into the kernel.
+3. Kernel checks that sender buffer is inside sender bound.
+4. Kernel copies bytes from sender memory into kernel memory.
+5. Receiver calls something like receive(buffer, length), or is otherwise waiting.
+6. Kernel checks that receiver buffer is inside receiver bound.
+7. Kernel copies bytes from kernel memory into receiver memory.
+```
+
+Using the example above, if A sends `20` bytes from virtual address `100`:
+
+```text
+Kernel checks sender range:
+    100 + 20 <= A.bound
+    120 <= 1000 yes
+
+Kernel copies from:
+    A.base + 100 = 10100
+```
+
+Then if B receives into virtual address `300`:
+
+```text
+Kernel checks receiver range:
+    300 + 20 <= B.bound
+    320 <= 2000 yes
+
+Kernel copies to:
+    B.base + 300 = 50300
+```
+
+If either check fails, the kernel should reject the operation/trap/error rather than copying outside the process's legal memory.
+
 Exam repair:
 
 - The correct answer to "can processes communicate under base-and-bound?" is yes.
 - The mechanism is kernel-mediated copying.
 - Isolation blocks direct access, not trusted OS-mediated communication.
+- The kernel is allowed to access/copy between address spaces because it is privileged and trusted by the OS.
 
 High-scoring sentence:
 
@@ -7734,6 +7821,7 @@ Why this works:
 - The kernel is trusted and privileged.
 - A system call can copy data out of the sender's address space into kernel memory.
 - The kernel can then copy data into the receiver's address space.
+- The kernel should check that both the sender buffer and receiver buffer are within their respective bounds before copying.
 
 High-scoring answer:
 
