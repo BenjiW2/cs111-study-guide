@@ -9,28 +9,28 @@
     @page { size: A4; margin: 5mm; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #f3f1ec; color: #151515; }
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 5.55pt; line-height: 1.08; }
-    .sheet { width: 200mm; min-height: 287mm; margin: 0 auto 8mm; padding: 3.4mm; background: #fffdfa; page-break-after: always; overflow: hidden; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 5.25pt; line-height: 1.055; }
+    .sheet { width: 200mm; min-height: 287mm; margin: 0 auto 8mm; padding: 3.15mm; background: #fffdfa; page-break-after: always; overflow: hidden; }
     .sheet:last-child { page-break-after: auto; }
-    header { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; border-bottom: .35mm solid #111; padding-bottom: 1mm; margin-bottom: 1.6mm; }
-    h1 { font-size: 10.6pt; margin: 0; letter-spacing: 0; }
-    .sub { font-size: 5.4pt; font-weight: 700; }
-    .cols { columns: 2; column-gap: 3.8mm; }
-    .twocol { columns: 2; column-gap: 3.2mm; }
-    section, .box { break-inside: avoid; page-break-inside: avoid; margin: 0 0 1.25mm; }
-    h2 { font-size: 7pt; margin: 0 0 .55mm; padding: .35mm .7mm; background: #1e1e1e; color: #fff; break-after: avoid; }
-    h3 { font-size: 6.1pt; margin: .8mm 0 .3mm; border-bottom: .2mm solid #aaa; break-after: avoid; }
-    p { margin: 0 0 .5mm; }
-    ul, ol { margin: 0 0 .65mm 2.55mm; padding: 0; }
-    li { margin: 0 0 .12mm; }
+    header { display: flex; align-items: baseline; justify-content: space-between; gap: 3mm; border-bottom: .35mm solid #111; padding-bottom: .85mm; margin-bottom: 1.35mm; }
+    h1 { font-size: 9.9pt; margin: 0; letter-spacing: 0; }
+    .sub { font-size: 5.1pt; font-weight: 700; }
+    .cols { columns: 2; column-gap: 3.4mm; }
+    .twocol { columns: 2; column-gap: 3mm; }
+    section, .box { break-inside: avoid; page-break-inside: avoid; margin: 0 0 1mm; }
+    h2 { font-size: 6.55pt; margin: 0 0 .42mm; padding: .28mm .6mm; background: #1e1e1e; color: #fff; break-after: avoid; }
+    h3 { font-size: 5.8pt; margin: .65mm 0 .25mm; border-bottom: .2mm solid #aaa; break-after: avoid; }
+    p { margin: 0 0 .38mm; }
+    ul, ol { margin: 0 0 .52mm 2.35mm; padding: 0; }
+    li { margin: 0 0 .08mm; }
     code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     code { background: #eee9df; padding: 0 .35mm; border-radius: .6mm; }
-    pre { margin: .45mm 0 .7mm; padding: .55mm; border: .2mm solid #d8d0c3; background: #fbfaf7; white-space: pre-wrap; font-size: 4.8pt; line-height: 1.08; }
-    table { width: 100%; border-collapse: collapse; margin: .35mm 0 .75mm; font-size: 5.1pt; }
-    th, td { border: .2mm solid #cfc6b8; padding: .3mm .4mm; vertical-align: top; }
+    pre { margin: .35mm 0 .5mm; padding: .45mm; border: .2mm solid #d8d0c3; background: #fbfaf7; white-space: pre-wrap; font-size: 4.42pt; line-height: 1.055; }
+    table { width: 100%; border-collapse: collapse; margin: .25mm 0 .55mm; font-size: 4.85pt; }
+    th, td { border: .2mm solid #cfc6b8; padding: .24mm .32mm; vertical-align: top; }
     th { background: #eee7dc; text-align: left; }
     .tight li { margin-bottom: .1mm; }
-    .mini { font-size: 5pt; }
+    .mini { font-size: 4.7pt; }
     .warn { border-left: .8mm solid #9b3d16; padding-left: 1mm; background: #fff7ef; }
     .rule { border-left: .8mm solid #155c3a; padding-left: 1mm; background: #f2fbf5; }
     .formula { border: .2mm solid #bbb; padding: .8mm; background: #f8f8f8; }
@@ -55,6 +55,20 @@
         <li><b>Context switch</b>: save current thread state, restore next thread state.</li>
         <li>Thread states: running, ready, blocked. Ready means runnable but not on CPU.</li>
       </ul>
+    </section>
+
+    <section>
+      <h2>Process/FD API Must-Know</h2>
+      <table>
+        <tr><th>call</th><th>returns</th><th>exam use</th></tr>
+        <tr><td><code>pid_t fork(void)</code></td><td><code>0</code> child, child PID parent, <code>-1</code> error</td><td>create duplicate process</td></tr>
+        <tr><td><code>int execvp(char *file,char *argv[])</code></td><td>only returns <code>-1</code> on failure</td><td>replace current process image</td></tr>
+        <tr><td><code>pid_t waitpid(pid,&amp;st,0)</code></td><td>child PID or <code>-1</code></td><td>wait/reap exact child</td></tr>
+        <tr><td><code>int pipe(int p[2])</code></td><td><code>0</code> or <code>-1</code></td><td><code>p[0]</code> read, <code>p[1]</code> write</td></tr>
+        <tr><td><code>int dup2(old,new)</code></td><td><code>new</code> or <code>-1</code></td><td>redirect fd <code>new</code> to same target as <code>old</code></td></tr>
+        <tr><td><code>int open(path,flags,mode)</code></td><td>new lowest fd or <code>-1</code></td><td>file input/output</td></tr>
+        <tr><td><code>ssize_t read/write(fd,buf,n)</code></td><td>bytes, <code>0</code> EOF for read, <code>-1</code> error</td><td>raw byte I/O</td></tr>
+      </table>
     </section>
 
     <section>
@@ -305,6 +319,41 @@ if (pid == 0) {
 close(fd); waitpid(pid,NULL,0);</pre>
       <p>Child becomes <code>echo</code>; same child PID; fd 1 points to <code>out</code>, so <code>hi</code> goes to file. Parent does not exec and waits.</p>
     </section>
+
+    <section>
+      <h2>Worked: Correct Pipeline</h2>
+      <p>Implement <code>left | right</code>. Key: fork two children, use <code>dup2</code>, close all inherited pipe ends.</p>
+      <pre>int p[2]; pipe(p);
+pid_t left_pid = fork();
+if (left_pid == 0) {
+  dup2(p[1], STDOUT_FILENO); // stdout -> pipe
+  close(p[0]); close(p[1]);
+  execvp(left[0], left); perror("exec left"); exit(1);
+}
+pid_t right_pid = fork();
+if (right_pid == 0) {
+  dup2(p[0], STDIN_FILENO);  // stdin <- pipe
+  close(p[0]); close(p[1]);
+  execvp(right[0], right); perror("exec right"); exit(1);
+}
+close(p[0]); close(p[1]);
+waitpid(left_pid,NULL,0);
+waitpid(right_pid,NULL,0);</pre>
+      <p>If parent keeps <code>p[1]</code> open, <code>right</code> may block waiting for EOF forever.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Child Loop Trap</h2>
+      <pre>for (int i=0; i&lt;3; i++) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    do_child_work(i);
+    exit(0);     // critical: child must not keep forking
+  }
+}
+while (waitpid(-1,NULL,0) &gt; 0) {}</pre>
+      <p>Without <code>exit</code>, each child continues the loop and creates extra children. <code>waitpid(-1,...)</code> waits for any child.</p>
+    </section>
   </div>
 </article>
 
@@ -352,6 +401,20 @@ while (!predicate) {
         <li>Change shared state while holding lock, then notify.</li>
         <li><code>notify_one</code>: one waiter can proceed. <code>notify_all</code>: multiple/different predicates or simplicity.</li>
       </ul>
+    </section>
+
+    <section>
+      <h2>Thread/Sync API Must-Know</h2>
+      <table>
+        <tr><th>API</th><th>meaning/trap</th></tr>
+        <tr><td><code>std::thread t(fn,args)</code></td><td>starts concurrent thread running <code>fn(args)</code>.</td></tr>
+        <tr><td><code>t.join()</code></td><td>waits for that thread to finish; call once.</td></tr>
+        <tr><td><code>std::mutex m</code></td><td>mutual exclusion object; protects shared state.</td></tr>
+        <tr><td><code>std::unique_lock&lt;mutex&gt; lock(m)</code></td><td>locks now, unlocks at scope end; usable with CV.</td></tr>
+        <tr><td><code>cv.wait(lock)</code></td><td>atomically unlocks + sleeps; relocks before returning.</td></tr>
+        <tr><td><code>cv.notify_one/all()</code></td><td>wakes waiters; predicate still decides who can proceed.</td></tr>
+        <tr><td><code>deque.push_back(x)</code>, <code>front()</code>, <code>pop_front()</code></td><td>queue selected waiter records in arrival order.</td></tr>
+      </table>
     </section>
 
     <section>
@@ -571,6 +634,51 @@ for (auto [item,n] : need) {
   stock[item] -= n;
 }</pre>
       <p>Correct because it waits before subtracting anything. Wrong solution subtracts available items, then sleeps for missing items, creating partial reservation/deadlock/starvation risk.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Lost Update Race</h2>
+      <pre>int x = 0;
+void worker() { x = x + 1; } // two threads</pre>
+      <table>
+        <tr><th>step</th><th>T1</th><th>T2</th></tr>
+        <tr><td>1</td><td>read x=0</td><td></td></tr>
+        <tr><td>2</td><td></td><td>read x=0</td></tr>
+        <tr><td>3</td><td>write x=1</td><td></td></tr>
+        <tr><td>4</td><td></td><td>write x=1</td></tr>
+      </table>
+      <p>Final can be <code>1</code>, not <code>2</code>. Fix: protect read-modify-write with same mutex.</p>
+      <pre>void worker() {
+  unique_lock&lt;mutex&gt; lock(m);
+  x = x + 1;
+}</pre>
+    </section>
+
+    <section>
+      <h2>Worked: Reusable Barrier</h2>
+      <pre>int arrived=0, generation=0; mutex m; condition_variable cv;
+void barrier(int n) {
+  unique_lock&lt;mutex&gt; lock(m);
+  int my_gen = generation;
+  arrived++;
+  if (arrived == n) {
+    arrived = 0; generation++;
+    cv.notify_all();
+  } else {
+    while (my_gen == generation) cv.wait(lock);
+  }
+}</pre>
+      <p><code>generation</code> prevents a thread from the next round passing because of an old notification.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Deadlock Code</h2>
+      <pre>// bad
+T1: lock(A); lock(B);
+T2: lock(B); lock(A);
+// good: every thread uses same order
+lock(A); lock(B); ... unlock(B); unlock(A);</pre>
+      <p>Opposite lock order creates circular wait. Exam fix: global order or acquire all resources atomically in one monitor.</p>
     </section>
   </div>
 </article>
@@ -856,6 +964,72 @@ nice -n -20 ./urgent</pre>
       <h2>Worked: SRPT Decision</h2>
       <p>At t=0 A needs 8. At t=2 B arrives needing 3. A has 6 remaining, B has 3, so preempt A and run B. SRPT always compares remaining time among ready jobs.</p>
     </section>
+
+    <section>
+      <h2>Storage Comparison</h2>
+      <table>
+        <tr><th>device</th><th>important asymmetry</th></tr>
+        <tr><td>magnetic disk</td><td>seek/rotation dominate random I/O</td></tr>
+        <tr><td>SSD/flash</td><td>erase before rewrite, wear, FTL remapping</td></tr>
+        <tr><td>RAM</td><td>byte-addressable, volatile, much faster</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Disk Request Reasoning</h2>
+      <ul class="tight">
+        <li>For SSTF/SCAN questions, track current head position and direction.</li>
+        <li>SSTF can repeatedly serve nearby requests and starve distant ones.</li>
+        <li>SCAN moves like elevator; C-SCAN wraps to one side to provide more uniform wait.</li>
+        <li>Shortest seek is not always best if fairness or starvation matters.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Disk Locality / BSD FS</h2>
+      <ul class="tight">
+        <li>Keep related inodes/data near each other to reduce seek time.</li>
+        <li>Spreading structures across disk can avoid all metadata being far from data.</li>
+        <li>Large blocks improve throughput; fragments reduce internal waste for small file tails.</li>
+        <li>Block cache exploits temporal locality: repeated reads hit memory, not disk.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Flash Memory</h2>
+      <ul class="tight">
+        <li>Cannot overwrite like RAM/disk sector. Must erase before rewrite.</li>
+        <li>Erase is block/granularity larger than page writes.</li>
+        <li>Blocks wear out after finite erase cycles.</li>
+        <li>FTL maps logical block addresses to physical flash locations.</li>
+        <li>Wear leveling spreads erases across device.</li>
+        <li>Garbage collection compacts live pages and erases blocks.</li>
+        <li>Write amplification: internal writes > user writes.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Flash FTL Details</h2>
+      <ul class="tight">
+        <li>Logical page write often goes to fresh physical page; mapping table updated.</li>
+        <li>Old physical page becomes invalid/stale, not overwritten in place.</li>
+        <li>Garbage collection selects blocks, copies still-live pages elsewhere, erases block.</li>
+        <li>Wear leveling may choose less-worn blocks even if not locally optimal for speed.</li>
+        <li>FTL hides flash constraints behind disk-like block interface.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Flash Weird Details</h2>
+      <ul class="tight">
+        <li>Lecture page header bits: A-W-G can encode allocation/write/garbage state so FTL can recover mapping by scanning headers on startup.</li>
+        <li>High utilization makes garbage collection expensive: if erase unit has utilization <code>U</code>, only <code>1-U</code> becomes free after copying live pages.</li>
+        <li>Hot data changes often; cold data rarely changes. Mixing hot+cold is bad because cold live pages get copied repeatedly during GC.</li>
+        <li>Sometimes FTL garbage-collects cold units even for little immediate free space to improve wear/locality later.</li>
+        <li><code>TRIM</code>: OS tells SSD logical blocks are no longer useful, reducing needless copying during GC.</li>
+        <li>Flash near full often gets slower because GC has less free space and write amplification rises.</li>
+      </ul>
+    </section>
   </div>
 </article>
 
@@ -896,6 +1070,15 @@ nice -n -20 ./urgent</pre>
         <li>Internal fragmentation: waste inside allocated block.</li>
         <li>External fragmentation: free memory split into unusable holes.</li>
         <li>First fit: first adequate hole. Best fit: smallest adequate hole. Coalescing merges adjacent free blocks.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Free Space</h2>
+      <ul class="tight">
+        <li>Free list: linked list of free blocks; simple but can have locality/recovery issues.</li>
+        <li>Bitmap: one bit per block; easy to find contiguous runs; compact for large disks.</li>
+        <li>Allocation policy affects locality and fragmentation.</li>
       </ul>
     </section>
 
@@ -1026,6 +1209,15 @@ nice -n -20 ./urgent</pre>
     </section>
 
     <section>
+      <h2>Worked: Base/Bound Code</h2>
+      <pre>uintptr_t translate(uintptr_t va) {
+  if (va &gt;= bound) trap();   // out of process region
+  return base + va;           // physical address
+}</pre>
+      <p>Message passing still works: sender traps, kernel validates sender pointer/bound, copies bytes into kernel/receiver.</p>
+    </section>
+
+    <section>
       <h2>Replacement Simulation</h2>
       <ul class="tight">
         <li>FIFO: maintain arrival order into memory, not last-use order.</li>
@@ -1132,6 +1324,18 @@ PA = (PPN << 12) | offset</pre>
     </section>
 
     <section>
+      <h2>Device I/O Weird Details</h2>
+      <ul class="tight">
+        <li>OS talks to devices through device controllers, not directly to raw hardware mechanics.</li>
+        <li>Controllers expose registers: command, status, data/buffer address, block number, etc.</li>
+        <li>Programmed I/O: CPU copies data itself; wastes CPU for large transfers.</li>
+        <li>DMA: device/controller copies data directly between device and memory; CPU sets up transfer and is interrupted on completion.</li>
+        <li>Without interrupts, OS would poll device status; with interrupts, device signals when done.</li>
+        <li>Disk read sketch: OS programs controller with block + memory address; controller/DMA transfers; interrupt marks request complete and wakes waiter.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Worked: Address Translation</h2>
       <p>VA bits 16, page size 1KB, VA <code>0x2ABC</code>, page table maps VPN <code>0xA</code> -> PPN <code>0x35</code>.</p>
       <pre>1KB = 2^10 -> offset 10 bits
@@ -1140,6 +1344,30 @@ VPN = 0x2ABC >> 10 = 0xA
 PA = (0x35 << 10) | 0x2BC
    = 0xD6BC</pre>
       <p>If VPN invalid or permissions fail, trap/page fault instead of producing PA.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Page Index Extraction</h2>
+      <p>Generic single-level translation for power-of-two page size.</p>
+      <pre>int k = log2(page_size);
+uint64_t off_mask = (1ULL &lt;&lt; k) - 1;
+uint64_t offset = va &amp; off_mask;
+uint64_t vpn = va &gt;&gt; k;
+pte_t pte = page_table[vpn];
+if (!pte.valid || !allows(pte.perm, access)) fault();
+pa = (pte.ppn &lt;&lt; k) | offset;</pre>
+      <p>Offset bits are copied unchanged because virtual page and physical frame have same size.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Multilevel Split</h2>
+      <p>48-bit VA, 4KB pages, 8B PTEs: offset=12 bits, entries/table=<code>4096/8=512=2^9</code>, so 9 bits per level and <code>(48-12)/9=4</code> levels.</p>
+      <pre>offset = va &amp; 0xfff;
+L1 = (va &gt;&gt; 39) &amp; 0x1ff;
+L2 = (va &gt;&gt; 30) &amp; 0x1ff;
+L3 = (va &gt;&gt; 21) &amp; 0x1ff;
+L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
+      <p>Each index selects an entry in one page-map page; final entry gives the PPN.</p>
     </section>
 
     <section>
@@ -1172,18 +1400,6 @@ PA = (0x35 << 10) | 0x2BC
     </section>
 
     <section>
-      <h2>Device I/O Weird Details</h2>
-      <ul class="tight">
-        <li>OS talks to devices through device controllers, not directly to raw hardware mechanics.</li>
-        <li>Controllers expose registers: command, status, data/buffer address, block number, etc.</li>
-        <li>Programmed I/O: CPU copies data itself; wastes CPU for large transfers.</li>
-        <li>DMA: device/controller copies data directly between device and memory; CPU sets up transfer and is interrupted on completion.</li>
-        <li>Without interrupts, OS would poll device status; with interrupts, device signals when done.</li>
-        <li>Disk read sketch: OS programs controller with block + memory address; controller/DMA transfers; interrupt marks request complete and wakes waiter.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>Disk Scheduling</h2>
       <table>
         <tr><th>policy</th><th>idea</th><th>trap</th></tr>
@@ -1199,6 +1415,46 @@ PA = (0x35 << 10) | 0x2BC
         <li>Map names -> files -> disk blocks.</li>
         <li>Persistence, performance, sharing, protection, crash consistency.</li>
         <li>Tradeoffs: metadata overhead, fragmentation, sequential/random access, growth, locality.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>File API Must-Know</h2>
+      <table>
+        <tr><th>API</th><th>coding meaning</th></tr>
+        <tr><td><code>open(path,O_RDONLY)</code></td><td>get fd for reading.</td></tr>
+        <tr><td><code>open(path,O_WRONLY|O_CREAT|O_TRUNC,0644)</code></td><td>create/overwrite output file.</td></tr>
+        <tr><td><code>read(fd,buf,n)</code></td><td>copy bytes from file/pipe/device into memory buffer.</td></tr>
+        <tr><td><code>write(fd,buf,n)</code></td><td>copy bytes from memory buffer to file/pipe/device.</td></tr>
+        <tr><td><code>close(fd)</code></td><td>drop this fd table entry; object persists if other refs.</td></tr>
+        <tr><td><code>unlink(path)</code></td><td>remove directory entry; inode freed when link/open refs gone.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Assignment 7 Unix V6 APIs</h2>
+      <table>
+        <tr><th>helper</th><th>what it should do</th></tr>
+        <tr><td><code>diskimg_readsector(dfd,s,buf)</code></td><td>read one 512B sector; success == <code>DISKIMG_SECTOR_SIZE</code>.</td></tr>
+        <tr><td><code>inode_iget(fs,inum,&amp;in)</code></td><td>fetch inode; inumber 1 is inode index 0.</td></tr>
+        <tr><td><code>inode_getsize(&amp;in)</code></td><td><code>(i_size0&lt;&lt;16) | i_size1</code>.</td></tr>
+        <tr><td><code>inode_indexlookup(fs,&amp;in,lbn)</code></td><td>logical file block -> physical sector.</td></tr>
+        <tr><td><code>file_getblock(fs,inum,lbn,buf)</code></td><td>read logical file block; return valid byte count.</td></tr>
+        <tr><td><code>directory_findname(fs,name,dirinum,&amp;de)</code></td><td>scan dir file for name -> dirent.</td></tr>
+        <tr><td><code>pathname_lookup(fs,path)</code></td><td>start at root inode 1; walk components.</td></tr>
+      </table>
+      <p>Layering smell: pathname -> directory -> file -> inode -> disk sector.</p>
+    </section>
+
+    <section>
+      <h2>Assignment 7 V6 Constants/Structs</h2>
+      <ul class="tight">
+        <li><code>DISKIMG_SECTOR_SIZE=512</code>, <code>INODE_START_SECTOR=2</code>, <code>ROOT_INUMBER=1</code>, <code>MAX_COMPONENT_LENGTH=14</code>.</li>
+        <li>Disk layout: sector 0 boot, 1 superblock, sector 2.. inode list, then data/indirect/directory sectors.</li>
+        <li><code>struct inode</code>: <code>i_mode</code>, <code>i_nlink</code>, <code>i_size0/i_size1</code>, <code>i_addr[8]</code>.</li>
+        <li>Mode bits: <code>IALLOC</code> allocated, <code>IFMT</code> type mask, <code>IFDIR</code> directory, <code>ILARG</code> large addressing.</li>
+        <li><code>struct direntv6</code>: <code>uint16_t d_inumber</code> + <code>char d_name[14]</code>; 14-char name may lack <code>'\0'</code>, use <code>strncmp</code>.</li>
+        <li>Derived: 512B sector / 2B pointer = 256 pointers; 512B / 16B dirent = 32 directory entries.</li>
       </ul>
     </section>
 
@@ -1238,15 +1494,6 @@ PA = (0x35 << 10) | 0x2BC
     </section>
 
     <section>
-      <h2>Free Space</h2>
-      <ul class="tight">
-        <li>Free list: linked list of free blocks; simple but can have locality/recovery issues.</li>
-        <li>Bitmap: one bit per block; easy to find contiguous runs; compact for large disks.</li>
-        <li>Allocation policy affects locality and fragmentation.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>Block Cache</h2>
       <ul class="tight">
         <li>Cache disk blocks in memory to avoid repeated I/O.</li>
@@ -1266,19 +1513,6 @@ PA = (0x35 << 10) | 0x2BC
     </section>
 
     <section>
-      <h2>Flash Memory</h2>
-      <ul class="tight">
-        <li>Cannot overwrite like RAM/disk sector. Must erase before rewrite.</li>
-        <li>Erase is block/granularity larger than page writes.</li>
-        <li>Blocks wear out after finite erase cycles.</li>
-        <li>FTL maps logical block addresses to physical flash locations.</li>
-        <li>Wear leveling spreads erases across device.</li>
-        <li>Garbage collection compacts live pages and erases blocks.</li>
-        <li>Write amplification: internal writes > user writes.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>BSD Inode Pointer Math</h2>
       <ul class="tight">
         <li>Course BSD inode model: 14 block pointers: first 12 direct, 13th single-indirect, 14th double-indirect.</li>
@@ -1286,6 +1520,17 @@ PA = (0x35 << 10) | 0x2BC
         <li>Logical blocks <code>0..11</code> use direct pointers.</li>
         <li>Then subtract 12; next <code>B/P</code> logical blocks use single indirect.</li>
         <li>For double indirect, quotient chooses indirect block, remainder chooses pointer inside it.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>V6 Small/Large Inode Rules</h2>
+      <ul class="tight">
+        <li>If prompt shows <code>i_addr[8]</code> and <code>ILARG</code>, use Assignment 7 V6 rules, not 12-direct BSD rules.</li>
+        <li>Small inode, <code>!(i_mode &amp; ILARG)</code>: <code>i_addr[0..7]</code> point directly to data sectors.</li>
+        <li>Large inode: <code>i_addr[0..6]</code> point to singly indirect sectors; <code>i_addr[7]</code> points to doubly indirect sector.</li>
+        <li>Large file first <code>7*256=1792</code> logical blocks use single-indirect region.</li>
+        <li>For double: <code>rem=lbn-1792</code>; outer=<code>rem/256</code>; inner=<code>rem%256</code>.</li>
       </ul>
     </section>
 
@@ -1318,16 +1563,6 @@ PA = (0x35 << 10) | 0x2BC
         <li>Indirect blocks add extra I/O but allow growth to large files.</li>
         <li>Double indirect greatly increases max file size without making every inode huge.</li>
         <li>Index structures trade metadata overhead for random access and growth.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Disk Locality / BSD FS</h2>
-      <ul class="tight">
-        <li>Keep related inodes/data near each other to reduce seek time.</li>
-        <li>Spreading structures across disk can avoid all metadata being far from data.</li>
-        <li>Large blocks improve throughput; fragments reduce internal waste for small file tails.</li>
-        <li>Block cache exploits temporal locality: repeated reads hit memory, not disk.</li>
       </ul>
     </section>
 
@@ -1388,16 +1623,6 @@ else:
     </section>
 
     <section>
-      <h2>Storage Comparison</h2>
-      <table>
-        <tr><th>device</th><th>important asymmetry</th></tr>
-        <tr><td>magnetic disk</td><td>seek/rotation dominate random I/O</td></tr>
-        <tr><td>SSD/flash</td><td>erase before rewrite, wear, FTL remapping</td></tr>
-        <tr><td>RAM</td><td>byte-addressable, volatile, much faster</td></tr>
-      </table>
-    </section>
-
-    <section>
       <h2>Max File Size Formula</h2>
       <p>For BSD-style 12 direct + 1 indirect + 1 double-indirect:</p>
       <div class="formula">max data blocks = <code>12 + ptrs + ptrs*ptrs</code>, where <code>ptrs = block_size / pointer_size</code>.</div>
@@ -1426,39 +1651,6 @@ else:
     </section>
 
     <section>
-      <h2>Disk Request Reasoning</h2>
-      <ul class="tight">
-        <li>For SSTF/SCAN questions, track current head position and direction.</li>
-        <li>SSTF can repeatedly serve nearby requests and starve distant ones.</li>
-        <li>SCAN moves like elevator; C-SCAN wraps to one side to provide more uniform wait.</li>
-        <li>Shortest seek is not always best if fairness or starvation matters.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Flash FTL Details</h2>
-      <ul class="tight">
-        <li>Logical page write often goes to fresh physical page; mapping table updated.</li>
-        <li>Old physical page becomes invalid/stale, not overwritten in place.</li>
-        <li>Garbage collection selects blocks, copies still-live pages elsewhere, erases block.</li>
-        <li>Wear leveling may choose less-worn blocks even if not locally optimal for speed.</li>
-        <li>FTL hides flash constraints behind disk-like block interface.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Flash Weird Details</h2>
-      <ul class="tight">
-        <li>Lecture page header bits: A-W-G can encode allocation/write/garbage state so FTL can recover mapping by scanning headers on startup.</li>
-        <li>High utilization makes garbage collection expensive: if erase unit has utilization <code>U</code>, only <code>1-U</code> becomes free after copying live pages.</li>
-        <li>Hot data changes often; cold data rarely changes. Mixing hot+cold is bad because cold live pages get copied repeatedly during GC.</li>
-        <li>Sometimes FTL garbage-collects cold units even for little immediate free space to improve wear/locality later.</li>
-        <li><code>TRIM</code>: OS tells SSD logical blocks are no longer useful, reducing needless copying during GC.</li>
-        <li>Flash near full often gets slower because GC has less free space and write amplification rises.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>Filesystem Short Answers</h2>
       <ul class="tight">
         <li>Why inodes? Separate metadata/block mapping from names; supports hard links.</li>
@@ -1482,6 +1674,24 @@ byte offset in data block = 70KB % 4KB = 2KB</pre>
     </section>
 
     <section>
+      <h2>Worked: Inode Block Lookup</h2>
+      <pre>int block_for(inode *in, int lbn) {
+  int n = BLOCK_SIZE / PTR_SIZE;
+  if (lbn &lt; 12) return in->direct[lbn];
+  lbn -= 12;
+  if (lbn &lt; n) {
+    block *ind = read_block(in->single);
+    return ind->ptr[lbn];
+  }
+  lbn -= n;
+  block *dbl = read_block(in->dbl);
+  block *ind = read_block(dbl->ptr[lbn / n]);
+  return ind->ptr[lbn % n];
+}</pre>
+      <p>Double-indirect: quotient selects which indirect block; remainder selects entry inside it.</p>
+    </section>
+
+    <section>
       <h2>Worked: Path Lookup</h2>
       <p>Open <code>/usr/bin/ls</code>:</p>
       <pre>root inode -> read root dir, find "usr"
@@ -1490,6 +1700,47 @@ bin inode -> read bin dir, find "ls"
 ls inode -> create open-file object
 process fd table gets new fd -> open-file object</pre>
       <p>The filename <code>ls</code> is in the <code>bin</code> directory entry, not inside the <code>ls</code> inode.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Directory Scan</h2>
+      <pre>int lookup(inode *dir, char *name) {
+  for each directory entry e in dir's data blocks:
+    if (strcmp(e.name, name) == 0)
+      return e.inumber;
+  return -1;
+}</pre>
+      <p>Directory file contents map names to inode numbers. Then OS indexes the on-disk inode array/table by that number.</p>
+    </section>
+
+    <section>
+      <h2>Worked: V6 <code>inode_indexlookup</code></h2>
+      <pre>int lookup(fs, inode *in, int b) {
+  uint16_t ptrs[256], ptrs2[256];
+  if (!(in->i_mode &amp; ILARG)) return in->i_addr[b];
+  if (b &lt; 7*256) {
+    diskimg_readsector(fs->dfd, in->i_addr[b/256], ptrs);
+    return ptrs[b % 256];
+  }
+  b -= 7*256;
+  diskimg_readsector(fs->dfd, in->i_addr[7], ptrs);
+  diskimg_readsector(fs->dfd, ptrs[b/256], ptrs2);
+  return ptrs2[b % 256];
+}</pre>
+      <p>Check bounds/zero/error in real code. Trap: <code>i_addr[7]</code> is the doubly-indirect block, not an indirect data-pointer block.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Scan All V6 Inodes</h2>
+      <pre>int n = fs->superblock.s_isize *
+        (DISKIMG_SECTOR_SIZE / sizeof(struct inode));
+for (int inum=1; inum&lt;=n; inum++) {
+  struct inode in;
+  if (inode_iget(fs, inum, &amp;in) &lt; 0) return -1;
+  if (!(in.i_mode &amp; IALLOC)) continue;
+  // test property of allocated inode
+}</pre>
+      <p>Use this for “find any file/inode/block with property X” final problems.</p>
     </section>
   </div>
 </article>
@@ -1747,6 +1998,23 @@ process fd table gets new fd -> open-file object</pre>
     </section>
 
     <section>
+      <h2>Worked: Crash-Safe Update Skeleton</h2>
+      <pre>// redo logging shape
+write_log("begin T");
+write_log("new bitmap block");
+write_log("new inode block");
+write_log("commit T"); flush_log();
+install bitmap block to home location;
+install inode block to home location;
+clear/checkpoint log;</pre>
+      <ul class="tight">
+        <li>Crash before commit: ignore log; old filesystem should remain valid.</li>
+        <li>Crash after commit: replay all logged updates, even if some home writes happened.</li>
+        <li>Replay must be idempotent: same committed update twice gives same final state.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Final Strategy</h2>
       <ul class="tight">
         <li>For code traces: write process/thread identities and shared vs copied state first.</li>
@@ -1755,6 +2023,23 @@ process fd table gets new fd -> open-file object</pre>
         <li>For filesystem math: convert byte offset to logical block number first.</li>
         <li>For crash recovery: list writes, then examine crash after each write.</li>
         <li>For ethics: identify trust relationship and stakeholders explicitly.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Coding Section Coverage Checklist</h2>
+      <ul class="tight">
+        <li>Trace <code>fork</code> values/process count/output order; remember copied memory.</li>
+        <li>Write shell code: <code>fork</code>, <code>execvp</code>, <code>waitpid</code>, redirection, pipe, close unused FDs.</li>
+        <li>Use <code>argv</code>/<code>char *args[]</code> with final <code>NULL</code>; distinguish string <code>'\0'</code>.</li>
+        <li>Trace fd table/open-file sharing, <code>dup2</code> direction, pipe EOF behavior.</li>
+        <li>Fix shared-state race with mutex/RAII; explain why <code>x++</code> is not atomic.</li>
+        <li>Write monitor code: state fields, lock, <code>while</code> predicate, wait, update, notify.</li>
+        <li>Handle selected waiters/grouping with queues/records, not just counters.</li>
+        <li>Spot deadlock/starvation and add lock ordering/fairness/generation state.</li>
+        <li>Compute base/bound, page offset/VPN/PPN, multilevel indexes, replacement traces.</li>
+        <li>Use Assignment 7 V6 APIs for inode scans, dir scans, path lookup, hard links, indirect blocks.</li>
+        <li>List crash points and decide leak vs dangling pointer vs inconsistent metadata.</li>
       </ul>
     </section>
 
