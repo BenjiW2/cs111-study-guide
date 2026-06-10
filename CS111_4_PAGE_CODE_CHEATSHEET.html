@@ -241,6 +241,35 @@ waitpid(-1, NULL, 0); // child waits forever for EOF</pre>
     </section>
 
     <section>
+      <h2>Practice Final-Style <code>duet</code></h2>
+      <pre>// incoming -> one -> pipe -> two -> outgoing
+static void duet(int incoming, char *one[],
+                 char *two[], int outgoing) {
+  int p[2]; pid_t pid[2]; pipe(p);
+
+  if ((pid[0] = fork()) == 0) {
+    dup2(incoming, STDIN_FILENO);
+    dup2(p[1], STDOUT_FILENO);
+    close(p[0]); close(p[1]);
+    close(incoming); close(outgoing);
+    execvp(one[0], one); perror("one"); exit(1);
+  }
+  close(incoming); close(p[1]);
+
+  if ((pid[1] = fork()) == 0) {
+    dup2(p[0], STDIN_FILENO);
+    dup2(outgoing, STDOUT_FILENO);
+    close(p[0]); close(outgoing);
+    execvp(two[0], two); perror("two"); exit(1);
+  }
+  close(p[0]); close(outgoing);
+  waitpid(pid[0], NULL, 0);
+  waitpid(pid[1], NULL, 0);
+}</pre>
+      <p>Hard part: after each <code>dup2</code>, close every fd this process does not need. <code>execvp</code> preserves the rewired fds.</p>
+    </section>
+
+    <section>
       <h2>Command-Line Arguments</h2>
       <pre>int main(int argc, char *argv[]) {
   // argv[0] is program name
@@ -301,6 +330,89 @@ waitpid(-1, NULL, 0);</pre>
 };
 execvp(cmd[0], cmd);</pre>
       <p><code>execvp</code> searches <code>PATH</code> for <code>cmd[0]</code> if it has no slash. With <code>./prog</code> or <code>/bin/ls</code>, it uses that path.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: N-Stage Pipeline</h2>
+      <pre>int prev_read = input_fd;
+for (int i = 0; i &lt; n; i++) {
+  int p[2];
+  if (i != n-1) pipe(p);
+  if (fork() == 0) {
+    dup2(prev_read, STDIN_FILENO);
+    if (i != n-1) dup2(p[1], STDOUT_FILENO);
+    else dup2(output_fd, STDOUT_FILENO);
+    close(prev_read);
+    if (i != n-1) { close(p[0]); close(p[1]); }
+    execvp(cmd[i][0], cmd[i]); exit(1);
+  }
+  close(prev_read);
+  if (i != n-1) { close(p[1]); prev_read = p[0]; }
+}</pre>
+      <p>Loop invariant: <code>prev_read</code> is the stdin source for the next command.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Merge stdout + stderr</h2>
+      <pre>int fd = open("log", O_WRONLY|O_CREAT|O_TRUNC, 0644);
+if (fork() == 0) {
+  dup2(fd, STDOUT_FILENO);
+  dup2(fd, STDERR_FILENO);   // errors go to same log
+  close(fd);
+  execvp(args[0], args);
+  perror("execvp"); exit(1);
+}
+close(fd); waitpid(-1, NULL, 0);</pre>
+      <p>If order matters, both descriptors should refer to the same open-file description.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Parent Collects Child Output</h2>
+      <pre>pipe(p);
+if (fork() == 0) {
+  dup2(p[1], STDOUT_FILENO);
+  close(p[0]); close(p[1]);
+  execvp(args[0], args); exit(1);
+}
+close(p[1]);
+while ((n = read(p[0], buf, sizeof(buf))) &gt; 0)
+  parse_child_output(buf, n);
+close(p[0]);
+waitpid(-1, NULL, 0);</pre>
+      <p>Parent must close its write end before reading to EOF.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Wait Any, Map PID To Job</h2>
+      <pre>for each job i:
+  if ((pids[i]=fork()) == 0) { run(i); exit(0); }
+
+int left = n;
+while (left &gt; 0) {
+  int st; pid_t done = waitpid(-1, &amp;st, 0);
+  int i = index_of(pids, done);
+  results[i] = WIFEXITED(st) ? WEXITSTATUS(st) : -1;
+  left--;
+}</pre>
+      <p>Use this when completion order is nondeterministic but output array must stay by original job index.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Two-Way Parent/Child Pipes</h2>
+      <pre>int to_child[2], from_child[2];
+pipe(to_child); pipe(from_child);
+if (fork() == 0) {
+  dup2(to_child[0], STDIN_FILENO);
+  dup2(from_child[1], STDOUT_FILENO);
+  close(to_child[0]); close(to_child[1]);
+  close(from_child[0]); close(from_child[1]);
+  execvp(cmd[0], cmd); exit(1);
+}
+close(to_child[0]); close(from_child[1]);
+write(to_child[1], request, n);
+close(to_child[1]);          // child sees EOF on stdin
+read(from_child[0], reply, sizeof(reply));</pre>
+      <p>Use two pipes for two directions. Never try to use one pipe as bidirectional protocol.</p>
     </section>
   </div>
 </article>
@@ -613,6 +725,24 @@ void add(int id, int n) {
     </section>
 
     <section>
+      <h2>Predicted Monitor Twists</h2>
+      <pre>// priority boarding with cancellation
+map&lt;int, deque&lt;Waiter*&gt;&gt; by_priority;
+cancel(): mark waiter.cancelled=true; notify its cv
+board(): skip cancelled records; notify first noncancelled
+
+// N-of-M group formation
+queue&lt;Waiter*&gt; type[M];
+if enough required types: pop exact records, assigned=true
+
+// resource transfer A->B
+while (balance[A] &lt; amount) cv.wait(lock);
+balance[A] -= amount; balance[B] += amount;
+cv.notify_all();</pre>
+      <p>Predicted pattern: if the prompt says priority/cancel/exact group/multiple resources, use waiter records plus predicates, not raw counters alone.</p>
+    </section>
+
+    <section>
       <h2>Last-Section Wrong-Answer Traps</h2>
       <pre>CV wait:     while (!predicate) cv.wait(lock);  // not if
 Inventory:  check all resources, then subtract all
@@ -622,6 +752,46 @@ Party/Dorm: pop waiter before notify; local Waiter is safe while blocked
 CalTrain:   count boarding passengers, not just available seats
 Deadlock:   every thread must acquire locks in same global order</pre>
       <p><code>notify_one</code>: selected waiter/category. <code>notify_all</code>: many possible predicates, each re-checks.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Bounded Priority Monitor</h2>
+      <pre>struct W { int pr; bool go=false; condition_variable cv; };
+mutex m; deque&lt;W*&gt; waiters; int inside=0;
+
+void enter(int pr) {
+  unique_lock&lt;mutex&gt; lock(m);
+  W self; self.pr = pr; waiters.push_back(&amp;self);
+  try_select();
+  while (!self.go) self.cv.wait(lock);
+  inside++;
+}
+
+void leave() {
+  unique_lock&lt;mutex&gt; lock(m);
+  inside--;
+  try_select();
+}</pre>
+      <p><code>try_select</code>: if capacity exists, choose best-priority waiting record, remove it, mark <code>go</code>, notify one.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Reusable Phase Gate</h2>
+      <pre>int arrived=0, generation=0, N;
+condition_variable cv;
+
+void wait_phase() {
+  unique_lock&lt;mutex&gt; lock(m);
+  int mygen = generation;
+  if (++arrived == N) {
+    arrived = 0;
+    generation++;
+    cv.notify_all();
+  } else {
+    while (generation == mygen) cv.wait(lock);
+  }
+}</pre>
+      <p>Use <code>generation</code> whenever a barrier/gate can be reused for multiple rounds.</p>
     </section>
   </div>
 </article>
@@ -854,6 +1024,25 @@ tin.i_nlink++;</pre>
     </section>
 
     <section>
+      <h2>Predicted V6 <code>unlink</code> / Free Pattern</h2>
+      <pre>// unlink("/a/b"): remove name, maybe free inode/data
+parent = pathname_lookup("/a");
+scan parent directory for name "b";
+victim_inum = dirent.d_inumber;
+dirent.d_inumber = 0;          // name removed
+inode_iget(victim_inum, &amp;in);
+in.i_nlink--;
+if (in.i_nlink == 0) {
+  for each logical block lbn:
+    sector = inode_indexlookup(&amp;in, lbn);
+    free_data_block(sector);
+  free indirect metadata blocks too;
+  clear IALLOC in inode;
+}</pre>
+      <p>Crash trap: clearing directory entry before freeing blocks avoids name pointing to freed/reused data.</p>
+    </section>
+
+    <section>
       <h2>Add Directory Entry Safely</h2>
       <pre>for each directory block:
   read block
@@ -897,6 +1086,98 @@ doubly_capacity = 1024 * 1024
 
 max_blocks = 12 + 1024 + 1024*1024</pre>
       <p>A doubly indirect block points to indirect blocks; those indirect blocks point to data blocks.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Append One File Block</h2>
+      <pre>old_n = ceil(size / BS);
+new_lbn = old_n;
+data = alloc_block();
+write data block first;
+
+if small inode has free direct slot:
+  in.i_addr[new_lbn] = data;
+else if needs large conversion:
+  allocate indirect block; copy old direct ptrs into it;
+  set ILARG; in.i_addr[0] = indirect;
+else:
+  allocate missing indirect/double-indirect metadata;
+  store data pointer at computed slot;
+
+in.size += bytes_appended;
+write inode last;</pre>
+      <p>Crash-safe instinct: data/metadata blocks first, then inode size/pointer that makes them reachable.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Directory Path Split</h2>
+      <pre>path = "/a/b/c"
+parent path = "/a/b"
+basename = "c"
+
+parent_inum = pathname_lookup(parent path)
+verify parent inode is directory
+scan parent dirents for basename
+if create: require not found, find empty slot
+if unlink: require found, clear that slot</pre>
+      <p>Most path-edit questions are just lookup parent, then edit one directory entry.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Free-Space Bitmap/List</h2>
+      <pre>// bitmap version
+for (int b = first_data; b &lt; nblocks; b++) {
+  if (bitmap_test(free, b)) {
+    bitmap_clear(free, b);   // now allocated
+    return b;
+  }
+}
+
+// linked free list version
+b = super.free_head;
+read block b to get next pointer;
+super.free_head = next;
+return b;</pre>
+      <p>Bitmap: compact and fast to test ranges. Linked list: simple allocation, worse locality/range search.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: fsck Reachability Repair</h2>
+      <pre>clear seen_blocks;
+for each allocated inode:
+  for each data/indirect block reachable from inode:
+    if seen[block]: report duplicate allocation;
+    seen[block] = true;
+
+for each block:
+  if seen[block] &amp;&amp; free_map says free: mark allocated
+  if !seen[block] &amp;&amp; free_map says allocated: leak -> free it</pre>
+      <p>fsck reconstructs consistency from reachable metadata; logging instead replays committed intent.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: FAT / Linked File Traversal</h2>
+      <pre>// FAT maps block -> next block, EOF sentinel ends file
+int b = inode.first_block;
+while (b != EOF_BLOCK) {
+  read_block(b, buf);
+  consume(buf);
+  b = FAT[b];
+}
+
+// random access to logical block k is O(k)
+for (i = 0; i &lt; k; i++) b = FAT[b];</pre>
+      <p>FAT/linked files avoid inode pointer limits but random access is slower than indexed blocks.</p>
+    </section>
+
+    <section>
+      <h2>Block Math Quick Patterns</h2>
+      <pre>blocks_needed = ceil(file_size / block_size)
+internal_frag = blocks_needed*block_size - file_size
+dirents_per_block = block_size / sizeof(dirent)
+ptrs_per_indirect = block_size / sizeof(blockno)
+max_file = (direct + ptrs + ptrs*ptrs) * block_size</pre>
+      <p>Most filesystem arithmetic is one of these five formulas.</p>
     </section>
   </div>
 </article>
@@ -988,6 +1269,19 @@ Clock:
     </section>
 
     <section>
+      <h2>Worked Replacement Trace Template</h2>
+      <pre>refs: A B C A D B ...
+frames: [ _ _ _ ], policy = LRU/FIFO/Clock
+for each ref:
+  if present: hit; update only LRU/ref-bit
+  else if free frame: fault; install
+  else: fault; choose victim by policy
+record after every access:
+  ref | hit/fault | victim | frames | metadata</pre>
+      <p>Predicted twist: compare local vs global replacement. Local chooses victim from same process; global can evict another process.</p>
+    </section>
+
+    <section>
       <h2>Clock Algorithm Skeleton</h2>
       <pre>int choose_victim() {
   while (true) {
@@ -1047,6 +1341,23 @@ write directory entry last</pre>
 3. Say what is leaked, dangling, stale, or lost.
 4. Say whether fsck/log replay can repair it.</pre>
       <p>Precise words score: leak = allocated but unreachable; dangling = reachable pointer to invalid/free object.</p>
+    </section>
+
+    <section>
+      <h2>Predicted Crash Variants</h2>
+      <pre>rename(old,new):
+  add new dirent -> remove old dirent
+  crash between them: two names, same inode
+  remove old first: possible lost file
+
+unlink(name):
+  remove dirent -> decrement link/free blocks
+  crash after dirent removal: leak possible, no dangling name
+
+append(file):
+  write data block -> update inode pointer/size
+  inode first can expose uninitialized/stale block</pre>
+      <p>Exam answer: say what reached disk, what invariant broke, and whether repair needs fsck or log replay.</p>
     </section>
 
     <section>
@@ -1136,6 +1447,122 @@ kernel:
         <li>V6 code distinguishes small direct inode vs large indirect inode.</li>
         <li>Crash answers list writes and reason after each crash point.</li>
       </ul>
+    </section>
+
+    <section>
+      <h2>Predicted: TLB / Page Walk Trace</h2>
+      <pre>access VA:
+  split VA -> VPN + offset
+  search TLB for VPN
+  if TLB hit:
+    PA = PPN_from_TLB | offset
+  else:
+    walk page table
+    if invalid: page fault
+    else install TLB entry, form PA
+
+TLB entry fields: VPN tag, PPN, valid, permissions,
+maybe ASID/process id to avoid flush on context switch.</pre>
+      <p>Offset never changes. Permission fault is different from not-present page fault.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: DMA / Interrupt Flow</h2>
+      <pre>driver prepares buffer in memory
+driver tells device controller:
+  memory address, length, operation
+device DMA reads/writes memory directly
+device raises interrupt when done
+interrupt handler wakes blocked thread / completes I/O</pre>
+      <p>CPU does not copy every byte; it programs the controller and handles completion.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Flash GC Worked Shape</h2>
+      <pre>erase unit has 100 pages, utilization U=.90
+valid pages to copy before erase = 90
+free pages gained after erase = 10
+logical writes supported per GC ~= 10
+physical writes ~= 100
+write amplification ~= 100/10 = 10x</pre>
+      <p>High utilization is bad because GC copies many live pages to reclaim few free pages.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: BSD Scheduler Trace</h2>
+      <pre>for each clock tick:
+  cur.recent_cpu++;
+
+periodically:
+  recent_cpu decays for all threads
+  priority = base + nice + f(recent_cpu)
+
+choose runnable thread with best effective priority
+CPU-bound thread -> recent_cpu high -> worse priority
+sleeping/I-O thread -> recent_cpu decays -> better priority</pre>
+      <p>Exam wording: reducing recent CPU by blocking/sleeping can improve effective priority. <code>nice</code> alone is not the mechanism.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Linking / Relocation</h2>
+      <pre>object file contains:
+  code/data bytes
+  symbol table: names defined/needed
+  relocation entries: places to patch addresses
+
+linker:
+  lays out sections
+  resolves each symbol to an address
+  patches relocation/import-table entries
+
+dynamic linking:
+  loader maps shared library
+  resolves lazy/eager imports at runtime</pre>
+      <p>Relocation/import table entry = recorded spot where loader/linker must fill in the final address.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Nested Translation</h2>
+      <pre>guest virtual address
+  -> guest page table gives guest physical page
+  -> hypervisor/EPT maps guest physical to machine physical
+
+on privileged op:
+  trap to hypervisor
+  update virtual machine state
+  resume guest after instruction</pre>
+      <p>Virtualization often adds another translation layer; trap-and-simulate handles privileged instructions.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Heap Free-List Allocator</h2>
+      <pre>malloc(n):
+  need = round_up(n + header)
+  find first free block with size &gt;= need
+  if large enough: split block
+  mark chosen block allocated
+  return pointer after header
+
+free(p):
+  h = header_before(p)
+  mark h free
+  if next block free: coalesce with next
+  if previous block free: coalesce with previous</pre>
+      <p>Allocator bugs: forgetting header size, not aligning, not coalescing, or leaving adjacent free blocks separate.</p>
+    </section>
+
+    <section>
+      <h2>Predicted: Thrashing / Working Set</h2>
+      <pre>if working_set_pages &gt; available_frames:
+  every loop iteration evicts pages needed soon
+  page fault rate rises sharply
+  CPU waits on disk instead of doing useful work
+
+fixes:
+  give process more frames
+  reduce multiprogramming
+  use local replacement / working-set policy</pre>
+      <p>Thrashing answer must mention repeated faults because memory cannot hold the active working set.</p>
     </section>
   </div>
 </article>
