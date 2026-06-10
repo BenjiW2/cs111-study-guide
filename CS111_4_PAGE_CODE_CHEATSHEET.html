@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>CS111 4-Page Code Cheatsheet</title>
+  <style>
+    @page { size: A4; margin: 5mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #f3f1ec; color: #151515; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 5.2pt; line-height: 1.055; }
+    .sheet { width: 200mm; height: 287mm; margin: 0 auto 8mm; padding: 3mm; background: #fffdfa; page-break-after: always; overflow: hidden; }
+    .sheet:last-child { page-break-after: auto; }
+    header { display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; border-bottom: .35mm solid #111; margin-bottom: 1.2mm; padding-bottom: .8mm; }
+    h1 { margin: 0; font-size: 9.6pt; line-height: 1.05; letter-spacing: 0; }
+    .sub { font-size: 5pt; font-weight: 700; white-space: nowrap; }
+    .cols { columns: 2; column-gap: 3.2mm; column-fill: auto; height: 275mm; }
+    section { break-inside: avoid; page-break-inside: avoid; margin: 0 0 .95mm; }
+    h2 { margin: 0 0 .38mm; padding: .25mm .55mm; background: #1f1f1f; color: #fff; font-size: 6.35pt; break-after: avoid; }
+    h3 { margin: .55mm 0 .2mm; font-size: 5.65pt; border-bottom: .2mm solid #bbb; }
+    p { margin: 0 0 .32mm; }
+    ul, ol { margin: 0 0 .45mm 2.2mm; padding: 0; }
+    li { margin: 0 0 .06mm; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    code { background: #eee9df; border-radius: .45mm; padding: 0 .25mm; }
+    pre { margin: .3mm 0 .45mm; padding: .42mm; border: .2mm solid #d8d0c3; background: #fbfaf7; white-space: pre-wrap; font-size: 4.15pt; line-height: 1.04; }
+    table { width: 100%; border-collapse: collapse; margin: .25mm 0 .5mm; font-size: 4.7pt; }
+    th, td { border: .2mm solid #cec6b8; padding: .22mm .3mm; vertical-align: top; }
+    th { background: #eee7dc; text-align: left; }
+    .rule { border-left: .75mm solid #0f6b63; padding-left: .8mm; background: #f2fbf5; }
+    .warn { border-left: .75mm solid #9b3d16; padding-left: .8mm; background: #fff7ef; }
+    .mini { font-size: 4.75pt; }
+    @media screen {
+      body { padding: 10mm 0; }
+      .sheet { box-shadow: 0 2mm 8mm rgba(0,0,0,.14); }
+    }
+  </style>
+</head>
+<body>
+
+<article class="sheet">
+  <header><h1>CS111 Code Cheatsheet: Processes, Exec, Pipes, FDs</h1><div class="sub">Page 1 / 4</div></header>
+  <div class="cols">
+    <section>
+      <h2>API Shape: Memorize Returns</h2>
+      <table>
+        <tr><th>call</th><th>return / meaning</th><th>trap</th></tr>
+        <tr><td><code>fork()</code></td><td>child sees <code>0</code>; parent sees child PID; <code>-1</code> error</td><td>both continue after call</td></tr>
+        <tr><td><code>execvp(file,argv)</code></td><td>returns only on failure</td><td><code>argv</code> must end with <code>NULL</code></td></tr>
+        <tr><td><code>waitpid(pid,&amp;st,0)</code></td><td>wait/reap one child</td><td><code>pid=-1</code> means any child</td></tr>
+        <tr><td><code>pipe(p)</code></td><td><code>p[0]</code> read, <code>p[1]</code> write</td><td>EOF only when all write ends closed</td></tr>
+        <tr><td><code>dup2(old,new)</code></td><td>makes <code>new</code> refer to old target</td><td>direction matters</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Fully Annotated Shell Command</h2>
+      <pre>#include &lt;sys/wait.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main(void) {
+  char *argv[] = {"wc", "-l", "in.txt", NULL};
+  pid_t pid = fork();
+
+  if (pid &lt; 0) { perror("fork"); exit(1); }
+
+  if (pid == 0) {
+    // Child only: replace child with wc.
+    execvp(argv[0], argv);
+    // Only reached if execvp failed.
+    perror("execvp");
+    exit(1);
+  }
+
+  // Parent only: wait keeps child from becoming zombie.
+  int st;
+  waitpid(pid, &amp;st, 0);
+  if (WIFEXITED(st)) {
+    printf("exit=%d\n", WEXITSTATUS(st));
+  }
+}</pre>
+      <ul>
+        <li><code>execvp</code> keeps same PID but replaces code/heap/stack/globals.</li>
+        <li>Parent does not run <code>wc</code>; child does.</li>
+        <li><code>perror/exit</code> after <code>execvp</code> is failure path.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Multiple Fork Trace</h2>
+      <pre>pid_t a = fork();
+pid_t b = fork();
+printf("a=%d b=%d\n", a, b);</pre>
+      <table>
+        <tr><th>process</th><th><code>a</code></th><th><code>b</code></th><th>why</th></tr>
+        <tr><td>P0</td><td>PID(P1)</td><td>PID(P2)</td><td>parent of both forks</td></tr>
+        <tr><td>P1</td><td>0</td><td>PID(P3)</td><td>child of first, parent of second</td></tr>
+        <tr><td>P2</td><td>PID(P1)</td><td>0</td><td>child of second from P0; copied <code>a</code></td></tr>
+        <tr><td>P3</td><td>0</td><td>0</td><td>child of second from P1</td></tr>
+      </table>
+      <p class="rule">Rule: <code>0</code> only in the newly-created child of that exact <code>fork</code>.</p>
+    </section>
+
+    <section>
+      <h2>Conditional Forks: Count Processes</h2>
+      <pre>if (fork() == 0) {
+  fork();
+}
+printf("x\n");</pre>
+      <table>
+        <tr><th>who</th><th>first fork</th><th>second fork?</th><th>prints</th></tr>
+        <tr><td>original parent</td><td>nonzero</td><td>no</td><td>yes</td></tr>
+        <tr><td>first child</td><td>0</td><td>yes, parent side</td><td>yes</td></tr>
+        <tr><td>grandchild</td><td>copied 0</td><td>created by second</td><td>yes</td></tr>
+      </table>
+      <p>Answer: three prints. Only processes that see first result <code>0</code> enter the body.</p>
+    </section>
+
+    <section>
+      <h2>Child Loop: Correct Pattern</h2>
+      <pre>for (int i = 0; i &lt; 3; i++) {
+  pid_t pid = fork();
+  if (pid &lt; 0) exit(1);
+
+  if (pid == 0) {
+    do_child_work(i);
+    exit(0);   // without this, child keeps forking
+  }
+}
+
+while (waitpid(-1, NULL, 0) &gt; 0) {
+  // reap all children
+}</pre>
+      <p>Exam smell: "create N children." Child must usually stop after its assigned work.</p>
+    </section>
+
+    <section>
+      <h2>Wait Status: Which Child Failed?</h2>
+      <pre>for (int i = 0; i &lt; n; i++) {
+  pid_t pid = fork();
+  if (pid == 0) {
+    exit(run_job(i));        // child returns status 0..255
+  }
+  pids[i] = pid;
+}
+
+for (int i = 0; i &lt; n; i++) {
+  int st;
+  pid_t done = waitpid(pids[i], &amp;st, 0);
+  if (done &lt; 0) perror("waitpid");
+  if (WIFEXITED(st) &amp;&amp; WEXITSTATUS(st) != 0) {
+    printf("job %d failed\n", i);
+  }
+}</pre>
+      <p><code>waitpid(pids[i],...)</code> waits for a specific child; <code>waitpid(-1,...)</code> waits for whichever finishes next.</p>
+    </section>
+
+    <section>
+      <h2>Redirect Child Stdout To File</h2>
+      <pre>int fd = open("out.txt", O_WRONLY|O_CREAT|O_TRUNC, 0644);
+pid_t pid = fork();
+
+if (pid == 0) {
+  dup2(fd, STDOUT_FILENO); // fd 1 now points to out.txt
+  close(fd);               // no longer need original number
+  char *args[] = {"echo", "hi", NULL};
+  execvp(args[0], args);
+  perror("execvp");
+  exit(1);
+}
+
+close(fd);                 // parent should close too
+waitpid(pid, NULL, 0);</pre>
+      <p class="warn">Wrong direction: <code>dup2(STDOUT_FILENO, fd)</code> does not redirect stdout.</p>
+    </section>
+
+    <section>
+      <h2>Use All Three Standard FDs</h2>
+      <pre>char buf[128];
+int n = read(STDIN_FILENO, buf, sizeof(buf));
+if (n &lt; 0) {
+  write(STDERR_FILENO, "read failed\n", 12);
+  exit(1);
+}
+write(STDOUT_FILENO, buf, n);</pre>
+      <ul>
+        <li><code>stdin=0</code>: input source.</li>
+        <li><code>stdout=1</code>: normal output.</li>
+        <li><code>stderr=2</code>: error output, often not redirected with stdout.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Pipeline: <code>left | right</code></h2>
+      <pre>int p[2];
+pipe(p);
+
+pid_t left_pid = fork();
+if (left_pid == 0) {
+  dup2(p[1], STDOUT_FILENO); // left writes into pipe
+  close(p[0]); close(p[1]);
+  execvp(left[0], left);
+  perror("left"); exit(1);
+}
+
+pid_t right_pid = fork();
+if (right_pid == 0) {
+  dup2(p[0], STDIN_FILENO);  // right reads from pipe
+  close(p[0]); close(p[1]);
+  execvp(right[0], right);
+  perror("right"); exit(1);
+}
+
+// Parent neither reads nor writes pipeline data.
+close(p[0]);
+close(p[1]);
+waitpid(left_pid, NULL, 0);
+waitpid(right_pid, NULL, 0);</pre>
+      <ul>
+        <li>If parent keeps <code>p[1]</code>, right side may never see EOF.</li>
+        <li>Close unused ends after <code>dup2</code> in every process.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Pipe EOF Bug: Why It Hangs</h2>
+      <pre>pipe(p);
+if (fork() == 0) {
+  close(p[1]);
+  while (read(p[0], buf, sizeof(buf)) &gt; 0) {}
+  exit(0);
+}
+
+// BUG: parent writes but forgets close(p[1])
+write(p[1], "abc", 3);
+waitpid(-1, NULL, 0); // child waits forever for EOF</pre>
+      <p>Reader sees EOF only after every copy of the write end is closed in every process.</p>
+    </section>
+
+    <section>
+      <h2>Command-Line Arguments</h2>
+      <pre>int main(int argc, char *argv[]) {
+  // argv[0] is program name
+  // argv[argc] is always NULL
+  for (int i = 1; i &lt; argc; i++) {
+    printf("arg %d = %s\n", i, argv[i]);
+  }
+}</pre>
+      <p><code>argv</code> is an array of <code>char *</code>. Each string is a separate null-terminated char array.</p>
+    </section>
+
+    <section>
+      <h2>Pipe Without Exec: Direction Sanity</h2>
+      <pre>pipe(p);
+if (fork() == 0) {
+  close(p[1]);             // child reads only
+  char buf[100];
+  int n = read(p[0], buf, 99);
+  buf[n] = '\0';
+  printf("%s\n", buf);
+  exit(0);
+}
+
+close(p[0]);               // parent writes only
+write(p[1], "hello", 5);
+close(p[1]);               // sends EOF
+waitpid(-1, NULL, 0);</pre>
+      <p>Use this mental model before adding redirection and <code>execvp</code>.</p>
+    </section>
+
+    <section>
+      <h2>FD Sharing After Fork</h2>
+      <pre>int fd = open("data", O_RDONLY);
+if (fork() == 0) {
+  char c; read(fd, &amp;c, 1);
+  printf("child %c\n", c);
+  exit(0);
+}
+char c; read(fd, &amp;c, 1);
+printf("parent %c\n", c);
+waitpid(-1, NULL, 0);</pre>
+      <ul>
+        <li>FD table entries are copied.</li>
+        <li>They may point to same open-file description.</li>
+        <li>Open-file description stores current file offset.</li>
+        <li>Scheduling decides who consumes first byte.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Build <code>argv</code> For <code>execvp</code></h2>
+      <pre>char *cmd[] = {
+  "grep",        // argv[0]: conventionally program name
+  "-n",
+  "needle",
+  "file.txt",
+  NULL           // required terminator
+};
+execvp(cmd[0], cmd);</pre>
+      <p><code>execvp</code> searches <code>PATH</code> for <code>cmd[0]</code> if it has no slash. With <code>./prog</code> or <code>/bin/ls</code>, it uses that path.</p>
+    </section>
+  </div>
+</article>
+
+<article class="sheet">
+  <header><h1>CS111 Code Cheatsheet: Threads, Mutexes, CVs, Monitors</h1><div class="sub">Page 2 / 4</div></header>
+  <div class="cols">
+    <section>
+      <h2>Monitor API Pattern</h2>
+      <pre>std::mutex m;
+std::condition_variable cv;
+
+void method() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  while (!predicate_over_shared_state) {
+    cv.wait(lock);  // unlocks while sleeping; relocks before return
+  }
+  // update shared state while lock is held
+  cv.notify_all();  // or notify_one if one waiter is enough
+}</pre>
+      <p class="rule">CV has no memory. Predicate is the truth; CV only wakes threads to re-check it.</p>
+    </section>
+
+    <section>
+      <h2>Lost Update + Fix</h2>
+      <pre>int x = 0;
+void bad_worker() {
+  x++;        // load, add, store: not atomic
+}</pre>
+      <pre>// Bad interleaving:
+T1 reads x=0
+T2 reads x=0
+T1 writes x=1
+T2 writes x=1   // one increment lost</pre>
+      <pre>std::mutex m;
+void good_worker() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  x++;
+} // auto-unlock</pre>
+      <p>Protect the whole read-modify-write, not just the write.</p>
+    </section>
+
+    <section>
+      <h2>Create Threads And Join</h2>
+      <pre>void worker(int id) {
+  do_work(id);
+}
+
+int main() {
+  std::vector&lt;std::thread&gt; threads;
+  for (int i = 0; i &lt; 4; i++) {
+    threads.push_back(std::thread(worker, i));
+  }
+
+  for (std::thread &amp;t : threads) {
+    t.join();       // wait for that thread to finish
+  }
+}</pre>
+      <p><code>join</code> is thread-world <code>waitpid</code>: it waits for completion and cleans up thread resources.</p>
+    </section>
+
+    <section>
+      <h2>Bounded Buffer</h2>
+      <pre>class BoundedBuffer {
+  std::mutex m;
+  std::condition_variable nonempty, nonfull;
+  std::queue&lt;int&gt; q;
+  int cap;
+public:
+  void put(int x) {
+    std::unique_lock&lt;std::mutex&gt; lock(m);
+    while ((int)q.size() == cap) {
+      nonfull.wait(lock);
+    }
+    q.push(x);               // state change
+    nonempty.notify_one();   // a getter may proceed
+  }
+
+  int get() {
+    std::unique_lock&lt;std::mutex&gt; lock(m);
+    while (q.empty()) {
+      nonempty.wait(lock);
+    }
+    int x = q.front();
+    q.pop();                 // state change
+    nonfull.notify_one();    // a putter may proceed
+    return x;
+  }
+};</pre>
+      <p>Two predicates means two CVs are often clearer.</p>
+    </section>
+
+    <section>
+      <h2>Readers/Writers: Writer Preference Shape</h2>
+      <pre>std::mutex m;
+std::condition_variable cv;
+int readers = 0, writers = 0, waiting_writers = 0;
+
+void start_read() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  while (writers &gt; 0 || waiting_writers &gt; 0) {
+    cv.wait(lock);
+  }
+  readers++;
+}
+
+void end_read() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  readers--;
+  if (readers == 0) cv.notify_all();
+}
+
+void start_write() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  waiting_writers++;
+  while (readers &gt; 0 || writers &gt; 0) {
+    cv.wait(lock);
+  }
+  waiting_writers--;
+  writers = 1;
+}
+
+void end_write() {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  writers = 0;
+  cv.notify_all();
+}</pre>
+      <p>Writer preference blocks new readers while a writer is waiting, preventing writer starvation.</p>
+    </section>
+
+    <section>
+      <h2>Bridge Monitor With Capacity</h2>
+      <pre>enum Dir { E=0, W=1 };
+class Bridge {
+  std::mutex m;
+  std::condition_variable cv[2];
+  int on = 0;
+  int waiting[2] = {0,0};
+  Dir cur = E;
+public:
+  void arrive(Dir d) {
+    std::unique_lock&lt;std::mutex&gt; lock(m);
+    waiting[d]++;
+    while ((on &gt; 0 &amp;&amp; cur != d) || on == 3) {
+      cv[d].wait(lock);
+    }
+    waiting[d]--;
+    cur = d;
+    on++;
+  }
+
+  void leave(Dir d) {
+    std::unique_lock&lt;std::mutex&gt; lock(m);
+    on--;
+    if (on == 0) {
+      Dir other = (d == E ? W : E);
+      if (waiting[other] &gt; 0) {
+        cur = other;
+        cv[other].notify_all();
+      } else {
+        cv[d].notify_all();
+      }
+    } else {
+      cv[d].notify_all();
+    }
+  }
+};</pre>
+      <p>Add fairness by tracking consecutive cars/turns and including that in the wait predicate.</p>
+    </section>
+
+    <section>
+      <h2>Notify One vs Notify All</h2>
+      <pre>void add_item(int item) {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  q.push(item);
+  not_empty.notify_one();    // one item wakes one getter
+}
+
+void add_many(vector&lt;int&gt; xs) {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  for (int x : xs) q.push(x);
+  not_empty.notify_all();    // many predicates may become true
+}</pre>
+      <p>Use <code>notify_all</code> when different waiters may need to re-check different predicates.</p>
+    </section>
+
+    <section>
+      <h2>Exact Selected Waiters: H2O Shape</h2>
+      <pre>struct Waiter {
+  bool assigned = false;
+  std::condition_variable cv;
+};
+
+std::mutex m;
+std::deque&lt;Waiter*&gt; H, O;
+
+void try_group() {
+  if (H.size() &gt;= 2 &amp;&amp; O.size() &gt;= 1) {
+    Waiter *h1 = H.front(); H.pop_front();
+    Waiter *h2 = H.front(); H.pop_front();
+    Waiter *o  = O.front(); O.pop_front();
+    h1-&gt;assigned = true;
+    h2-&gt;assigned = true;
+    o-&gt;assigned = true;
+    h1-&gt;cv.notify_one();
+    h2-&gt;cv.notify_one();
+    o-&gt;cv.notify_one();
+  }
+}
+
+void hydrogen() {
+  Waiter self;
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  H.push_back(&amp;self);
+  try_group();
+  while (!self.assigned) self.cv.wait(lock);
+  lock.unlock();
+  bond();
+}</pre>
+      <ul>
+        <li><code>h1-&gt;cv</code> means <code>(*h1).cv</code>.</li>
+        <li>Use identity records when prompt says "exactly selected threads."</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>All-Or-Nothing Inventory</h2>
+      <pre>std::mutex m;
+std::condition_variable changed;
+std::map&lt;int,int&gt; stock;
+
+bool can_fill(vector&lt;int&gt; ids, vector&lt;int&gt; counts) {
+  for (int i = 0; i &lt; ids.size(); i++) {
+    if (stock[ids[i]] &lt; counts[i]) return false;
+  }
+  return true;
+}
+
+void order(vector&lt;int&gt; ids, vector&lt;int&gt; counts) {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  while (!can_fill(ids, counts)) {
+    changed.wait(lock);
+  }
+  // subtract only after whole order is possible
+  for (int i = 0; i &lt; ids.size(); i++) {
+    stock[ids[i]] -= counts[i];
+  }
+}
+
+void add(int id, int n) {
+  std::unique_lock&lt;std::mutex&gt; lock(m);
+  stock[id] += n;
+  changed.notify_all(); // different orders need different items
+}</pre>
+      <p class="warn">Wrong: consume item A, then sleep waiting for item B. That creates partial reservation bugs.</p>
+    </section>
+
+    <section>
+      <h2>Reusable Barrier</h2>
+      <pre>class Barrier {
+  std::mutex m;
+  std::condition_variable cv;
+  int arrived = 0;
+  int generation = 0;
+  int n;
+public:
+  void wait() {
+    std::unique_lock&lt;std::mutex&gt; lock(m);
+    int mygen = generation;
+    arrived++;
+    if (arrived == n) {
+      arrived = 0;
+      generation++;
+      cv.notify_all();
+    } else {
+      while (generation == mygen) {
+        cv.wait(lock);
+      }
+    }
+  }
+};</pre>
+      <p><code>generation</code> separates rounds; otherwise next round can consume old wakeups.</p>
+    </section>
+
+    <section>
+      <h2>Busy Waiting vs Blocking Lock</h2>
+      <pre>// Spin lock shape: burns CPU while waiting.
+while (test_and_set(&amp;locked)) {
+  // busy wait
+}
+critical_section();
+locked = false;
+
+// Blocking mutex shape: wait queue + scheduler.
+m.lock();
+critical_section();
+m.unlock();</pre>
+      <p>Disabling interrupts is an implementation trick for kernel uniprocessor internals. Ordinary user mutexes do not mean your code disabled interrupts.</p>
+    </section>
+
+    <section>
+      <h2>Deadlock Pattern</h2>
+      <pre>// bad:
+T1: lock(A); lock(B);
+T2: lock(B); lock(A);
+
+// good: global lock ordering
+lock(A);
+lock(B);
+...
+unlock(B);
+unlock(A);</pre>
+      <p>Remove circular wait. Starvation is different: system progresses, but one thread waits too long.</p>
+    </section>
+  </div>
+</article>
+
+<article class="sheet">
+  <header><h1>CS111 Code Cheatsheet: Unix V6 Filesystem Final Patterns</h1><div class="sub">Page 3 / 4</div></header>
+  <div class="cols">
+    <section>
+      <h2>V6 Constants / Struct Reminders</h2>
+      <pre>#define DISKIMG_SECTOR_SIZE 512
+#define INODE_START_SECTOR  2
+#define ROOT_INUMBER        1
+#define MAX_COMPONENT_LENGTH 14
+
+// direntv6: 2-byte inode + 14-byte name
+// 512 / 16 = 32 dirents per block
+// uint16_t block ptrs: 512 / 2 = 256 ptrs</pre>
+      <ul>
+        <li><code>IALLOC</code>: inode allocated.</li>
+        <li><code>IFMT</code>: file type mask. <code>IFDIR</code>: directory.</li>
+        <li><code>ILARG</code>: large V6 inode addressing.</li>
+        <li><code>size = (i_size0 &lt;&lt; 16) | i_size1</code>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><code>inode_iget</code>: Inumber To Inode</h2>
+      <pre>int inode_iget(fs, int inumber, struct inode *inp) {
+  struct inode inodes[DISKIMG_SECTOR_SIZE /
+                      sizeof(struct inode)];
+
+  int idx = inumber - 1; // inumber 1 is array index 0
+  int per = DISKIMG_SECTOR_SIZE / sizeof(struct inode);
+  int sector = INODE_START_SECTOR + idx / per;
+  int offset = idx % per;
+
+  if (diskimg_readsector(fs-&gt;dfd, sector, inodes)
+      != DISKIMG_SECTOR_SIZE) {
+    return -1;
+  }
+  *inp = inodes[offset];
+  return 0;
+}</pre>
+      <p>Disk layout: sector 0 boot, sector 1 superblock, sector 2 starts inode list.</p>
+    </section>
+
+    <section>
+      <h2>V6 <code>inode_indexlookup</code></h2>
+      <pre>int inode_indexlookup(fs, struct inode *in, int b) {
+  uint16_t ptrs[256], ptrs2[256];
+
+  if (!(in-&gt;i_mode &amp; ILARG)) {
+    return in-&gt;i_addr[b]; // small: direct sectors
+  }
+
+  if (b &lt; 7 * 256) {
+    int which = b / 256;       // which i_addr[0..6]
+    int off = b % 256;         // which entry inside it
+    diskimg_readsector(fs-&gt;dfd, in-&gt;i_addr[which], ptrs);
+    return ptrs[off];
+  }
+
+  b -= 7 * 256;
+  int outer = b / 256;
+  int inner = b % 256;
+
+  diskimg_readsector(fs-&gt;dfd, in-&gt;i_addr[7], ptrs);
+  diskimg_readsector(fs-&gt;dfd, ptrs[outer], ptrs2);
+  return ptrs2[inner];
+}</pre>
+      <p class="warn">V6 large inode: <code>i_addr[7]</code> is doubly indirect. Do not treat it as a data sector.</p>
+    </section>
+
+    <section>
+      <h2><code>file_getblock</code>: Logical Block To Bytes</h2>
+      <pre>int file_getblock(fs, int inum, int lbn, void *buf) {
+  struct inode in;
+  if (inode_iget(fs, inum, &amp;in) &lt; 0) return -1;
+
+  int size = inode_getsize(&amp;in);
+  int first = lbn * DISKIMG_SECTOR_SIZE;
+  if (first &gt;= size) return 0;
+
+  int sector = inode_indexlookup(fs, &amp;in, lbn);
+  if (sector &lt; 0) return -1;
+
+  if (diskimg_readsector(fs-&gt;dfd, sector, buf)
+      != DISKIMG_SECTOR_SIZE) return -1;
+
+  int remaining = size - first;
+  return remaining &lt; DISKIMG_SECTOR_SIZE
+       ? remaining
+       : DISKIMG_SECTOR_SIZE;
+}</pre>
+      <p>Return valid bytes. Only the final block may be short.</p>
+    </section>
+
+    <section>
+      <h2>Directory Scan</h2>
+      <pre>int directory_findname(fs, char *name, int dirinum,
+                       struct direntv6 *out) {
+  struct inode dir;
+  inode_iget(fs, dirinum, &amp;dir);
+  if (!(dir.i_mode &amp; IALLOC)) return -1;
+  if ((dir.i_mode &amp; IFMT) != IFDIR) return -1;
+
+  int size = inode_getsize(&amp;dir);
+  int nblocks = (size + 511) / 512;
+  char block[512];
+
+  for (int b = 0; b &lt; nblocks; b++) {
+    int valid = file_getblock(fs, dirinum, b, block);
+    struct direntv6 *e = (struct direntv6 *) block;
+    int n = valid / sizeof(struct direntv6);
+
+    for (int i = 0; i &lt; n; i++) {
+      if (e[i].d_inumber == 0) continue;
+      if (strncmp(name, e[i].d_name, 14) == 0) {
+        *out = e[i];
+        return 0;
+      }
+    }
+  }
+  return -1;
+}</pre>
+      <p class="rule">Use <code>strncmp</code>: a 14-char V6 name may not have <code>'\0'</code>.</p>
+    </section>
+
+    <section>
+      <h2>Pathname Lookup</h2>
+      <pre>int pathname_lookup(fs, char *path) {
+  if (path[0] != '/') return -1;
+  int cur = ROOT_INUMBER;
+
+  char copy[strlen(path)+1];
+  strcpy(copy, path);          // strtok mutates string
+  char *part = strtok(copy, "/");
+
+  while (part != NULL) {
+    struct direntv6 de;
+    if (directory_findname(fs, part, cur, &amp;de) &lt; 0) {
+      return -1;
+    }
+    cur = de.d_inumber;
+    part = strtok(NULL, "/");
+  }
+  return cur;
+}</pre>
+      <p><code>/usr/bin/ls</code>: root -> lookup <code>usr</code> -> lookup <code>bin</code> -> lookup <code>ls</code>.</p>
+    </section>
+
+    <section>
+      <h2>Byte Offset To File Block</h2>
+      <pre>int off = 9000;
+int lbn = off / DISKIMG_SECTOR_SIZE;
+int within = off % DISKIMG_SECTOR_SIZE;
+
+char block[512];
+int n = file_getblock(fs, inum, lbn, block);
+if (within &lt; n) {
+  unsigned char byte = block[within];
+}</pre>
+      <p>File offsets are logical. Inode translation turns logical block number into disk sector.</p>
+    </section>
+
+    <section>
+      <h2>Scan All Allocated Inodes</h2>
+      <pre>int total = fs-&gt;superblock.s_isize *
+            (DISKIMG_SECTOR_SIZE / sizeof(struct inode));
+
+for (int inum = 1; inum &lt;= total; inum++) {
+  struct inode in;
+  if (inode_iget(fs, inum, &amp;in) &lt; 0) return -1;
+  if (!(in.i_mode &amp; IALLOC)) continue;
+
+  // check property exam asks about
+}</pre>
+      <p>Use for "find file/inode/block with property X."</p>
+    </section>
+
+    <section>
+      <h2>Does This Inode Use Disk Block X?</h2>
+      <pre>bool uses_block(fs, struct inode *in, int target) {
+  int size = inode_getsize(in);
+  int nblocks = (size + 511) / 512;
+  for (int lbn = 0; lbn &lt; nblocks; lbn++) {
+    int sector = inode_indexlookup(fs, in, lbn);
+    if (sector == target) return true;
+  }
+  return false;
+}</pre>
+      <p>This checks data blocks. A separate scan is needed if the question asks about indirect metadata blocks.</p>
+    </section>
+
+    <section>
+      <h2>Find Whether Block Is Indirect</h2>
+      <pre>for each allocated inode in:
+  if (!(in.i_mode &amp; ILARG)) continue;
+
+  // Directly named indirect blocks:
+  for (int i = 0; i &lt; 7; i++) {
+    if (in.i_addr[i] == block_num) return true;
+  }
+
+  // Indirect blocks named inside doubly-indirect block:
+  uint16_t ptrs[256];
+  diskimg_readsector(fs-&gt;dfd, in.i_addr[7], ptrs);
+  for (int i = 0; i &lt; 256; i++) {
+    if (ptrs[i] == block_num) return true;
+  }</pre>
+      <p><code>i_addr[7]</code> itself is the doubly-indirect block; entries inside it point at singly indirect blocks.</p>
+    </section>
+
+    <section>
+      <h2>Hard Link Skeleton</h2>
+      <pre>int target = pathname_lookup(fs, oldpath);
+inode_iget(fs, target, &amp;tin);
+if ((tin.i_mode &amp; IFMT) == IFDIR) reject;
+
+// split new path into parent directory + final name
+int parent = pathname_lookup(fs, parent_dir(newpath));
+inode_iget(fs, parent, &amp;pin);
+verify parent is directory;
+
+// scan parent directory for empty dirent slot
+slot.d_inumber = target;
+copy final component into slot.d_name;
+tin.i_nlink++;</pre>
+      <p>Hard link = new directory entry to same inode. No data copy, no new file inode.</p>
+    </section>
+
+    <section>
+      <h2>Add Directory Entry Safely</h2>
+      <pre>for each directory block:
+  read block
+  for each dirent e:
+    if e.d_inumber == 0:
+      e.d_inumber = target_inum;
+      memset(e.d_name, 0, 14);
+      strncpy(e.d_name, name, 14);
+      write block back;
+      return 0;
+
+// no free slot: allocate/append a new directory block</pre>
+      <p>Directory maps name -> inode number. Inode stores metadata and block pointers, not the filename.</p>
+    </section>
+
+    <section>
+      <h2>Upgrade Small Inode To Large</h2>
+      <pre>uint16_t ptrs[256];
+
+for (int i = 0; i &lt; 8; i++) {
+  ptrs[i] = in-&gt;i_addr[i];   // old direct data sectors
+}
+for (int i = 8; i &lt; 256; i++) {
+  ptrs[i] = 0;
+}
+
+for (int i = 0; i &lt; 8; i++) in-&gt;i_addr[i] = 0;
+
+in-&gt;i_addr[0] = new_indirect_sector;
+in-&gt;i_mode |= ILARG;</pre>
+      <p>Data blocks stay where they are; only pointer structure changes.</p>
+    </section>
+
+    <section>
+      <h2>How Many Blocks Can It Address?</h2>
+      <pre>// lecture-style example: 4KB block, 4B block pointers
+ptrs_per_indirect = 4096 / 4 = 1024
+direct_capacity = 12
+singly_capacity = 1024
+doubly_capacity = 1024 * 1024
+
+max_blocks = 12 + 1024 + 1024*1024</pre>
+      <p>A doubly indirect block points to indirect blocks; those indirect blocks point to data blocks.</p>
+    </section>
+  </div>
+</article>
+
+<article class="sheet">
+  <header><h1>CS111 Code Cheatsheet: VM, Replacement, Crash Recovery</h1><div class="sub">Page 4 / 4</div></header>
+  <div class="cols">
+    <section>
+      <h2>Base And Bound</h2>
+      <pre>uintptr_t translate(uintptr_t va) {
+  if (va &gt;= bound) {
+    trap();                  // illegal address
+  }
+  return base + va;          // physical address
+}</pre>
+      <p>Message passing still works because sender traps into kernel; kernel validates/copies bytes between address spaces.</p>
+    </section>
+
+    <section>
+      <h2>Single-Level Page Translation</h2>
+      <pre>uint64_t translate(uint64_t va, pte_t *pt) {
+  uint64_t off_mask = (1ULL &lt;&lt; PAGE_BITS) - 1;
+  uint64_t offset = va &amp; off_mask;
+  uint64_t vpn = va &gt;&gt; PAGE_BITS;
+
+  pte_t pte = pt[vpn];
+  if (!pte.valid) page_fault();
+  if (!allows(pte.perm, access)) protection_fault();
+
+  return (pte.ppn &lt;&lt; PAGE_BITS) | offset;
+}</pre>
+      <ul>
+        <li>Page size <code>2^k</code> -> offset is low <code>k</code> bits.</li>
+        <li>Offset is unchanged in physical address.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Multilevel Index Extraction</h2>
+      <pre>// 48-bit VA, 4KB page, 8B entries
+// offset = 12 bits
+// entries/table = 4096/8 = 512 = 2^9
+// VPN bits = 48-12 = 36 -> 4 levels
+
+offset = va &amp; 0xfff;
+L1 = (va &gt;&gt; 39) &amp; 0x1ff;
+L2 = (va &gt;&gt; 30) &amp; 0x1ff;
+L3 = (va &gt;&gt; 21) &amp; 0x1ff;
+L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
+      <p><code>0x1ff</code> is 9 one-bits. Each level indexes one page-map page.</p>
+    </section>
+
+    <section>
+      <h2>Page Fault Handler Shape</h2>
+      <pre>handle_page_fault(va, access) {
+  if (!legal_address(va, access)) {
+    kill_process();          // segfault/protection fault
+  }
+
+  frame = find_free_frame();
+  if (frame == NONE) {
+    victim = choose_victim();
+    if (victim.dirty) write_back(victim);
+    invalidate_old_pte(victim);
+    frame = victim.frame;
+  }
+
+  read_page_from_disk(va_page(va), frame);
+  update_pte(va_page(va), frame, valid=true);
+  restart_faulting_instruction();
+}</pre>
+      <p>Dirty victim must be written back. Clean victim can be discarded.</p>
+    </section>
+
+    <section>
+      <h2>FIFO / LRU / Clock Trace Rules</h2>
+      <pre>FIFO:
+  evict oldest page loaded into memory
+  hits do not change queue order
+
+LRU:
+  evict least recently used page
+  hits update recency
+
+Clock:
+  if ref bit == 1: clear it, advance hand
+  if ref bit == 0: evict it</pre>
+      <p>Common bug: treating FIFO hit like LRU hit. FIFO does not refresh on hit.</p>
+    </section>
+
+    <section>
+      <h2>Clock Algorithm Skeleton</h2>
+      <pre>int choose_victim() {
+  while (true) {
+    if (frames[hand].ref == 0) {
+      int victim = hand;
+      hand = (hand + 1) % nframes;
+      return victim;
+    }
+    frames[hand].ref = 0;
+    hand = (hand + 1) % nframes;
+  }
+}</pre>
+      <p>On memory access, set that page frame's reference bit to 1. Clock gives recently used pages a second chance.</p>
+    </section>
+
+    <section>
+      <h2>SRPT / Priority Trace Skeleton</h2>
+      <pre>while (unfinished_jobs_exist) {
+  add newly arrived jobs to ready set;
+  choose ready job with smallest remaining time;
+  run until next arrival or job completion;
+  subtract elapsed time from remaining time;
+}</pre>
+      <p>SRPT is preemptive: a new shorter job can interrupt the currently running job.</p>
+    </section>
+
+    <section>
+      <h2>Crash Points: Create File</h2>
+      <pre>Possible writes:
+1 allocate inode / free-inode map
+2 initialize inode
+3 allocate data block / free-block map
+4 write data block
+5 update inode size/pointer
+6 add directory entry</pre>
+      <ul>
+        <li>Dir entry before initialized inode -> name points to garbage.</li>
+        <li>Inode points to block marked free -> future double allocation.</li>
+        <li>Allocated but unreachable block -> leak; usually less dangerous.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ordered Writes: Safer Create</h2>
+      <pre>write initialized data block
+write initialized inode
+mark inode/block allocated
+write directory entry last</pre>
+      <p>Make reachable names point only at initialized metadata/data. For deletion, remove name before freeing inode/blocks.</p>
+    </section>
+
+    <section>
+      <h2>Crash Recovery Answer Template</h2>
+      <pre>For each possible crash point:
+1. List what reached disk.
+2. Say whether metadata is consistent.
+3. Say what is leaked, dangling, stale, or lost.
+4. Say whether fsck/log replay can repair it.</pre>
+      <p>Precise words score: leak = allocated but unreachable; dangling = reachable pointer to invalid/free object.</p>
+    </section>
+
+    <section>
+      <h2>Redo Logging Skeleton</h2>
+      <pre>write_log("begin T");
+write_log("new inode block");
+write_log("new directory block");
+write_log("new free bitmap block");
+write_log("commit T");
+flush_log();
+
+install inode block to home location;
+install directory block to home location;
+install bitmap block to home location;
+checkpoint_or_clear_log();</pre>
+      <ul>
+        <li>No commit record -> ignore transaction.</li>
+        <li>Commit present -> replay all updates.</li>
+        <li>Replay must be idempotent because crash can happen during recovery.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Write Amplification Formula</h2>
+      <pre>erase unit utilization = U
+usable fraction after GC = 1 - U
+write amplification ~= 1 / (1 - U)
+
+U=.50 -> 2x
+U=.90 -> 10x
+U=.99 -> 100x</pre>
+      <p>GC must copy valid pages elsewhere before erasing. High utilization means copy lots of live pages to reclaim tiny space.</p>
+    </section>
+
+    <section>
+      <h2>Flash Out-Of-Place Write</h2>
+      <pre>write(logical_page L, data):
+  Pnew = find_free_erased_physical_page()
+  program(Pnew, data)       // can change 1 bits to 0 bits
+  old = map[L]
+  map[L] = Pnew
+  mark_garbage(old)
+
+garbage_collect(unit):
+  copy still-valid pages elsewhere
+  erase entire unit          // resets bits back to 1
+  add pages to free pool</pre>
+      <p>Erased flash is all 1s, not all 0s. Programming clears selected bits from 1 to 0.</p>
+    </section>
+
+    <section>
+      <h2>Trap-And-Simulate</h2>
+      <pre>guest executes privileged instruction, e.g. CLI
+CPU traps into hypervisor
+hypervisor inspects instruction
+hypervisor updates virtual CPU state
+guest resumes after instruction</pre>
+      <p>Guest thinks interrupts are disabled; hypervisor only disables virtual interrupts for that virtual CPU, not real machine interrupts.</p>
+    </section>
+
+    <section>
+      <h2>System Call Trap Shape</h2>
+      <pre>user code:
+  write(fd, buf, n)
+
+CPU:
+  trap into kernel mode
+
+kernel:
+  validate fd and user pointer
+  copy bytes from user memory
+  ask device/filesystem to write
+  return result to user mode</pre>
+      <p>A trap is a controlled switch from less-privileged code to privileged OS/hypervisor code.</p>
+    </section>
+
+    <section>
+      <h2>Final Code Checklist</h2>
+      <ul>
+        <li><code>execvp</code> arrays end with <code>NULL</code>; child exits on failure.</li>
+        <li>Every process closes unused pipe ends; parent closes too.</li>
+        <li>Every child is waited for or intentionally orphaned.</li>
+        <li>Every CV wait is <code>while (!predicate)</code>, not <code>if</code>.</li>
+        <li>All shared predicate variables use one protecting mutex.</li>
+        <li>Exact-selection problems use waiter identity records.</li>
+        <li>V6 directory names use bounded comparison.</li>
+        <li>V6 code distinguishes small direct inode vs large indirect inode.</li>
+        <li>Crash answers list writes and reason after each crash point.</li>
+      </ul>
+    </section>
+  </div>
+</article>
+
+</body>
+</html>

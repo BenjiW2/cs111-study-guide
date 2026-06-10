@@ -7,6 +7,7 @@ These notes are a standalone study document for the lectures currently in the `L
 - [Slide Text Reference](CS111_SLIDE_TEXT_REFERENCE.html): slide-by-slide extracted lecture text coverage backstop.
 - [TA Notes Reference](CS111_TA_NOTES_REFERENCE.html): full extracted text from the unofficial TA-made course notes.
 - [Coding Examples](CS111_CODING_EXAMPLES.html): code-heavy worked examples for the final coding section.
+- [Four-Page Code Cheatsheet](CS111_4_PAGE_CODE_CHEATSHEET.html): print-focused sheet of large annotated coding examples only.
 - [Six-Page Final Cheatsheet](CS111_FINAL_6_PAGE_CHEATSHEET.html): dense A4 print sheet designed for 3 double-sided pages.
 - [Quick Final Study Guide](CS111_FINAL_STUDY_GUIDE.html): final-review version with traps, drills, and problem patterns.
 - [Exam C/C++ Cheatsheet](CS111_EXAM_C_CHEATSHEET.html): C/C++ syntax and exam-code reference.
