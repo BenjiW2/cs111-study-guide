@@ -1390,16 +1390,6 @@ L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
   <header><h1>CS111 Final Cheatsheet: Filesystems, Disks, Inodes, Flash</h1><div class="sub">Page 5 / 6</div></header>
   <div class="cols">
     <section>
-      <h2>Disk Basics</h2>
-      <ul class="tight">
-        <li>Magnetic disk cost: seek time + rotational latency + transfer time.</li>
-        <li>Sequential access much faster than random access.</li>
-        <li>Disk scheduling tries to reduce movement and improve throughput.</li>
-        <li>Locality matters: place related metadata/data near each other.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>Disk Scheduling</h2>
       <table>
         <tr><th>policy</th><th>idea</th><th>trap</th></tr>
@@ -1407,15 +1397,6 @@ L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
         <tr><td>SSTF</td><td>closest request next</td><td>may starve far requests</td></tr>
         <tr><td>SCAN/elevator</td><td>sweep direction, serving requests</td><td>edge behavior matters</td></tr>
       </table>
-    </section>
-
-    <section>
-      <h2>Filesystem Goals</h2>
-      <ul class="tight">
-        <li>Map names -> files -> disk blocks.</li>
-        <li>Persistence, performance, sharing, protection, crash consistency.</li>
-        <li>Tradeoffs: metadata overhead, fragmentation, sequential/random access, growth, locality.</li>
-      </ul>
     </section>
 
     <section>
@@ -1557,16 +1538,6 @@ L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
     </section>
 
     <section>
-      <h2>Small vs Large Files</h2>
-      <ul class="tight">
-        <li>Direct pointers make small files cheap: inode directly names data blocks.</li>
-        <li>Indirect blocks add extra I/O but allow growth to large files.</li>
-        <li>Double indirect greatly increases max file size without making every inode huge.</li>
-        <li>Index structures trade metadata overhead for random access and growth.</li>
-      </ul>
-    </section>
-
-    <section>
       <h2>Filesystem Exam Traps</h2>
       <ul class="tight">
         <li>Directory entry maps name to inode; inode does not know all its names.</li>
@@ -1578,37 +1549,27 @@ L4 = (va &gt;&gt; 12) &amp; 0x1ff;</pre>
     </section>
 
     <section>
-      <h2>Filesystem Rapid Fire</h2>
-      <ul class="tight">
-        <li>File descriptor is process-local integer; open file object tracks offset; inode identifies file metadata/storage.</li>
-        <li>Two processes can have different fd numbers for same file/inode.</li>
-        <li>Sequential read benefits from contiguous layout and read-ahead.</li>
-        <li>Random read benefits from indexed allocation/inodes.</li>
-        <li>Small files dominate many file systems; direct pointers/fragments optimize them.</li>
-        <li>Large files need indirect indexing to avoid huge inode.</li>
-        <li>Directory lookup cost depends on directory representation and caching.</li>
-        <li>Block cache can cache data blocks, indirect blocks, inode blocks, directory blocks.</li>
-        <li>Metadata writes are often more crash-sensitive than data writes.</li>
-        <li>Free-space bitmap can quickly test allocation status and find contiguous space.</li>
-        <li>Free list can be simple but pointer loss/corruption can lose free blocks.</li>
-        <li>Disk scheduler sees block requests, not high-level files.</li>
-        <li>Flash random writes are internally remapped by FTL; old physical pages become invalid until garbage collected.</li>
-        <li>Wear leveling may move data even without user-visible writes to avoid hot blocks wearing out.</li>
-      </ul>
+      <h2>Worked: V6 <code>file_getblock</code></h2>
+      <pre>inode_iget(fs, inum, &amp;in);
+size = inode_getsize(&amp;in);
+first = lbn * DISKIMG_SECTOR_SIZE;
+if (first &gt;= size) return 0;
+sector = inode_indexlookup(fs,&amp;in,lbn);
+diskimg_readsector(fs->dfd, sector, buf);
+return min(size-first, DISKIMG_SECTOR_SIZE);</pre>
+      <p>Last block may be partial; return valid byte count, not always 512.</p>
     </section>
 
     <section>
-      <h2>Inode Worked Mini-Pattern</h2>
-      <pre>B = block size, P = pointer size
-ptrs = B / P
-logical = offset / B
-if logical < 12: direct[logical]
-else if logical < 12 + ptrs:
-  indirect[logical - 12]
-else:
-  x = logical - 12 - ptrs
-  first = x / ptrs
-  second = x % ptrs</pre>
+      <h2>Worked: Is Block An Indirect Block?</h2>
+      <pre>for each allocated inode:
+ if (!(in.i_mode &amp; ILARG)) continue;
+ for i in 0..6:
+   if (in.i_addr[i] == block) return true;
+ read in.i_addr[7] into ptrs;
+ for each ptr in ptrs:
+   if (ptr == block) return true;</pre>
+      <p>Trap: <code>i_addr[7]</code> itself is the doubly-indirect block; entries inside it name singly indirect blocks.</p>
     </section>
 
     <section>
@@ -1648,17 +1609,6 @@ else:
         <tr><td>write-back</td><td>mark dirty, write later</td><td>fast, crash risk</td></tr>
         <tr><td>sync</td><td>caller waits for disk</td><td>durable but high latency</td></tr>
       </table>
-    </section>
-
-    <section>
-      <h2>Filesystem Short Answers</h2>
-      <ul class="tight">
-        <li>Why inodes? Separate metadata/block mapping from names; supports hard links.</li>
-        <li>Why indirect blocks? Large files without huge inodes.</li>
-        <li>Why directories as files? Uniform storage abstraction; directory data maps names to inodes.</li>
-        <li>Why block cache? Disk is slow; exploit repeated metadata/data accesses.</li>
-        <li>Why free bitmap? Compact global view of free/used blocks.</li>
-      </ul>
     </section>
 
     <section>
@@ -1741,6 +1691,30 @@ for (int inum=1; inum&lt;=n; inum++) {
   // test property of allocated inode
 }</pre>
       <p>Use this for “find any file/inode/block with property X” final problems.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Hard Link Skeleton</h2>
+      <pre>target = pathname_lookup(fs, oldpath);
+inode_iget(fs, target, &amp;tin);
+if ((tin.i_mode &amp; IFMT) == IFDIR) reject;
+parent = pathname_lookup(fs, parent_dir(newpath));
+find empty dirent slot in parent;
+slot.d_inumber = target;
+copy final name into slot.d_name;
+tin.i_nlink++;</pre>
+      <p>Hard link adds a directory entry to same inode; it does not copy file data.</p>
+    </section>
+
+    <section>
+      <h2>Worked: Upgrade Small V6 Inode</h2>
+      <pre>uint16_t ptrs[256];
+for i in 0..7: ptrs[i] = in->i_addr[i];
+for i in 8..255: ptrs[i] = 0;
+clear in->i_addr[0..7];
+in->i_addr[0] = new_indirect_sector;
+in->i_mode |= ILARG;</pre>
+      <p>Old data blocks stay put; only the inode's addressing format changes.</p>
     </section>
   </div>
 </article>
