@@ -1962,6 +1962,22 @@ in->i_mode |= ILARG;</pre>
     </section>
 
     <section>
+      <h2>Past-Final Short-Answer Traps</h2>
+      <ul class="tight">
+        <li><b><code>stack_switch</code></b>: switching T1 -> T2 returns using T2's saved return address; T1's return address is used when switching back.</li>
+        <li><b>close-on-exec bit</b>: belongs in descriptor-table entry, not open-file table entry, because two fds to same file may differ.</li>
+        <li><b>Privileged?</b> syscall trap: unprivileged; return-from-kernel, set page-map base, disable interrupts: privileged; TLB invalidate/jump-table fill can be unprivileged.</li>
+        <li><b>Linker?</b> combines sections, creates symbol table, modifies code/data relocation addresses, chooses segment addresses; dynamic loader fills lazy import/jump table.</li>
+        <li><b>Condition variables</b>: copying is invalid because wait queues would be duplicated/split nonsensically.</li>
+        <li><b>MRU vs LRU</b>: MRU can beat LRU on looping pattern like <code>ABCDABCD</code> with 3 frames.</li>
+        <li><b>Agential gullibility</b>: agent/company trusts another agent/system beyond justified evidence, e.g. removing safeguards and skipping QA because prior project seemed reliable.</li>
+        <li><b>FAT math</b>: 16-bit FAT -> at most <code>2^16</code> blocks; 512B blocks -> <code>2^25</code>B disk; FAT memory <code>2^16 * 2 = 2^17</code>B.</li>
+        <li><b>PML entry address</b>: physical frame from previous-level entry; offset = relevant 9-bit index shifted left 3 because each entry is 8B.</li>
+        <li><b>V6 erase front</b>: erase exactly one 512B block -> shift pointers/modify indirect blocks; erase less than block -> rewrite data blocks.</li>
+      </ul>
+    </section>
+
+    <section>
       <h2>Recovery Method Comparison</h2>
       <table>
         <tr><th>method</th><th>strength</th><th>cost/trap</th></tr>

@@ -353,20 +353,6 @@ for (int i = 0; i &lt; n; i++) {
     </section>
 
     <section>
-      <h2>Predicted: Merge stdout + stderr</h2>
-      <pre>int fd = open("log", O_WRONLY|O_CREAT|O_TRUNC, 0644);
-if (fork() == 0) {
-  dup2(fd, STDOUT_FILENO);
-  dup2(fd, STDERR_FILENO);   // errors go to same log
-  close(fd);
-  execvp(args[0], args);
-  perror("execvp"); exit(1);
-}
-close(fd); waitpid(-1, NULL, 0);</pre>
-      <p>If order matters, both descriptors should refer to the same open-file description.</p>
-    </section>
-
-    <section>
       <h2>Predicted: Parent Collects Child Output</h2>
       <pre>pipe(p);
 if (fork() == 0) {
@@ -413,6 +399,18 @@ write(to_child[1], request, n);
 close(to_child[1]);          // child sees EOF on stdin
 read(from_child[0], reply, sizeof(reply));</pre>
       <p>Use two pipes for two directions. Never try to use one pipe as bidirectional protocol.</p>
+    </section>
+
+    <section>
+      <h2>Past Final FD Trap: Close-On-Exec</h2>
+      <pre>fd1 = open("x", ...);
+fd2 = dup(fd1);
+set_close_on_exec(fd1);   // only fd1 closes on exec
+execvp(...);
+
+// Therefore close-on-exec bit is per descriptor-table
+// entry, not in shared open-file object.</pre>
+      <p>Two descriptors can share offset/file but have different close-on-exec flags.</p>
     </section>
   </div>
 </article>
@@ -755,43 +753,35 @@ Deadlock:   every thread must acquire locks in same global order</pre>
     </section>
 
     <section>
-      <h2>Predicted: Bounded Priority Monitor</h2>
-      <pre>struct W { int pr; bool go=false; condition_variable cv; };
-mutex m; deque&lt;W*&gt; waiters; int inside=0;
+      <h2>Past Final: Two-Account Transfer</h2>
+      <pre>void transfer(account *a, account *b, double amt) {
+  if (a == b) return;
+  account *first = a &lt; b ? a : b;
+  account *second = a &lt; b ? b : a;
+  first-&gt;mutex.lock();
+  second-&gt;mutex.lock();      // global order avoids deadlock
 
-void enter(int pr) {
-  unique_lock&lt;mutex&gt; lock(m);
-  W self; self.pr = pr; waiters.push_back(&amp;self);
-  try_select();
-  while (!self.go) self.cv.wait(lock);
-  inside++;
-}
-
-void leave() {
-  unique_lock&lt;mutex&gt; lock(m);
-  inside--;
-  try_select();
+  if (a-&gt;balance &gt; b-&gt;balance &amp;&amp; a-&gt;balance &gt;= amt) {
+    a-&gt;balance -= amt; b-&gt;balance += amt;
+  } else if (b-&gt;balance &gt; a-&gt;balance &amp;&amp; b-&gt;balance &gt;= amt) {
+    b-&gt;balance -= amt; a-&gt;balance += amt;
+  }
+  second-&gt;mutex.unlock(); first-&gt;mutex.unlock();
 }</pre>
-      <p><code>try_select</code>: if capacity exists, choose best-priority waiting record, remove it, mark <code>go</code>, notify one.</p>
+      <p>Hold both locks across check and transfer; lock in address order for all callers.</p>
     </section>
 
     <section>
-      <h2>Predicted: Reusable Phase Gate</h2>
-      <pre>int arrived=0, generation=0, N;
-condition_variable cv;
+      <h2>Past Final: Atomic Exchange Trap</h2>
+      <pre>// x=3, y=4; two threads run:
+y.exchange(x.exchange(y));
 
-void wait_phase() {
-  unique_lock&lt;mutex&gt; lock(m);
-  int mygen = generation;
-  if (++arrived == N) {
-    arrived = 0;
-    generation++;
-    cv.notify_all();
-  } else {
-    while (generation == mygen) cv.wait(lock);
-  }
-}</pre>
-      <p>Use <code>generation</code> whenever a barrier/gate can be reused for multiple rounds.</p>
+T1 inner: x=4, y=4, returns 3
+T2 inner: x=4, y=4, returns 4
+T1 outer: y=3
+T2 outer: y=4
+// final: x=4,y=4 possible. Whole expression not atomic.</pre>
+      <p>Atomic sub-operations do not make the whole multi-step expression atomic.</p>
     </section>
   </div>
 </article>
@@ -1089,41 +1079,6 @@ max_blocks = 12 + 1024 + 1024*1024</pre>
     </section>
 
     <section>
-      <h2>Predicted: Append One File Block</h2>
-      <pre>old_n = ceil(size / BS);
-new_lbn = old_n;
-data = alloc_block();
-write data block first;
-
-if small inode has free direct slot:
-  in.i_addr[new_lbn] = data;
-else if needs large conversion:
-  allocate indirect block; copy old direct ptrs into it;
-  set ILARG; in.i_addr[0] = indirect;
-else:
-  allocate missing indirect/double-indirect metadata;
-  store data pointer at computed slot;
-
-in.size += bytes_appended;
-write inode last;</pre>
-      <p>Crash-safe instinct: data/metadata blocks first, then inode size/pointer that makes them reachable.</p>
-    </section>
-
-    <section>
-      <h2>Predicted: Directory Path Split</h2>
-      <pre>path = "/a/b/c"
-parent path = "/a/b"
-basename = "c"
-
-parent_inum = pathname_lookup(parent path)
-verify parent inode is directory
-scan parent dirents for basename
-if create: require not found, find empty slot
-if unlink: require found, clear that slot</pre>
-      <p>Most path-edit questions are just lookup parent, then edit one directory entry.</p>
-    </section>
-
-    <section>
       <h2>Predicted: Free-Space Bitmap/List</h2>
       <pre>// bitmap version
 for (int b = first_data; b &lt; nblocks; b++) {
@@ -1178,6 +1133,35 @@ dirents_per_block = block_size / sizeof(dirent)
 ptrs_per_indirect = block_size / sizeof(blockno)
 max_file = (direct + ptrs + ptrs*ptrs) * block_size</pre>
       <p>Most filesystem arithmetic is one of these five formulas.</p>
+    </section>
+
+    <section>
+      <h2>Past Final: Reverse Pathname</h2>
+      <pre>cur_path = "";
+file = target_inum; parent = parent_inum;
+while (file != ROOT_INUMBER) {
+  scan parent directory for dirent with d_inumber == file;
+  prepend "/" + dirent.d_name to cur_path;
+  scan parent directory for ".." to get grandparent inum;
+  file = parent;
+  parent = grandparent;
+}</pre>
+      <p>Forward lookup follows names to inodes; reverse path reconstruction scans parent dirs for names pointing to known inumbers.</p>
+    </section>
+
+    <section>
+      <h2>Past Final: Erase First N Bytes</h2>
+      <pre>// file has many 512B blocks, 0 &lt; N &lt;= 512
+if (N == 512) {
+  // logical block 1 becomes logical block 0, etc.
+  shift block pointers left;
+  modify each indirect block + inode size;
+} else {
+  // byte contents cross block boundaries
+  rewrite every data block after shifting bytes;
+  update inode size;
+}</pre>
+      <p>Exact block erase can be pointer surgery; partial-block erase forces data copying.</p>
     </section>
   </div>
 </article>
@@ -1467,17 +1451,6 @@ maybe ASID/process id to avoid flush on context switch.</pre>
     </section>
 
     <section>
-      <h2>Predicted: DMA / Interrupt Flow</h2>
-      <pre>driver prepares buffer in memory
-driver tells device controller:
-  memory address, length, operation
-device DMA reads/writes memory directly
-device raises interrupt when done
-interrupt handler wakes blocked thread / completes I/O</pre>
-      <p>CPU does not copy every byte; it programs the controller and handles completion.</p>
-    </section>
-
-    <section>
       <h2>Predicted: Flash GC Worked Shape</h2>
       <pre>erase unit has 100 pages, utilization U=.90
 valid pages to copy before erase = 90
@@ -1522,19 +1495,6 @@ dynamic linking:
     </section>
 
     <section>
-      <h2>Predicted: Nested Translation</h2>
-      <pre>guest virtual address
-  -> guest page table gives guest physical page
-  -> hypervisor/EPT maps guest physical to machine physical
-
-on privileged op:
-  trap to hypervisor
-  update virtual machine state
-  resume guest after instruction</pre>
-      <p>Virtualization often adds another translation layer; trap-and-simulate handles privileged instructions.</p>
-    </section>
-
-    <section>
       <h2>Predicted: Heap Free-List Allocator</h2>
       <pre>malloc(n):
   need = round_up(n + header)
@@ -1563,6 +1523,35 @@ fixes:
   reduce multiprogramming
   use local replacement / working-set policy</pre>
       <p>Thrashing answer must mention repeated faults because memory cannot hold the active working set.</p>
+    </section>
+
+    <section>
+      <h2>Past Final: Privilege / Linker Classify</h2>
+      <pre>privileged:
+  return from kernel to user, set page-map base/PML4,
+  disable interrupts
+not privileged:
+  syscall/trap instruction, fill dynamic-link jump table,
+  invalidate own TLB entry
+
+linker does:
+  combine sections, create symbol table,
+  patch relocation addresses, choose segment addresses
+dynamic loader:
+  fills lazy import/jump table entries</pre>
+      <p>Classification questions reward precise blast-radius reasoning: can user code harm only itself or the whole machine?</p>
+    </section>
+
+    <section>
+      <h2>Past Final: PML Entry Address</h2>
+      <pre>physical address of a page-map entry:
+  frame number = previous-level PTE's physical frame
+  offset = index_within_this_level * sizeof(PTE)
+
+for 512 entries/page and 8B PTE:
+  offset = 9-bit index shifted left 3
+  low 3 offset bits are zero</pre>
+      <p>The entry itself lives in physical memory, so its address is formed like any other physical address.</p>
     </section>
   </div>
 </article>
