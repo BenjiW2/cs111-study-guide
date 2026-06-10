@@ -9,23 +9,23 @@
     @page { size: A4; margin: 5mm; }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: #f3f1ec; color: #151515; }
-    body { font-family: Arial, Helvetica, sans-serif; font-size: 5.2pt; line-height: 1.055; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 5pt; line-height: 1.045; }
     .sheet { width: 200mm; height: 287mm; margin: 0 auto 8mm; padding: 3mm; background: #fffdfa; page-break-after: always; overflow: hidden; }
     .sheet:last-child { page-break-after: auto; }
     header { display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; border-bottom: .35mm solid #111; margin-bottom: 1.2mm; padding-bottom: .8mm; }
-    h1 { margin: 0; font-size: 9.6pt; line-height: 1.05; letter-spacing: 0; }
-    .sub { font-size: 5pt; font-weight: 700; white-space: nowrap; }
+    h1 { margin: 0; font-size: 9.2pt; line-height: 1.05; letter-spacing: 0; }
+    .sub { font-size: 4.8pt; font-weight: 700; white-space: nowrap; }
     .cols { columns: 2; column-gap: 3.2mm; column-fill: auto; height: 275mm; }
     section { break-inside: avoid; page-break-inside: avoid; margin: 0 0 .95mm; }
-    h2 { margin: 0 0 .38mm; padding: .25mm .55mm; background: #1f1f1f; color: #fff; font-size: 6.35pt; break-after: avoid; }
-    h3 { margin: .55mm 0 .2mm; font-size: 5.65pt; border-bottom: .2mm solid #bbb; }
+    h2 { margin: 0 0 .34mm; padding: .22mm .5mm; background: #1f1f1f; color: #fff; font-size: 6pt; break-after: avoid; }
+    h3 { margin: .5mm 0 .18mm; font-size: 5.35pt; border-bottom: .2mm solid #bbb; }
     p { margin: 0 0 .32mm; }
     ul, ol { margin: 0 0 .45mm 2.2mm; padding: 0; }
     li { margin: 0 0 .06mm; }
     code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     code { background: #eee9df; border-radius: .45mm; padding: 0 .25mm; }
-    pre { margin: .3mm 0 .45mm; padding: .42mm; border: .2mm solid #d8d0c3; background: #fbfaf7; white-space: pre-wrap; font-size: 4.15pt; line-height: 1.04; }
-    table { width: 100%; border-collapse: collapse; margin: .25mm 0 .5mm; font-size: 4.7pt; }
+    pre { margin: .25mm 0 .38mm; padding: .36mm; border: .2mm solid #d8d0c3; background: #fbfaf7; white-space: pre-wrap; font-size: 3.82pt; line-height: 1.025; }
+    table { width: 100%; border-collapse: collapse; margin: .22mm 0 .45mm; font-size: 4.45pt; }
     th, td { border: .2mm solid #cec6b8; padding: .22mm .3mm; vertical-align: top; }
     th { background: #eee7dc; text-align: left; }
     .rule { border-left: .75mm solid #0f6b63; padding-left: .8mm; background: #f2fbf5; }
@@ -325,6 +325,20 @@ void method() {
     </section>
 
     <section>
+      <h2>Final Monitor Pattern Map</h2>
+      <table>
+        <tr><th>exam shape</th><th>state</th><th>wake</th></tr>
+        <tr><td>CalTrain</td><td>waiting, seats, boarding</td><td>passengers + train CVs</td></tr>
+        <tr><td>2022 Merge</td><td>waiting per lane, total, current merge</td><td>notify one chosen lane</td></tr>
+        <tr><td>2023 Flight</td><td>sorted map position -> waiter CV</td><td>notify lowest key</td></tr>
+        <tr><td>2024 Inventory</td><td>counts per stock id</td><td>notify all, re-check whole order</td></tr>
+        <tr><td>Party/Dorm</td><td>bucket -> queue of waiter records</td><td>match opposite/same bucket</td></tr>
+        <tr><td>H2O/exact group</td><td>queues of waiter records</td><td>mark exact records assigned</td></tr>
+      </table>
+      <p>In every monitor: lock, update waiting state before sleep, <code>while</code> wait, change state before notify, return with invariant true.</p>
+    </section>
+
+    <section>
       <h2>Lost Update + Fix</h2>
       <pre>int x = 0;
 void bad_worker() {
@@ -394,97 +408,106 @@ public:
     </section>
 
     <section>
-      <h2>Readers/Writers: Writer Preference Shape</h2>
-      <pre>std::mutex m;
-std::condition_variable cv;
-int readers = 0, writers = 0, waiting_writers = 0;
-
-void start_read() {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  while (writers &gt; 0 || waiting_writers &gt; 0) {
-    cv.wait(lock);
-  }
-  readers++;
-}
-
-void end_read() {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  readers--;
-  if (readers == 0) cv.notify_all();
-}
-
-void start_write() {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  waiting_writers++;
-  while (readers &gt; 0 || writers &gt; 0) {
-    cv.wait(lock);
-  }
-  waiting_writers--;
-  writers = 1;
-}
-
-void end_write() {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  writers = 0;
-  cv.notify_all();
-}</pre>
-      <p>Writer preference blocks new readers while a writer is waiting, preventing writer starvation.</p>
-    </section>
-
-    <section>
-      <h2>Bridge Monitor With Capacity</h2>
-      <pre>enum Dir { E=0, W=1 };
-class Bridge {
-  std::mutex m;
-  std::condition_variable cv[2];
-  int on = 0;
-  int waiting[2] = {0,0};
-  Dir cur = E;
+      <h2>CalTrain Worked Pattern</h2>
+      <pre>class Station {
+  mutex m; condition_variable train, all_boarded;
+  int waiting=0, seats=0, boarding=0;
 public:
-  void arrive(Dir d) {
-    std::unique_lock&lt;std::mutex&gt; lock(m);
-    waiting[d]++;
-    while ((on &gt; 0 &amp;&amp; cur != d) || on == 3) {
-      cv[d].wait(lock);
+  void load_train(int available) {
+    unique_lock&lt;mutex&gt; lock(m);
+    seats = available;
+    train.notify_all();
+    while ((seats &gt; 0 &amp;&amp; waiting &gt; 0) || boarding &gt; 0) {
+      all_boarded.wait(lock);
     }
-    waiting[d]--;
-    cur = d;
-    on++;
+    seats = 0;
   }
 
-  void leave(Dir d) {
-    std::unique_lock&lt;std::mutex&gt; lock(m);
-    on--;
-    if (on == 0) {
-      Dir other = (d == E ? W : E);
-      if (waiting[other] &gt; 0) {
-        cur = other;
-        cv[other].notify_all();
-      } else {
-        cv[d].notify_all();
-      }
-    } else {
-      cv[d].notify_all();
-    }
+  void wait_for_train() {
+    unique_lock&lt;mutex&gt; lock(m);
+    waiting++;
+    while (seats == 0) train.wait(lock);
+    waiting--; seats--; boarding++;
+  } // unlock while passenger physically boards
+
+  void boarded() {
+    unique_lock&lt;mutex&gt; lock(m);
+    boarding--;
+    if ((seats == 0 || waiting == 0) &amp;&amp; boarding == 0)
+      all_boarded.notify_one();
   }
 };</pre>
-      <p>Add fairness by tracking consecutive cars/turns and including that in the wait predicate.</p>
+      <p>Trap: train cannot leave just because seats hit 0; passengers allowed to board still must call <code>boarded()</code>.</p>
     </section>
 
     <section>
-      <h2>Notify One vs Notify All</h2>
-      <pre>void add_item(int item) {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  q.push(item);
-  not_empty.notify_one();    // one item wakes one getter
-}
+      <h2>Bridge / RW Predicate Mini-Patterns</h2>
+      <pre>// bridge direction fairness
+while (crossing_opp &gt; 0 ||
+       (waiting_opp &gt; 0 &amp;&amp; consecutive_mine &gt;= 5))
+  cv_mine.wait(lock);
+waiting_mine--; crossing_mine++; consecutive_mine++;
+consecutive_opp = 0;
 
-void add_many(vector&lt;int&gt; xs) {
-  std::unique_lock&lt;std::mutex&gt; lock(m);
-  for (int x : xs) q.push(x);
-  not_empty.notify_all();    // many predicates may become true
-}</pre>
-      <p>Use <code>notify_all</code> when different waiters may need to re-check different predicates.</p>
+// writer-preference readers/writers
+while (writers &gt; 0 || waiting_writers &gt; 0) cv.wait(lock);
+readers++;
+while (readers &gt; 0 || writers &gt; 0) cv.wait(lock);
+writers = 1;</pre>
+      <p>These are predicate questions: identify the exact Boolean that makes entry safe/fair.</p>
+    </section>
+
+    <section>
+      <h2>2022 Merge: Fair Category Rotation</h2>
+      <pre>class Merge {
+  mutex m;
+  vector&lt;int&gt; waiting;
+  vector&lt;condition_variable&gt; safe;
+  int total=0, prev=0;
+  bool merging=false;
+public:
+  void wait(int lane) {
+    unique_lock&lt;mutex&gt; lock(m);
+    if (!merging) { merging=true; return; }
+    waiting[lane]++; total++;
+    safe[lane].wait(lock);    // selected lane only
+  }
+
+  void merged() {
+    unique_lock&lt;mutex&gt; lock(m);
+    if (total == 0) { merging=false; return; }
+    do { prev = (prev + 1) % waiting.size(); }
+    while (waiting[prev] == 0);
+    waiting[prev]--; total--;
+    safe[prev].notify_one();  // exactly one car
+  }
+};</pre>
+      <p>Pattern: categories + fairness. Keep <code>merging=true</code> when handing directly to next car.</p>
+    </section>
+
+    <section>
+      <h2>2023 Flight: Ordered Waiters</h2>
+      <pre>class Flight {
+  mutex m;
+  map&lt;size_t, condition_variable*&gt; ready;
+public:
+  void wait_to_board(size_t pos) {
+    unique_lock&lt;mutex&gt; lock(m);
+    condition_variable mine;
+    ready.emplace(pos, &amp;mine);
+    mine.wait(lock);          // board_next selects me
+  }
+
+  bool board_next() {
+    unique_lock&lt;mutex&gt; lock(m);
+    if (ready.empty()) return false;
+    auto it = ready.begin();  // lowest waiting position
+    it-&gt;second-&gt;notify_one();
+    ready.erase(it);
+    return true;
+  }
+};</pre>
+      <p><code>map</code> sorted order solves “lowest present position first; skipped late passenger can still beat higher waiting positions.”</p>
     </section>
 
     <section>
@@ -527,6 +550,37 @@ void hydrogen() {
     </section>
 
     <section>
+      <h2>Party / Dorm Matching</h2>
+      <pre>struct Person {
+  string name, result;
+  bool matched=false;
+  condition_variable cv;
+};
+
+mutex m;
+map&lt;Key, deque&lt;Person*&gt;&gt; waiting;
+
+string meet(string name, Key mine, Key want) {
+  unique_lock&lt;mutex&gt; lock(m);
+  Key opposite = {want, mine};
+  auto &amp;q = waiting[opposite];
+  if (!q.empty()) {
+    Person *other = q.front(); q.pop_front();
+    other-&gt;result = name;
+    other-&gt;matched = true;
+    other-&gt;cv.notify_one();
+    return other-&gt;name;
+  }
+
+  Person self; self.name = name;
+  waiting[{mine,want}].push_back(&amp;self);
+  while (!self.matched) self.cv.wait(lock);
+  return self.result;
+}</pre>
+      <p>Dorm variant: key is dorm id and opposite bucket is same bucket. Use queue for FIFO within bucket.</p>
+    </section>
+
+    <section>
       <h2>All-Or-Nothing Inventory</h2>
       <pre>std::mutex m;
 std::condition_variable changed;
@@ -559,61 +613,15 @@ void add(int id, int n) {
     </section>
 
     <section>
-      <h2>Reusable Barrier</h2>
-      <pre>class Barrier {
-  std::mutex m;
-  std::condition_variable cv;
-  int arrived = 0;
-  int generation = 0;
-  int n;
-public:
-  void wait() {
-    std::unique_lock&lt;std::mutex&gt; lock(m);
-    int mygen = generation;
-    arrived++;
-    if (arrived == n) {
-      arrived = 0;
-      generation++;
-      cv.notify_all();
-    } else {
-      while (generation == mygen) {
-        cv.wait(lock);
-      }
-    }
-  }
-};</pre>
-      <p><code>generation</code> separates rounds; otherwise next round can consume old wakeups.</p>
-    </section>
-
-    <section>
-      <h2>Busy Waiting vs Blocking Lock</h2>
-      <pre>// Spin lock shape: burns CPU while waiting.
-while (test_and_set(&amp;locked)) {
-  // busy wait
-}
-critical_section();
-locked = false;
-
-// Blocking mutex shape: wait queue + scheduler.
-m.lock();
-critical_section();
-m.unlock();</pre>
-      <p>Disabling interrupts is an implementation trick for kernel uniprocessor internals. Ordinary user mutexes do not mean your code disabled interrupts.</p>
-    </section>
-
-    <section>
-      <h2>Deadlock Pattern</h2>
-      <pre>// bad:
-T1: lock(A); lock(B);
-T2: lock(B); lock(A);
-
-// good: global lock ordering
-lock(A);
-lock(B);
-...
-unlock(B);
-unlock(A);</pre>
-      <p>Remove circular wait. Starvation is different: system progresses, but one thread waits too long.</p>
+      <h2>Last-Section Wrong-Answer Traps</h2>
+      <pre>CV wait:     while (!predicate) cv.wait(lock);  // not if
+Inventory:  check all resources, then subtract all
+Flight:     map.begin() gives lowest waiting key
+Merge:      notify_one selected lane; do not notify_all cars
+Party/Dorm: pop waiter before notify; local Waiter is safe while blocked
+CalTrain:   count boarding passengers, not just available seats
+Deadlock:   every thread must acquire locks in same global order</pre>
+      <p><code>notify_one</code>: selected waiter/category. <code>notify_all</code>: many possible predicates, each re-checks.</p>
     </section>
   </div>
 </article>
